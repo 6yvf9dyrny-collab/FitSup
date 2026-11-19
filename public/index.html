@@ -11,7 +11,7 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>FitSup</title>
-<script>document.documentElement.className='js'</script>
+<script>(function(){var l=true;try{l=!localStorage.getItem('nu_account_v1')}catch(e){}document.documentElement.className='js'+(l?' locked':'')})()</script>
 <style>
 /* ---------- token: un solo posto per colori, testo, spazi, angoli ---------- */
 :root{
@@ -270,11 +270,28 @@ input[type=file]{min-height:var(--hit);font-size:var(--t-in);max-width:100%}
 .pqb{display:flex;flex-wrap:wrap;gap:var(--s2)}.pqb button{flex:1 1 30%}
 .pinfo{margin:0 0 var(--s3);padding:var(--s2) var(--s3);background:var(--head);border-radius:var(--r);font-size:var(--t-s)}
 
+/* pagina di accesso: prima dell'app */
+.gate{display:none}
+html.locked .gate{display:flex;min-height:100vh;min-height:100dvh;align-items:center;justify-content:center;padding:var(--s5) var(--s4) calc(var(--s5) + env(safe-area-inset-bottom,0px));background:var(--bg)}
+html.locked main,html.locked .tabs,html.locked header.hd{display:none!important}
+.gcard{width:100%;max-width:400px}
+.glogo{display:block;width:64px;height:64px;border-radius:16px;margin:0 auto var(--s3)}
+.gtitle{text-align:center;font-size:28px;margin:0}
+.gsub{text-align:center;color:var(--mute);margin:var(--s1) 0 var(--s5)}
+.gstep{margin:0 0 var(--s3)}
+.gcenter{text-align:center}
+.gnote{margin-top:var(--s4);text-align:center}
+.gate .seg{margin-bottom:var(--s2)}
+
 .nw{white-space:nowrap}
 .trend{display:flex;align-items:center;gap:6px;color:var(--acc)}.trend small{color:var(--mute);font-size:var(--t-s)}
 </style>
 </head>
 <body>
+<section class="gate" id="gate" aria-label="Accesso a FitSup"><div class="gcard">
+<img src="icon-192.png" alt="" width="64" height="64" class="glogo"><h1 class="gtitle">FitSup</h1>
+<p class="gsub">La tua scheda, i tuoi allenamenti e i progressi, su ogni dispositivo.</p>
+<div id="gateBox"></div></div></section>
 <header class="hd"><h1 class="site">FitSup</h1><button id="mdBtn" class="mdb" type="button">File .md</button></header>
 <nav class="tabs" id="tabs" aria-label="Sezioni">
 <a href="#pg" data-p="pg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5v11M3.5 9v6M17.5 6.5v11M20.5 9v6M6.5 12h11"/></svg>Oggi</a>
@@ -1554,7 +1571,7 @@ function buildReg(){
   +'<details class="dbx fbox" id="fBox"><summary>Filtri <span class="tg" id="fCnt"></span></summary><div class="fld"><label>Programma<select id="fPr"></select></label><label>Seduta<select id="fSed"></select></label><label>Esercizio<select id="fEx"></select></label><label id="fVrL" style="display:none">Variante<select id="fVr"></select></label><label>Dal<input type="date" id="fFrom"></label><label>Al<input type="date" id="fTo"></label>'
   +'<label>Ordine<select id="fOrd"><option value="plan">Ordine di allenamento (scheda)</option><option value="new">Più recenti prima</option><option value="old">Meno recenti prima</option></select></label><label id="fMetL">Grafico degli esercizi<select id="fMet"><option value="e1">Forza stimata (1RM)</option><option value="top">Carico massimo</option><option value="vol">Volume (kg × ripetizioni)</option><option value="comp">Completamento della scheda</option></select></label></div>'
   +'<button class="btns" type="button" id="fReset">Azzera filtri</button></details><div id="rgList"></div><h2>Account</h2><div id="accBox"></div>';
- $('prBody').addEventListener('click',onReg);$('accBox').addEventListener('click',function(ev){ev.stopPropagation();onAcc(ev)});$('calBox').addEventListener('click',function(ev){ev.stopPropagation();onCal(ev)});
+ $('prBody').addEventListener('click',onReg);$('accBox').addEventListener('click',function(ev){ev.stopPropagation();onAcc(ev)});$('gateBox').addEventListener('click',onAcc);$('calBox').addEventListener('click',function(ev){ev.stopPropagation();onCal(ev)});
  $('fPr').onchange=function(){FIL.pr=this.value;FIL.sed='';FIL.ex='';FIL.vr='';renderReg()};$('fSed').onchange=function(){FIL.sed=this.value;renderReg()};$('fEx').onchange=function(){FIL.ex=this.value;FIL.vr='';renderReg()};$('fVr').onchange=function(){FIL.vr=this.value;renderReg()};
  $('fFrom').onchange=function(){FIL.from=this.value;renderReg()};$('fTo').onchange=function(){FIL.to=this.value;renderReg()};
  $('fOrd').onchange=function(){FIL.ord=this.value;renderReg()};
@@ -1603,7 +1620,7 @@ function onReg(ev){
    vince la modifica locale non ancora inviata, poi quella più recente sul server. */
 var API='/api',GCID='';
 var AUKEY='nu_account_v1',SYKEY='nu_sync_v1',AUTH=null,SYNC={since:0,q:{},last:0},SYT=0,SYBUSY=false,SYMSG='',GIS=0;
-function authLoad(){try{AUTH=JSON.parse(localStorage.getItem(AUKEY)||'null')}catch(e){AUTH=null}
+function authLoad(){try{var fm=sessionStorage.getItem('nu_msg');if(fm){SYMSG=fm;sessionStorage.removeItem('nu_msg')}}catch(e){}try{AUTH=JSON.parse(localStorage.getItem(AUKEY)||'null')}catch(e){AUTH=null}
  try{var s=JSON.parse(localStorage.getItem(SYKEY)||'null');if(s&&s.q)SYNC=s}catch(e){}}
 function authSave(){try{if(AUTH)localStorage.setItem(AUKEY,JSON.stringify(AUTH));else localStorage.removeItem(AUKEY)}catch(e){}}
 function sySave(){try{localStorage.setItem(SYKEY,JSON.stringify(SYNC))}catch(e){}}
@@ -1616,7 +1633,7 @@ function syDoc(key){var k=key.split(':')[0],id=key.slice(k.length+1);
  return null}
 function api(path,opt){opt=opt||{};var h={'Content-Type':'application/json'};if(AUTH&&AUTH.token)h.Authorization='Bearer '+AUTH.token;
  return fetch(API+path,{method:opt.method||'GET',headers:h,body:opt.body?JSON.stringify(opt.body):undefined}).then(function(r){
-  return r.json().catch(function(){return {}}).then(function(j){if(r.status==401&&AUTH){AUTH=null;authSave();SYMSG='Sessione scaduta: accedi di nuovo.';renderAcc()}if(!r.ok)throw new Error(j.error||('Errore '+r.status));return j})})}
+  return r.json().catch(function(){return {}}).then(function(j){if(r.status==401&&AUTH&&path.indexOf('/auth/')!==0){AUTH=null;authSave();SYMSG='Sessione scaduta: accedi di nuovo.';renderAcc()}if(!r.ok)throw new Error(j.error||('Errore '+r.status));return j})})}
 function syFlush(){
  if(!AUTH||SYBUSY||!navigator.onLine)return Promise.resolve();
  var keys=Object.keys(SYNC.q);if(!keys.length)return Promise.resolve();
@@ -1649,7 +1666,7 @@ function syFirst(){
  if(MOBX.U.length||MOBX.L.length)SYNC.q['mobx:all']=1;
  if(Object.keys(PRES.d).length||Object.keys(PRES.x).length)SYNC.q['pres:all']=1;
  SYNC.since=0;sySave();return syAll()}
-function signedIn(j){AUTH={token:j.token,email:j.user.email,name:j.user.name};authSave();SYMSG='';ACCV.busy=false;ACCV.m='in';ACCV.rec=j.recovery||'';renderAcc();return syFirst()}
+function signedIn(j){AUTH={token:j.token,email:j.user.email,name:j.user.name};authSave();SYMSG='';ACCV.busy=false;ACCV.m='in';ACCV.rec=j.recovery||'';renderAcc();return syFirst().then(function(){var on=document.querySelector('#tabs a.on');if(!locked()&&PROGS.length&&on&&on.getAttribute('data-p')=='ps'&&!EDITP&&!NEWSEL&&window.showTab)window.showTab('pg',false)})}
 function onGoogle(resp){
  SYMSG='Accesso in corso…';renderAcc();
  api('/auth/google',{method:'POST',body:{credential:resp.credential}}).then(signedIn).catch(function(e){SYMSG='Accesso non riuscito: '+e.message;renderAcc()})}
@@ -1659,19 +1676,12 @@ function gisLoad(cb){
  s.onload=function(){GIS=2;cb()};s.onerror=function(){GIS=0};document.head.appendChild(s)}
 /* schermate: accedi, crea account, password dimenticata */
 var ACCV={m:'in',busy:false,rec:''};
-function recHtml(){return ACCV.rec?'<div class="recbox"><b>Il tuo codice di recupero</b><p class="tg">Serve se dimentichi la password: salvalo adesso (note, foto, gestore password). Non verrà più mostrato.</p><code id="recC">'+esc(ACCV.rec)+'</code><div class="ptool"><button class="btns" type="button" data-acc="reccopy">Copia</button><button class="btns" type="button" data-acc="recok">L’ho salvato</button></div></div>':''}
-function renderAcc(){
- var host=$('accBox');if(!host)return;var h='';
- if(AUTH){var n=Object.keys(SYNC.q).length;
-  h=recHtml()+'<div class="acc"><div><b>'+esc(AUTH.name||AUTH.email)+'</b><div class="tg">'+esc(AUTH.email)+'</div></div><span class="sy '+(n?'pend':'ok')+'">'+(n?n+' da inviare':'Sincronizzato')+'</span></div>'
-   +'<p class="tg">'+(SYNC.last?'Ultimo aggiornamento '+new Date(SYNC.last).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'. ':'')+'I dati restano anche su questo dispositivo e funzionano offline.</p>'
-   +(SYMSG?'<p class="warn">'+esc(SYMSG)+'</p>':'')
-   +'<div class="ptool"><button class="btns" type="button" data-acc="sync">Sincronizza ora</button><button class="btns" type="button" data-acc="out">Esci</button></div>'
-   +'<p><button class="linkb" type="button" data-acc="del">Elimina l’account e i dati online</button></p>';
-  host.innerHTML=h;return}
- var m=ACCV.m,ttl={in:'Accedi',up:'Crea account',rs:'Nuova password'}[m];
- h='<p>Accedi per salvare allenamenti, programmi e presenze online e ritrovarli su ogni dispositivo.</p>'
-  +'<div class="seg"><button type="button" data-accm="in"'+(m=='in'?' class="on"':'')+'>Accedi</button><button type="button" data-accm="up"'+(m=='up'?' class="on"':'')+'>Crea account</button></div>'
+function recHtml(){return ACCV.rec?'<div class="recbox"><b>Il tuo codice di recupero</b><p class="tg">Serve se dimentichi la password. Salvalo adesso (note, foto, gestore password): non verrà più mostrato.</p><code id="recC">'+esc(ACCV.rec)+'</code><div class="ptool"><button class="btns" type="button" data-acc="reccopy">Copia</button><button class="btnp" type="button" data-acc="recok">L’ho salvato, entra</button></div></div>':''}
+function locked(){return !AUTH||!!ACCV.rec}
+function formHtml(){
+ var m=ACCV.m,ttl={in:'Accedi',up:'Crea account',rs:'Imposta la nuova password'}[m];
+ return (m=='rs'?'<p class="gstep"><b>Password dimenticata</b><br><span class="tg">Usa il codice di recupero che hai salvato quando hai creato l’account.</span></p>'
+   :'<div class="seg"><button type="button" data-accm="in"'+(m=='in'?' class="on"':'')+'>Accedi</button><button type="button" data-accm="up"'+(m=='up'?' class="on"':'')+'>Crea account</button></div>')
   +'<form class="accf" id="accF" novalidate>'
   +(m=='up'?'<label class="cfl">Nome (facoltativo)<input id="aN" autocomplete="name" maxlength="80"></label>':'')
   +'<label class="cfl">Email<input id="aE" type="email" inputmode="email" autocomplete="'+(m=='up'?'email':'username')+'" required></label>'
@@ -1679,14 +1689,38 @@ function renderAcc(){
   +'<label class="cfl">'+(m=='rs'?'Nuova password':'Password')+'<input id="aP" type="password" autocomplete="'+(m=='in'?'current-password':'new-password')+'" minlength="8" required></label>'
   +(m!='in'?'<p class="tg">Almeno 8 caratteri.</p>':'')
   +(SYMSG?'<p class="warn" role="alert">'+esc(SYMSG)+'</p>':'')
+  +(!navigator.onLine?'<p class="warn">Sei offline: per entrare la prima volta serve la connessione.</p>':'')
   +'<button class="btnp btnw" type="submit"'+(ACCV.busy?' disabled':'')+'>'+(ACCV.busy?'Attendi…':ttl)+'</button></form>'
-  +(m=='in'?'<p><button class="linkb" type="button" data-accm="rs">Password dimenticata?</button></p>':m=='rs'?'<p><button class="linkb" type="button" data-accm="in">Torna all’accesso</button></p>':'')
+  +(m=='in'?'<p class="gcenter"><button class="linkb" type="button" data-accm="rs">Password dimenticata?</button></p>':m=='rs'?'<p class="gcenter"><button class="linkb" type="button" data-accm="in">Torna all’accesso</button></p>':'')
   +(GCID?'<div id="gBtn" class="gbtn"></div>':'')
-  +'<p class="tg">Vengono salvati email, nome se lo scrivi e i dati che inserisci nell’app, su server Cloudflare in Europa. Puoi cancellare tutto quando vuoi da qui.</p>';
- host.innerHTML=h;
- $('accF').addEventListener('submit',function(ev){ev.preventDefault();accSubmit()});
- if(GCID&&navigator.onLine)gisLoad(function(){try{google.accounts.id.initialize({client_id:GCID,callback:onGoogle,ux_mode:'popup',itp_support:true});
-  var b=$('gBtn');if(b)google.accounts.id.renderButton(b,{theme:'outline',size:'large',text:'signin_with',shape:'pill',locale:'it'})}catch(e){}});
+  +'<p class="tg gnote">Salviamo email, nome se lo scrivi e i dati che inserisci nell’app, su server Cloudflare in Europa. Puoi cancellare tutto quando vuoi da Progressi → Account.</p>'}
+function renderAcc(){
+ var lock=locked(),was=document.documentElement.classList.contains('locked');
+ document.documentElement.classList.toggle('locked',lock);
+ var g=$('gateBox'),host=$('accBox');
+ if(g){
+  if(lock){g.innerHTML=AUTH?recHtml():formHtml();
+   var f=$('accF');if(f)f.addEventListener('submit',function(ev){ev.preventDefault();accSubmit()});
+   if(!AUTH&&GCID&&navigator.onLine)gisLoad(function(){try{google.accounts.id.initialize({client_id:GCID,callback:onGoogle,ux_mode:'popup',itp_support:true});
+    var b=$('gBtn');if(b)google.accounts.id.renderButton(b,{theme:'outline',size:'large',text:'signin_with',shape:'pill',locale:'it'})}catch(e){}})}
+  else g.innerHTML=''}
+ if(host){
+  if(!AUTH){host.innerHTML='';}
+  else{var n=Object.keys(SYNC.q).length;
+   host.innerHTML='<div class="acc"><div><b>'+esc(AUTH.name||AUTH.email)+'</b><div class="tg">'+esc(AUTH.email)+'</div></div><span class="sy '+(n?'pend':'ok')+'">'+(n?n+' da inviare':'Sincronizzato')+'</span></div>'
+    +'<p class="tg">'+(SYNC.last?'Ultimo aggiornamento '+new Date(SYNC.last).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'. ':'')+'I dati restano anche su questo dispositivo e funzionano offline.</p>'
+    +(SYMSG?'<p class="warn">'+esc(SYMSG)+'</p>':'')
+    +'<div class="ptool"><button class="btns" type="button" data-acc="sync">Sincronizza ora</button><button class="btns" type="button" data-acc="out">Esci</button></div>'
+    +'<p><button class="linkb" type="button" data-acc="del">Elimina l’account e i dati online</button></p>'}}
+ if(was&&!lock)enterApp();
+}
+/* dopo l'accesso: si entra su Oggi se c'è un programma, altrimenti sulla scelta del modello */
+function enterApp(){window.scrollTo(0,0);if(window.showTab)window.showTab(PROGS.length?'pg':'ps',false)}
+/* uscita e cancellazione: i dati del dispositivo appartengono all'account, quindi si tolgono */
+function wipeLocal(msg){
+ [KEY,PKEY,MKEY,PRKEY,STKEY,SYKEY,AUKEY,'nu_lastbk_v1'].forEach(function(k){try{localStorage.removeItem(k)}catch(e){}});
+ try{if(msg)sessionStorage.setItem('nu_msg',msg)}catch(e){}
+ location.replace(location.pathname);
 }
 function accSubmit(){
  if(ACCV.busy)return;
@@ -1704,9 +1738,13 @@ function onAcc(ev){var b;
  if(a=='reccopy'){copyText(ACCV.rec,function(ok){b.textContent=ok?'Copiato':'Copia non riuscita'});return}
  if(a=='recok'){ACCV.rec='';renderAcc();return}
  if(a=='sync'){SYMSG='';renderAcc();syAll();return}
- if(a=='out'){api('/logout',{method:'POST'}).catch(function(){});AUTH=null;authSave();SYNC={since:0,q:{},last:0};sySave();ACCV.rec='';ACCV.m='in';try{google.accounts.id.disableAutoSelect()}catch(e){}renderAcc();return}
+ if(a=='out'){
+  var go=function(){api('/logout',{method:'POST'}).catch(function(){}).then(function(){try{google.accounts.id.disableAutoSelect()}catch(e){}wipeLocal('Sei uscito. I tuoi dati sono al sicuro nel tuo account.')})};
+  if(!Object.keys(SYNC.q).length){go();return}
+  if(!navigator.onLine){armed(b,'Modifiche non inviate: esci comunque',function(){wipeLocal('Sei uscito. Le ultime modifiche non inviate sono andate perse.')});return}
+  syFlush().then(function(){if(Object.keys(SYNC.q).length){SYMSG='Non riesco a inviare le ultime modifiche: riprova prima di uscire.';renderAcc()}else go()});return}
  if(a=='del'){armed(b,'Tocca di nuovo: cancella tutto online',function(){
-  api('/account',{method:'DELETE'}).then(function(){AUTH=null;authSave();SYNC={since:0,q:{},last:0};sySave();SYMSG='Account e dati online cancellati. I dati su questo dispositivo restano.';renderAcc()})
+  api('/account',{method:'DELETE'}).then(function(){wipeLocal('Account e dati cancellati.')})
    .catch(function(e){SYMSG='Cancellazione non riuscita: '+e.message;renderAcc()})});return}}
 window.addEventListener('online',function(){syAll()});
 document.addEventListener('visibilitychange',function(){if(!document.hidden&&AUTH&&Date.now()-(SYNC.last||0)>30000)syAll()});
