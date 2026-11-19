@@ -1,0 +1,31 @@
+LA MIA SCHEDA DI ALLENAMENTO - VERSIONE PER NUOVO UTENTE
+
+Questa versione parte vuota: al primo avvio mostra una schermata di benvenuto e permette di creare il proprio
+programma da un modello (Full body 3 giorni, Upper/Lower 4 giorni, Push/Pull/Legs 3 giorni) oppure da zero.
+Contiene il database di esercizi con consigli, il Workout, il Registro con grafici e la mobilita' con modelli 3D.
+I dati restano nel browser del dispositivo, senza account, e l'app funziona anche offline.
+
+Contenuto della cartella (vanno caricati tutti insieme)
+- index.html, sw.js, manifest.webmanifest, icon-192.png, icon-512.png, icon-maskable-512.png
+
+Come pubblicarla gratis con GitHub Pages
+1. Crea un account su github.com e un nuovo repository pubblico (per esempio "scheda-allenamento").
+2. Su "Add file > Upload files" carica tutti i file di questa cartella e conferma con "Commit changes".
+   Da telefono apri GitHub in Chrome e attiva "Sito desktop": l'app GitHub non permette di caricare file.
+3. Vai su Settings > Pages, scegli Branch "main" e cartella "/ (root)", poi Save.
+4. Dopo uno o due minuti l'indirizzo e': https://IL-TUO-NOME.github.io/scheda-allenamento/
+
+Come installarla
+- Android: apri l'indirizzo in Chrome con la rete attiva, tocca i tre puntini e scegli "Installa app" (o "Aggiungi a schermata Home").
+- iPhone: apri l'indirizzo in Safari, tocca Condividi e scegli "Aggiungi a Home". Su iPhone i dati dell'app installata
+  sono separati da quelli di Safari.
+
+Come aggiornare l'app
+Sostituisci index.html e, in sw.js, cambia "nuovo-scheda-v1" in "nuovo-scheda-v2": al prossimo avvio con internet
+il telefono scarica la versione nuova. I dati salvati restano.
+
+Backup dei dati
+Nel Registro, in fondo alla pagina, "Copia backup" salva tutti i dati e "Importa backup" li ripristina (utile per
+cambiare telefono, perche' i dati stanno solo nel browser).
+
+Nota: un repository pubblico e' visibile a chiunque conosca l'indirizzo. L'app non contiene dati personali.
