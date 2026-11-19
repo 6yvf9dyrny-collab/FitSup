@@ -1,10 +1,15 @@
 -- Database di FitSup (Cloudflare D1, binding DB)
 
--- Utenti: uno per account Google. id = identificativo Google («sub»), non cambia mai.
+-- Utenti. Accesso con email e password (password mai salvata in chiaro: PBKDF2 con sale),
+-- in futuro anche con Google (google_sub).
 CREATE TABLE IF NOT EXISTS users (
   id         TEXT PRIMARY KEY,
-  email      TEXT NOT NULL,
+  email      TEXT NOT NULL UNIQUE,
   name       TEXT,
+  pass_hash  TEXT,
+  pass_salt  TEXT,
+  rec_hash   TEXT,              -- impronta del codice di recupero
+  google_sub TEXT UNIQUE,
   created_at INTEGER NOT NULL
 );
 
@@ -16,6 +21,13 @@ CREATE TABLE IF NOT EXISTS sessions (
   expires_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS sessions_user ON sessions(user_id);
+
+-- Tentativi di accesso sbagliati, per bloccare chi prova password a raffica.
+CREATE TABLE IF NOT EXISTS auth_fails (
+  email TEXT PRIMARY KEY,
+  count INTEGER NOT NULL,
+  until INTEGER NOT NULL
+);
 
 -- Dati dell'app, un documento per riga:
 --   kind = 'w' allenamento | 'plan' programmi | 'mobx' mobilità aggiunta | 'pres' presenze

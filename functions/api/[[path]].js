@@ -1,7 +1,10 @@
 /*
  * API di FitSup — Cloudflare Pages Functions + D1, sullo stesso indirizzo del sito (/api/...).
  *
- *   POST   /api/auth/google   { credential }  → { token, user }   accesso con Google
+ *   POST   /api/auth/register { email, password, name } → { token, user, recovery }
+ *   POST   /api/auth/login    { email, password }       → { token, user }
+ *   POST   /api/auth/reset    { email, code, password } → { token, user, recovery }  password dimenticata
+ *   POST   /api/auth/google   { credential }  → { token, user }   accesso con Google (quando configurato)
  *   GET    /api/me                            → { user }
  *   GET    /api/sync?since=ms                 → { now, docs }     cosa è cambiato dopo «since»
  *   POST   /api/sync          { docs }        → { now, saved }    salva i documenti cambiati
@@ -42,6 +45,9 @@ async function route(req, env) {
   const p = url.pathname.replace(/^\/api/, '').replace(/\/+$/, '') || '/';
 
   if (p === '/' && req.method === 'GET') return json({ ok: true, app: 'fitsup' });
+  if (p === '/auth/register' && req.method === 'POST') return register(req, env);
+  if (p === '/auth/login' && req.method === 'POST') return login(req, env);
+  if (p === '/auth/reset' && req.method === 'POST') return resetPassword(req, env);
   if (p === '/auth/google' && req.method === 'POST') return authGoogle(req, env);
 
   const user = await requireUser(req, env);
@@ -65,27 +71,113 @@ async function route(req, env) {
 
 const publicUser = u => ({ email: u.email, name: u.name || '' });
 
-/* ---------- accesso ---------- */
+/* ---------- accesso con email e password ---------- */
+/* Password: PBKDF2-SHA256 con sale casuale (100.000 iterazioni, il massimo ammesso da Cloudflare).
+   Codice di recupero: mostrato una volta alla registrazione, salvato solo come impronta.
+   Tentativi sbagliati: dopo 8 errori l'email resta bloccata 15 minuti. */
+const PBKDF2_ITER = 100000;
+const MAX_FAILS = 8, LOCK_MS = 15 * 60e3;
+
+function cleanEmail(v) {
+  const e = String(v || '').trim().toLowerCase();
+  if (e.length > 200 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e)) throw new HttpError(400, 'Email non valida');
+  return e;
+}
+function checkPassword(v) {
+  const pw = String(v || '');
+  if (pw.length < 8) throw new HttpError(400, 'La password deve avere almeno 8 caratteri');
+  if (pw.length > 200) throw new HttpError(400, 'Password troppo lunga');
+  return pw;
+}
+async function hashPassword(pw, saltHex) {
+  const salt = saltHex ? hexBytes(saltHex) : crypto.getRandomValues(new Uint8Array(16));
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: PBKDF2_ITER }, key, 256);
+  return { hash: bytesHex(new Uint8Array(bits)), salt: bytesHex(salt) };
+}
+function sameHex(a, b) { if (a.length !== b.length) return false; let d = 0; for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i); return d === 0; }
+function recoveryCode() {
+  const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', r = crypto.getRandomValues(new Uint8Array(16));
+  let c = ''; for (let i = 0; i < 16; i++) { c += abc[r[i] % abc.length]; if (i % 4 === 3 && i < 15) c += '-'; }
+  return c;
+}
+async function guardFails(env, email) {
+  const row = await env.DB.prepare('SELECT count, until FROM auth_fails WHERE email = ?').bind(email).first();
+  if (row && row.until > Date.now()) throw new HttpError(429, 'Troppi tentativi: riprova tra 15 minuti');
+}
+async function noteFail(env, email) {
+  const now = Date.now();
+  const row = await env.DB.prepare('SELECT count FROM auth_fails WHERE email = ?').bind(email).first();
+  const n = (row ? row.count : 0) + 1;
+  await env.DB.prepare('INSERT INTO auth_fails (email, count, until) VALUES (?, ?, ?) ON CONFLICT(email) DO UPDATE SET count = excluded.count, until = excluded.until')
+    .bind(email, n >= MAX_FAILS ? 0 : n, n >= MAX_FAILS ? now + LOCK_MS : 0).run();
+}
+async function newSession(env, user) {
+  const now = Date.now(), token = randomToken();
+  await env.DB.batch([
+    env.DB.prepare('INSERT INTO sessions (token_hash, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)')
+      .bind(await sha256(token), user.id, now, now + SESSION_DAYS * 864e5),
+    env.DB.prepare('DELETE FROM sessions WHERE user_id = ? AND expires_at < ?').bind(user.id, now),
+  ]);
+  return token;
+}
+
+async function register(req, env) {
+  const b = await readJson(req);
+  const email = cleanEmail(b.email), pw = checkPassword(b.password);
+  const name = String(b.name || '').trim().slice(0, 80);
+  if (await env.DB.prepare('SELECT 1 FROM users WHERE email = ?').bind(email).first())
+    throw new HttpError(409, 'Esiste già un account con questa email: accedi');
+  const { hash, salt } = await hashPassword(pw);
+  const code = recoveryCode();
+  const user = { id: 'u' + randomToken().slice(0, 22), email, name };
+  await env.DB.prepare('INSERT INTO users (id, email, name, pass_hash, pass_salt, rec_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
+    .bind(user.id, email, name, hash, salt, await sha256(code.replace(/-/g, '')), Date.now()).run();
+  return json({ token: await newSession(env, user), user: publicUser(user), recovery: code });
+}
+
+async function login(req, env) {
+  const b = await readJson(req);
+  const email = cleanEmail(b.email), pw = String(b.password || '');
+  await guardFails(env, email);
+  const u = await env.DB.prepare('SELECT id, email, name, pass_hash, pass_salt FROM users WHERE email = ?').bind(email).first();
+  const ok = u && u.pass_hash && sameHex((await hashPassword(pw, u.pass_salt)).hash, u.pass_hash);
+  if (!ok) { await noteFail(env, email); throw new HttpError(401, 'Email o password non corretti'); }
+  await env.DB.prepare('DELETE FROM auth_fails WHERE email = ?').bind(email).run();
+  return json({ token: await newSession(env, u), user: publicUser(u) });
+}
+
+async function resetPassword(req, env) {
+  const b = await readJson(req);
+  const email = cleanEmail(b.email), pw = checkPassword(b.password);
+  const code = String(b.code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  await guardFails(env, email);
+  const u = await env.DB.prepare('SELECT id, email, name, rec_hash FROM users WHERE email = ?').bind(email).first();
+  if (!u || !u.rec_hash || !sameHex(await sha256(code), u.rec_hash)) { await noteFail(env, email); throw new HttpError(401, 'Email o codice di recupero non corretti'); }
+  const { hash, salt } = await hashPassword(pw);
+  const fresh = recoveryCode();
+  await env.DB.batch([
+    env.DB.prepare('UPDATE users SET pass_hash = ?, pass_salt = ?, rec_hash = ? WHERE id = ?').bind(hash, salt, await sha256(fresh.replace(/-/g, '')), u.id),
+    env.DB.prepare('DELETE FROM sessions WHERE user_id = ?').bind(u.id),
+    env.DB.prepare('DELETE FROM auth_fails WHERE email = ?').bind(email),
+  ]);
+  return json({ token: await newSession(env, u), user: publicUser(u), recovery: fresh });
+}
+
+/* ---------- accesso con Google (si attiva quando GOOGLE_CLIENT_ID è impostato) ---------- */
 
 async function authGoogle(req, env) {
   const body = await readJson(req);
   const credential = typeof body.credential === 'string' ? body.credential : '';
   if (!credential) throw new HttpError(400, 'Manca il token di Google');
   const claims = await verifyGoogleIdToken(credential, env.GOOGLE_CLIENT_ID);
-
-  const now = Date.now();
-  await env.DB.prepare(
-    `INSERT INTO users (id, email, name, created_at) VALUES (?, ?, ?, ?)
-     ON CONFLICT(id) DO UPDATE SET email = excluded.email, name = excluded.name`
-  ).bind(claims.sub, claims.email, claims.name || '', now).run();
-
-  const token = randomToken();
-  await env.DB.batch([
-    env.DB.prepare('INSERT INTO sessions (token_hash, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)')
-      .bind(await sha256(token), claims.sub, now, now + SESSION_DAYS * 864e5),
-    env.DB.prepare('DELETE FROM sessions WHERE user_id = ? AND expires_at < ?').bind(claims.sub, now),
-  ]);
-  return json({ token, user: { email: claims.email, name: claims.name || '' } });
+  const email = String(claims.email).toLowerCase();
+  let u = await env.DB.prepare('SELECT id, email, name FROM users WHERE google_sub = ? OR email = ?').bind(claims.sub, email).first();
+  if (!u) {
+    u = { id: 'u' + randomToken().slice(0, 22), email, name: claims.name || '' };
+    await env.DB.prepare('INSERT INTO users (id, email, name, google_sub, created_at) VALUES (?, ?, ?, ?, ?)').bind(u.id, email, u.name, claims.sub, Date.now()).run();
+  } else await env.DB.prepare('UPDATE users SET google_sub = ? WHERE id = ?').bind(claims.sub, u.id).run();
+  return json({ token: await newSession(env, u), user: publicUser(u) });
 }
 
 async function requireUser(req, env) {
@@ -190,6 +282,8 @@ function randomToken() {
   const a = crypto.getRandomValues(new Uint8Array(32));
   return btoa(String.fromCharCode(...a)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
+function bytesHex(b) { return [...b].map(x => x.toString(16).padStart(2, '0')).join(''); }
+function hexBytes(h) { return Uint8Array.from(h.match(/../g), x => parseInt(x, 16)); }
 async function sha256(s) {
   const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
   return [...new Uint8Array(d)].map(b => b.toString(16).padStart(2, '0')).join('');

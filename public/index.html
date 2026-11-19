@@ -185,6 +185,10 @@ input[type=file]{min-height:var(--hit);font-size:var(--t-in);max-width:100%}
 .acc{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);padding:var(--s3);background:var(--card);border:1px solid var(--line);border-radius:var(--r-card)}
 .sy{flex:none;font-size:var(--t-s);font-weight:600;padding:2px var(--s2);border-radius:999px}.sy.ok{background:var(--acc-soft);color:var(--acc)}.sy.pend{background:var(--head);color:var(--warn)}
 .gbtn{min-height:var(--hit);margin:var(--s3) 0}
+.accf{display:flex;flex-direction:column;gap:var(--s1);margin:var(--s2) 0}
+.accf .btnp{margin-top:var(--s2)}
+.recbox{border:2px solid var(--acc);background:var(--acc-soft);border-radius:var(--r-card);padding:var(--s3);margin:0 0 var(--s3)}
+.recbox code{display:block;font:700 20px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.06em;margin:var(--s2) 0;user-select:all}
 .cfb{display:flex;gap:var(--s2);margin:var(--s3) 0 var(--s1)}
 .mdbox{white-space:pre-wrap;word-break:break-word;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:var(--s2);margin:var(--s2) 0}
 
@@ -1593,7 +1597,7 @@ function onReg(ev){
 }
 
 
-/* ---------- account Google e sincronizzazione con il database Cloudflare ---------- */
+/* ---------- account e sincronizzazione con il database Cloudflare ---------- */
 /* I dati restano anche sul dispositivo: l'app funziona offline e invia le modifiche quando torna la rete.
    Ogni modifica mette in coda «tipo:id»; all'invio si legge il dato più recente. In caso di conflitto
    vince la modifica locale non ancora inviata, poi quella più recente sul server. */
@@ -1645,35 +1649,62 @@ function syFirst(){
  if(MOBX.U.length||MOBX.L.length)SYNC.q['mobx:all']=1;
  if(Object.keys(PRES.d).length||Object.keys(PRES.x).length)SYNC.q['pres:all']=1;
  SYNC.since=0;sySave();return syAll()}
+function signedIn(j){AUTH={token:j.token,email:j.user.email,name:j.user.name};authSave();SYMSG='';ACCV.busy=false;ACCV.m='in';ACCV.rec=j.recovery||'';renderAcc();return syFirst()}
 function onGoogle(resp){
  SYMSG='Accesso in corso…';renderAcc();
- api('/auth/google',{method:'POST',body:{credential:resp.credential}}).then(function(j){
-  AUTH={token:j.token,email:j.user.email,name:j.user.name};authSave();SYMSG='';renderAcc();
-  return syFirst()}).catch(function(e){SYMSG='Accesso non riuscito: '+e.message;renderAcc()})}
+ api('/auth/google',{method:'POST',body:{credential:resp.credential}}).then(signedIn).catch(function(e){SYMSG='Accesso non riuscito: '+e.message;renderAcc()})}
 function gisLoad(cb){
  if(window.google&&google.accounts&&google.accounts.id)return cb();
  if(GIS)return;GIS=1;var s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;
- s.onload=function(){GIS=2;cb()};s.onerror=function(){GIS=0;SYMSG='Google non raggiungibile: controlla la connessione.';renderAcc()};document.head.appendChild(s)}
+ s.onload=function(){GIS=2;cb()};s.onerror=function(){GIS=0};document.head.appendChild(s)}
+/* schermate: accedi, crea account, password dimenticata */
+var ACCV={m:'in',busy:false,rec:''};
+function recHtml(){return ACCV.rec?'<div class="recbox"><b>Il tuo codice di recupero</b><p class="tg">Serve se dimentichi la password: salvalo adesso (note, foto, gestore password). Non verrà più mostrato.</p><code id="recC">'+esc(ACCV.rec)+'</code><div class="ptool"><button class="btns" type="button" data-acc="reccopy">Copia</button><button class="btns" type="button" data-acc="recok">L’ho salvato</button></div></div>':''}
 function renderAcc(){
  var host=$('accBox');if(!host)return;var h='';
- if(!GCID){host.innerHTML='<p class="tg">Il salvataggio online non è ancora attivo: per ora i dati restano su questo dispositivo.</p>';return}
  if(AUTH){var n=Object.keys(SYNC.q).length;
-  h='<div class="acc"><div><b>'+esc(AUTH.name||AUTH.email)+'</b><div class="tg">'+esc(AUTH.email)+'</div></div><span class="sy '+(n?'pend':'ok')+'">'+(n?n+' da inviare':'Sincronizzato')+'</span></div>'
+  h=recHtml()+'<div class="acc"><div><b>'+esc(AUTH.name||AUTH.email)+'</b><div class="tg">'+esc(AUTH.email)+'</div></div><span class="sy '+(n?'pend':'ok')+'">'+(n?n+' da inviare':'Sincronizzato')+'</span></div>'
    +'<p class="tg">'+(SYNC.last?'Ultimo aggiornamento '+new Date(SYNC.last).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'. ':'')+'I dati restano anche su questo dispositivo e funzionano offline.</p>'
    +(SYMSG?'<p class="warn">'+esc(SYMSG)+'</p>':'')
    +'<div class="ptool"><button class="btns" type="button" data-acc="sync">Sincronizza ora</button><button class="btns" type="button" data-acc="out">Esci</button></div>'
    +'<p><button class="linkb" type="button" data-acc="del">Elimina l’account e i dati online</button></p>';
   host.innerHTML=h;return}
- h='<p>Accedi con Google per salvare allenamenti, programmi e presenze online e ritrovarli su ogni dispositivo.</p><div id="gBtn" class="gbtn"></div>'
-  +(SYMSG?'<p class="warn">'+esc(SYMSG)+'</p>':'')
-  +'<p class="tg">Vengono salvati il tuo nome, la tua email Google e i dati che inserisci nell’app, su server Cloudflare in Europa. Puoi cancellare tutto quando vuoi da qui.</p>';
+ var m=ACCV.m,ttl={in:'Accedi',up:'Crea account',rs:'Nuova password'}[m];
+ h='<p>Accedi per salvare allenamenti, programmi e presenze online e ritrovarli su ogni dispositivo.</p>'
+  +'<div class="seg"><button type="button" data-accm="in"'+(m=='in'?' class="on"':'')+'>Accedi</button><button type="button" data-accm="up"'+(m=='up'?' class="on"':'')+'>Crea account</button></div>'
+  +'<form class="accf" id="accF" novalidate>'
+  +(m=='up'?'<label class="cfl">Nome (facoltativo)<input id="aN" autocomplete="name" maxlength="80"></label>':'')
+  +'<label class="cfl">Email<input id="aE" type="email" inputmode="email" autocomplete="'+(m=='up'?'email':'username')+'" required></label>'
+  +(m=='rs'?'<label class="cfl">Codice di recupero<input id="aC" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX-XXXX-XXXX"></label>':'')
+  +'<label class="cfl">'+(m=='rs'?'Nuova password':'Password')+'<input id="aP" type="password" autocomplete="'+(m=='in'?'current-password':'new-password')+'" minlength="8" required></label>'
+  +(m!='in'?'<p class="tg">Almeno 8 caratteri.</p>':'')
+  +(SYMSG?'<p class="warn" role="alert">'+esc(SYMSG)+'</p>':'')
+  +'<button class="btnp btnw" type="submit"'+(ACCV.busy?' disabled':'')+'>'+(ACCV.busy?'Attendi…':ttl)+'</button></form>'
+  +(m=='in'?'<p><button class="linkb" type="button" data-accm="rs">Password dimenticata?</button></p>':m=='rs'?'<p><button class="linkb" type="button" data-accm="in">Torna all’accesso</button></p>':'')
+  +(GCID?'<div id="gBtn" class="gbtn"></div>':'')
+  +'<p class="tg">Vengono salvati email, nome se lo scrivi e i dati che inserisci nell’app, su server Cloudflare in Europa. Puoi cancellare tutto quando vuoi da qui.</p>';
  host.innerHTML=h;
- if(!navigator.onLine){$('gBtn').innerHTML='<p class="tg">Serve la connessione per accedere.</p>';return}
- gisLoad(function(){try{google.accounts.id.initialize({client_id:GCID,callback:onGoogle,auto_select:false,ux_mode:'popup',itp_support:true});
-  var b=$('gBtn');if(b)google.accounts.id.renderButton(b,{type:'standard',theme:'outline',size:'large',text:'signin_with',shape:'pill',locale:'it',width:Math.min(320,b.clientWidth||320)})}catch(e){SYMSG='Accesso con Google non disponibile.';}})}
-function onAcc(ev){var b=ev.target.closest('[data-acc]');if(!b)return;var a=b.getAttribute('data-acc');
+ $('accF').addEventListener('submit',function(ev){ev.preventDefault();accSubmit()});
+ if(GCID&&navigator.onLine)gisLoad(function(){try{google.accounts.id.initialize({client_id:GCID,callback:onGoogle,ux_mode:'popup',itp_support:true});
+  var b=$('gBtn');if(b)google.accounts.id.renderButton(b,{theme:'outline',size:'large',text:'signin_with',shape:'pill',locale:'it'})}catch(e){}});
+}
+function accSubmit(){
+ if(ACCV.busy)return;
+ if(!navigator.onLine){SYMSG='Serve la connessione per accedere.';renderAcc();return}
+ var m=ACCV.m,e=$('aE').value.trim(),p=$('aP').value,b={email:e,password:p},path={in:'/auth/login',up:'/auth/register',rs:'/auth/reset'}[m];
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e)){SYMSG='Scrivi un’email valida.';renderAcc();$('aE').value=e;return}
+ if(m!='in'&&p.length<8){SYMSG='La password deve avere almeno 8 caratteri.';renderAcc();$('aE').value=e;return}
+ if(m=='up')b.name=$('aN').value.trim();
+ if(m=='rs')b.code=$('aC').value.trim();
+ ACCV.busy=true;SYMSG='';renderAcc();
+ api(path,{method:'POST',body:b}).then(signedIn).catch(function(err){ACCV.busy=false;SYMSG=err.message;renderAcc();var f=$('aE');if(f)f.value=e})}
+function onAcc(ev){var b;
+ if(b=ev.target.closest('[data-accm]')){ACCV.m=b.getAttribute('data-accm');SYMSG='';renderAcc();return}
+ b=ev.target.closest('[data-acc]');if(!b)return;var a=b.getAttribute('data-acc');
+ if(a=='reccopy'){copyText(ACCV.rec,function(ok){b.textContent=ok?'Copiato':'Copia non riuscita'});return}
+ if(a=='recok'){ACCV.rec='';renderAcc();return}
  if(a=='sync'){SYMSG='';renderAcc();syAll();return}
- if(a=='out'){api('/logout',{method:'POST'}).catch(function(){});AUTH=null;authSave();SYNC={since:0,q:{},last:0};sySave();try{google.accounts.id.disableAutoSelect()}catch(e){}renderAcc();return}
+ if(a=='out'){api('/logout',{method:'POST'}).catch(function(){});AUTH=null;authSave();SYNC={since:0,q:{},last:0};sySave();ACCV.rec='';ACCV.m='in';try{google.accounts.id.disableAutoSelect()}catch(e){}renderAcc();return}
  if(a=='del'){armed(b,'Tocca di nuovo: cancella tutto online',function(){
   api('/account',{method:'DELETE'}).then(function(){AUTH=null;authSave();SYNC={since:0,q:{},last:0};sySave();SYMSG='Account e dati online cancellati. I dati su questo dispositivo restano.';renderAcc()})
    .catch(function(e){SYMSG='Cancellazione non riuscita: '+e.message;renderAcc()})});return}}
