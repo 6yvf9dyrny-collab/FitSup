@@ -1,0 +1,14 @@
+# FitSup — Cloudflare Pages collegato a GitHub.
+# Il sito è in public/, l'API in functions/api/ (stesso indirizzo, /api/...), il database è D1.
+name = "fitsup"
+pages_build_output_dir = "./public"
+compatibility_date = "2026-11-01"
+
+[vars]
+# ID client OAuth di Google (pubblico, non è un segreto): da impostare quando è pronto
+GOOGLE_CLIENT_ID = ""
+
+[[d1_databases]]
+binding = "DB"
+database_name = "fitsup"
+database_id = "99478e32-9f51-41ac-93da-197d43ca2461"

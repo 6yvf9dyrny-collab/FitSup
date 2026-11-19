@@ -1,5 +1,5 @@
-const CACHE = "nuovo-scheda-v4";
-const PREFIX = "nuovo-scheda-";
+const CACHE = "fitsup-v1";
+const PREFIX = "fitsup-";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
@@ -9,5 +9,6 @@ self.addEventListener("activate", e => {
 });
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
+  if (new URL(e.request.url).pathname.indexOf("/api/") === 0) return; // l'API va sempre in rete
   e.respondWith(caches.match(e.request, { ignoreSearch: true }).then(r => r || fetch(e.request)));
 });

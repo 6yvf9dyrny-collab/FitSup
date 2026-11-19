@@ -1,7 +1,7 @@
 {
- "name": "La mia scheda di allenamento",
- "short_name": "Scheda",
- "description": "Scheda di allenamento con registro, mobilità 3D e uso offline",
+ "name": "FitSup",
+ "short_name": "FitSup",
+ "description": "FitSup: scheda di allenamento, registro, presenze e mobilità, anche offline",
  "lang": "it",
  "start_url": "./",
  "scope": "./",

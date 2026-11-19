@@ -7,10 +7,10 @@
 <meta name="theme-color" content="#0f7d8c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Scheda">
+<meta name="apple-mobile-web-app-title" content="FitSup">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>La mia scheda di allenamento</title>
+<title>FitSup</title>
 <script>document.documentElement.className='js'</script>
 <style>
 /* ---------- token: un solo posto per colori, testo, spazi, angoli ---------- */
@@ -182,6 +182,9 @@ input[type=file]{min-height:var(--hit);font-size:var(--t-in);max-width:100%}
 .fbox{margin:0 0 var(--s3)}.fbox>summary{font-weight:600}
 .req{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);flex-wrap:wrap;margin:var(--s3) 0;padding:var(--s3);border:1px dashed var(--line);border-radius:var(--r-card);font-size:var(--t-s);color:var(--mute)}
 .cfl input,.cfl textarea{min-height:var(--hit);font-size:var(--t-in);padding:var(--s2);border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--ink);width:100%;font-family:inherit}
+.acc{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);padding:var(--s3);background:var(--card);border:1px solid var(--line);border-radius:var(--r-card)}
+.sy{flex:none;font-size:var(--t-s);font-weight:600;padding:2px var(--s2);border-radius:999px}.sy.ok{background:var(--acc-soft);color:var(--acc)}.sy.pend{background:var(--head);color:var(--warn)}
+.gbtn{min-height:var(--hit);margin:var(--s3) 0}
 .cfb{display:flex;gap:var(--s2);margin:var(--s3) 0 var(--s1)}
 .mdbox{white-space:pre-wrap;word-break:break-word;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:var(--s2);margin:var(--s2) 0}
 
@@ -268,7 +271,7 @@ input[type=file]{min-height:var(--hit);font-size:var(--t-in);max-width:100%}
 </style>
 </head>
 <body>
-<header class="hd"><h1 class="site">Scheda allenamento</h1><button id="mdBtn" class="mdb" type="button">File .md</button></header>
+<header class="hd"><h1 class="site">FitSup</h1><button id="mdBtn" class="mdb" type="button">File .md</button></header>
 <nav class="tabs" id="tabs" aria-label="Sezioni">
 <a href="#pg" data-p="pg"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5v11M3.5 9v6M17.5 6.5v11M20.5 9v6M6.5 12h11"/></svg>Oggi</a>
 <a href="#ps" data-p="ps" class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M8 8.5h8M8 12h8M8 15.5h5"/></svg>Scheda</a>
@@ -867,7 +870,7 @@ function grp(m){if(/^Petto/.test(m))return 'Petto';if(/^Bicipiti|^Brachiale/.tes
 function nk(s){return String(s).toLowerCase().replace(/[’']/g,'').replace(/\s+/g,' ').trim()}
 function dbFind(n){for(var i=0;i<DBX.length;i++)if(DBX[i][0]==n)return DBX[i];return null}
 function lsMGet(){try{var o=JSON.parse(localStorage.getItem(MKEY)||'null');return o&&o.U&&o.L?o:null}catch(e){return null}}
-function saveMobx(){try{localStorage.setItem(MKEY,JSON.stringify(MOBX))}catch(e){}if(MODE=='db'&&DBC)DBC.doc('_mobx').set({id:'_mobx',kind:'mobx',mobx:MOBX}).catch(function(){})}
+function saveMobx(){try{localStorage.setItem(MKEY,JSON.stringify(MOBX))}catch(e){}syMark('mobx','all')}
 function f0(){return PROGS.length?PROGS[0]['id']:''}
 function $(i){return document.getElementById(i)}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
@@ -928,36 +931,11 @@ function doImport(txt){
 }
 function lsPlanGet(){try{var o=JSON.parse(localStorage.getItem(PKEY)||'null');return o&&typeof o=='object'?o:null}catch(e){return null}}
 function lsPlanSet(){try{if(OVR)localStorage.setItem(PKEY,JSON.stringify(OVR));else localStorage.removeItem(PKEY);return true}catch(e){return false}}
-function modeText(){return MODE=='db'?'Salvataggio sul tuo account: i dati restano anche se cambi telefono o browser.':'Salvataggio su questo dispositivo: per non perderli, usa il backup in fondo alla pagina.'}
-function putSession(o){
- SESS[o.id]=o;
- if(MODE=='db'&&DBC)return DBC.doc(o.id).set(o).then(function(){return true},function(){MODE='local';lsSet();return false});
- lsSet();return Promise.resolve(true);
-}
-function delSession(id){delete SESS[id];if(MODE=='db'&&DBC){DBC.doc(id).delete().catch(function(){})}else lsSet()}
-function savePlans(){OVR=clone(PROGS);lsPlanSet();if(MODE=='db'&&DBC)DBC.doc('_plan').set({id:'_plan',kind:'plan',plan:OVR}).catch(function(){})}
-function resetPlans(){OVR=null;lsPlanSet();if(MODE=='db'&&DBC)DBC.doc('_plan').delete().catch(function(){})}
+function putSession(o){SESS[o.id]=o;lsSet();syMark('w',o.id);return Promise.resolve(true)}
+function delSession(id){delete SESS[id];lsSet();syMark('w',id)}
+function savePlans(){OVR=clone(PROGS);lsPlanSet();syMark('plan','all')}
+function resetPlans(){OVR=null;lsPlanSet();syMark('plan','all')}
 function afterPlanChange(){renderProg();renderTempi();refreshPlanUse();if(!dirty&&!editId)buildForm();renderReg();renderMobSug()}
-function initDb(){
- if(!window.claude||!window.claude.use)return;
- Promise.all([window.claude.use('db'),window.claude.use('user')]).then(function(r){
-  var db=r[0],user=r[1];if(!db||!user||!user.id)return;
-  return user.id().then(function(id){
-   if(!id)return;
-   DBC=db.collection('data/users/'+id);MODE='db';
-   DBC.onSnapshot(function(snap){
-    var o={},pl=null,mx=null;
-    snap.docs.forEach(function(d){var v=d.data();if(!v)return;if(v.id=='_plan'){pl=v.plan||null}else if(v.id=='_mobx'){mx=v.mobx||null}else if(v.id)o[v.id]=v});
-    if(!migrated){migrated=true;
-     var ls=lsGet();Object.keys(ls).forEach(function(k){if(!o[k]){o[k]=ls[k];DBC.doc(k).set(ls[k]).catch(function(){})}});
-     var lm=lsMGet();if(!mx&&lm&&(lm.U.length||lm.L.length)){mx=lm;DBC.doc('_mobx').set({id:'_mobx',kind:'mobx',mobx:lm}).catch(function(){})}var lp=lsPlanGet();if(!pl&&lp){pl=lp;DBC.doc('_plan').set({id:'_plan',kind:'plan',plan:lp}).catch(function(){})}}
-    if(mx)MOBX=mx;SESS=o;OVR=pl;if(!EDITP){loadProgs();afterPlanChange()}else{renderReg()}renderMobx();renderMobSug();
-   },function(){MODE='local';SESS=lsGet();OVR=lsPlanGet();loadProgs();afterPlanChange()});
-  });
- }).catch(function(){});
-}
-
-
 /* ---------- consigli: database esercizi e mobilità ---------- */
 function bestSession(p,g){
  var low=!!LOWER[g],best=0,bs=1e9;
@@ -1571,8 +1549,8 @@ function buildReg(){
  $('prBody').innerHTML='<h2 class="ch">Presenze</h2><div class="cal" id="calBox"></div><h2>Esercizi</h2><div class="seg"><button type="button" data-v="e">Per esercizio</button><button type="button" data-v="w">Per data</button></div>'
   +'<details class="dbx fbox" id="fBox"><summary>Filtri <span class="tg" id="fCnt"></span></summary><div class="fld"><label>Programma<select id="fPr"></select></label><label>Seduta<select id="fSed"></select></label><label>Esercizio<select id="fEx"></select></label><label id="fVrL" style="display:none">Variante<select id="fVr"></select></label><label>Dal<input type="date" id="fFrom"></label><label>Al<input type="date" id="fTo"></label>'
   +'<label>Ordine<select id="fOrd"><option value="plan">Ordine di allenamento (scheda)</option><option value="new">Più recenti prima</option><option value="old">Meno recenti prima</option></select></label><label id="fMetL">Grafico degli esercizi<select id="fMet"><option value="e1">Forza stimata (1RM)</option><option value="top">Carico massimo</option><option value="vol">Volume (kg × ripetizioni)</option><option value="comp">Completamento della scheda</option></select></label></div>'
-  +'<button class="btns" type="button" id="fReset">Azzera filtri</button></details><div id="rgList"></div>';
- $('prBody').addEventListener('click',onReg);$('calBox').addEventListener('click',function(ev){ev.stopPropagation();onCal(ev)});
+  +'<button class="btns" type="button" id="fReset">Azzera filtri</button></details><div id="rgList"></div><h2>Account</h2><div id="accBox"></div>';
+ $('prBody').addEventListener('click',onReg);$('accBox').addEventListener('click',function(ev){ev.stopPropagation();onAcc(ev)});$('calBox').addEventListener('click',function(ev){ev.stopPropagation();onCal(ev)});
  $('fPr').onchange=function(){FIL.pr=this.value;FIL.sed='';FIL.ex='';FIL.vr='';renderReg()};$('fSed').onchange=function(){FIL.sed=this.value;renderReg()};$('fEx').onchange=function(){FIL.ex=this.value;FIL.vr='';renderReg()};$('fVr').onchange=function(){FIL.vr=this.value;renderReg()};
  $('fFrom').onchange=function(){FIL.from=this.value;renderReg()};$('fTo').onchange=function(){FIL.to=this.value;renderReg()};
  $('fOrd').onchange=function(){FIL.ord=this.value;renderReg()};
@@ -1615,6 +1593,93 @@ function onReg(ev){
 }
 
 
+/* ---------- account Google e sincronizzazione con il database Cloudflare ---------- */
+/* I dati restano anche sul dispositivo: l'app funziona offline e invia le modifiche quando torna la rete.
+   Ogni modifica mette in coda «tipo:id»; all'invio si legge il dato più recente. In caso di conflitto
+   vince la modifica locale non ancora inviata, poi quella più recente sul server. */
+var API='/api',GCID='';
+var AUKEY='nu_account_v1',SYKEY='nu_sync_v1',AUTH=null,SYNC={since:0,q:{},last:0},SYT=0,SYBUSY=false,SYMSG='',GIS=0;
+function authLoad(){try{AUTH=JSON.parse(localStorage.getItem(AUKEY)||'null')}catch(e){AUTH=null}
+ try{var s=JSON.parse(localStorage.getItem(SYKEY)||'null');if(s&&s.q)SYNC=s}catch(e){}}
+function authSave(){try{if(AUTH)localStorage.setItem(AUKEY,JSON.stringify(AUTH));else localStorage.removeItem(AUKEY)}catch(e){}}
+function sySave(){try{localStorage.setItem(SYKEY,JSON.stringify(SYNC))}catch(e){}}
+function syMark(kind,id){if(!AUTH)return;SYNC.q[kind+':'+id]=(SYNC.q[kind+':'+id]||0)+1;sySave();clearTimeout(SYT);SYT=setTimeout(syFlush,1500)}
+function syDoc(key){var k=key.split(':')[0],id=key.slice(k.length+1);
+ if(k=='w')return SESS[id]?{kind:k,id:id,data:SESS[id]}:{kind:k,id:id,deleted:true};
+ if(k=='plan')return OVR?{kind:k,id:id,data:OVR}:{kind:k,id:id,deleted:true};
+ if(k=='mobx')return {kind:k,id:id,data:MOBX};
+ if(k=='pres')return {kind:k,id:id,data:PRES};
+ return null}
+function api(path,opt){opt=opt||{};var h={'Content-Type':'application/json'};if(AUTH&&AUTH.token)h.Authorization='Bearer '+AUTH.token;
+ return fetch(API+path,{method:opt.method||'GET',headers:h,body:opt.body?JSON.stringify(opt.body):undefined}).then(function(r){
+  return r.json().catch(function(){return {}}).then(function(j){if(r.status==401&&AUTH){AUTH=null;authSave();SYMSG='Sessione scaduta: accedi di nuovo.';renderAcc()}if(!r.ok)throw new Error(j.error||('Errore '+r.status));return j})})}
+function syFlush(){
+ if(!AUTH||SYBUSY||!navigator.onLine)return Promise.resolve();
+ var keys=Object.keys(SYNC.q);if(!keys.length)return Promise.resolve();
+ var part=keys.slice(0,400),ver={},docs=[];part.forEach(function(k){ver[k]=SYNC.q[k];var d=syDoc(k);if(d)docs.push(d)});
+ SYBUSY=true;
+ return api('/sync',{method:'POST',body:{docs:docs}}).then(function(){
+  part.forEach(function(k){if(SYNC.q[k]===ver[k])delete SYNC.q[k]});SYNC.last=Date.now();sySave();SYBUSY=false;SYMSG='';renderAcc();
+  if(Object.keys(SYNC.q).length)return syFlush()},function(e){SYBUSY=false;SYMSG='Non sincronizzato: '+e.message;renderAcc()})}
+function syPull(){
+ if(!AUTH||!navigator.onLine)return Promise.resolve();
+ return api('/sync?since='+(SYNC.since||0)).then(function(j){
+  var plan=false,reg=false,mob=false,pre=false;
+  (j.docs||[]).forEach(function(d){var key=d.kind+':'+d.id,mine=!!SYNC.q[key];
+   if(d.kind=='w'){if(mine)return;if(d.deleted)delete SESS[d.id];else if(d.data)SESS[d.id]=d.data;reg=true}
+   else if(d.kind=='plan'){if(mine)return;OVR=d.deleted?null:d.data;plan=true}
+   else if(d.kind=='mobx'){if(mine||!d.data||!d.data.U)return;MOBX=d.data;mob=true}
+   else if(d.kind=='pres'){if(!d.data||!d.data.d)return;
+    if(mine){PRES.d=Object.assign({},d.data.d,PRES.d);PRES.x=Object.assign({},d.data.x||{},PRES.x)}else PRES=d.data;pre=true}});
+  SYNC.since=j.now||Date.now();SYNC.last=Date.now();sySave();
+  if(reg)lsSet();if(plan){lsPlanSet();if(!EDITP){loadProgs();afterPlanChange()}}
+  if(mob){try{localStorage.setItem(MKEY,JSON.stringify(MOBX))}catch(e){}renderMobx();renderMobSug()}
+  if(pre){try{localStorage.setItem(PRKEY,JSON.stringify(PRES))}catch(e){}}
+  if(reg||pre){renderReg();renderPres();if(!dirty&&!editId)buildForm()}
+  renderAcc()},function(e){SYMSG='Non sincronizzato: '+e.message;renderAcc()})}
+function syAll(){return syPull().then(syFlush)}
+/* primo accesso: tutto ciò che c'è sul dispositivo va in coda, poi si unisce con il server */
+function syFirst(){
+ Object.keys(SESS).forEach(function(id){SYNC.q['w:'+id]=1});
+ if(OVR)SYNC.q['plan:all']=1;
+ if(MOBX.U.length||MOBX.L.length)SYNC.q['mobx:all']=1;
+ if(Object.keys(PRES.d).length||Object.keys(PRES.x).length)SYNC.q['pres:all']=1;
+ SYNC.since=0;sySave();return syAll()}
+function onGoogle(resp){
+ SYMSG='Accesso in corso…';renderAcc();
+ api('/auth/google',{method:'POST',body:{credential:resp.credential}}).then(function(j){
+  AUTH={token:j.token,email:j.user.email,name:j.user.name};authSave();SYMSG='';renderAcc();
+  return syFirst()}).catch(function(e){SYMSG='Accesso non riuscito: '+e.message;renderAcc()})}
+function gisLoad(cb){
+ if(window.google&&google.accounts&&google.accounts.id)return cb();
+ if(GIS)return;GIS=1;var s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;
+ s.onload=function(){GIS=2;cb()};s.onerror=function(){GIS=0;SYMSG='Google non raggiungibile: controlla la connessione.';renderAcc()};document.head.appendChild(s)}
+function renderAcc(){
+ var host=$('accBox');if(!host)return;var h='';
+ if(!GCID){host.innerHTML='<p class="tg">Il salvataggio online non è ancora attivo: per ora i dati restano su questo dispositivo.</p>';return}
+ if(AUTH){var n=Object.keys(SYNC.q).length;
+  h='<div class="acc"><div><b>'+esc(AUTH.name||AUTH.email)+'</b><div class="tg">'+esc(AUTH.email)+'</div></div><span class="sy '+(n?'pend':'ok')+'">'+(n?n+' da inviare':'Sincronizzato')+'</span></div>'
+   +'<p class="tg">'+(SYNC.last?'Ultimo aggiornamento '+new Date(SYNC.last).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'. ':'')+'I dati restano anche su questo dispositivo e funzionano offline.</p>'
+   +(SYMSG?'<p class="warn">'+esc(SYMSG)+'</p>':'')
+   +'<div class="ptool"><button class="btns" type="button" data-acc="sync">Sincronizza ora</button><button class="btns" type="button" data-acc="out">Esci</button></div>'
+   +'<p><button class="linkb" type="button" data-acc="del">Elimina l’account e i dati online</button></p>';
+  host.innerHTML=h;return}
+ h='<p>Accedi con Google per salvare allenamenti, programmi e presenze online e ritrovarli su ogni dispositivo.</p><div id="gBtn" class="gbtn"></div>'
+  +(SYMSG?'<p class="warn">'+esc(SYMSG)+'</p>':'')
+  +'<p class="tg">Vengono salvati il tuo nome, la tua email Google e i dati che inserisci nell’app, su server Cloudflare in Europa. Puoi cancellare tutto quando vuoi da qui.</p>';
+ host.innerHTML=h;
+ if(!navigator.onLine){$('gBtn').innerHTML='<p class="tg">Serve la connessione per accedere.</p>';return}
+ gisLoad(function(){try{google.accounts.id.initialize({client_id:GCID,callback:onGoogle,auto_select:false,ux_mode:'popup',itp_support:true});
+  var b=$('gBtn');if(b)google.accounts.id.renderButton(b,{type:'standard',theme:'outline',size:'large',text:'signin_with',shape:'pill',locale:'it',width:Math.min(320,b.clientWidth||320)})}catch(e){SYMSG='Accesso con Google non disponibile.';}})}
+function onAcc(ev){var b=ev.target.closest('[data-acc]');if(!b)return;var a=b.getAttribute('data-acc');
+ if(a=='sync'){SYMSG='';renderAcc();syAll();return}
+ if(a=='out'){api('/logout',{method:'POST'}).catch(function(){});AUTH=null;authSave();SYNC={since:0,q:{},last:0};sySave();try{google.accounts.id.disableAutoSelect()}catch(e){}renderAcc();return}
+ if(a=='del'){armed(b,'Tocca di nuovo: cancella tutto online',function(){
+  api('/account',{method:'DELETE'}).then(function(){AUTH=null;authSave();SYNC={since:0,q:{},last:0};sySave();SYMSG='Account e dati online cancellati. I dati su questo dispositivo restano.';renderAcc()})
+   .catch(function(e){SYMSG='Cancellazione non riuscita: '+e.message;renderAcc()})});return}}
+window.addEventListener('online',function(){syAll()});
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&AUTH&&Date.now()-(SYNC.last||0)>30000)syAll()});
+
 /* ---------- richiesta di un esercizio che non c'è: messaggio WhatsApp già scritto ---------- */
 var WA_NUM='393534913717';/* numero in formato internazionale, solo cifre, per esempio 393331234567 */
 function reqOpen(v,err){v=v||{};
@@ -1628,7 +1693,7 @@ function reqOpen(v,err){v=v||{};
   function(){var o={n:$('rqN').value.trim(),m:$('rqM').value,d:$('rqD').value.trim(),y:$('rqY').value.trim()};
    if(!o.n){setTimeout(function(){reqOpen(o,'Scrivi il nome dell’esercizio.')},320);return}
    if(o.y&&!/^https?:\/\/(www\.|m\.)?(youtube\.com|youtu\.be)\//i.test(o.y)){setTimeout(function(){reqOpen(o,'Il video deve essere un link di YouTube (youtube.com o youtu.be).')},320);return}
-   var txt='Richiesta esercizio per La mia scheda di allenamento\n\nEsercizio: '+o.n+'\nMuscolo: '+(o.m||'non indicato')+'\n\nCome si esegue:\n'+(o.d||'-')+'\n\nVideo: '+(o.y||'-');
+   var txt='Richiesta esercizio per FitSup\n\nEsercizio: '+o.n+'\nMuscolo: '+(o.m||'non indicato')+'\n\nCome si esegue:\n'+(o.d||'-')+'\n\nVideo: '+(o.y||'-');
    window.open('https://wa.me/'+WA_NUM+'?text='+encodeURIComponent(txt),'_blank','noopener')});
  $('cfmOk').textContent='Apri WhatsApp';
 }
@@ -1637,7 +1702,7 @@ function reqOpen(v,err){v=v||{};
 var PRKEY='nu_presenze_v1',STKEY='nu_inizio_v1',PRES={d:{},x:{}},CALV={m:'m',off:0},PQ={d:'',step:''};
 var MESIL=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
 function presLoad(){try{var o=JSON.parse(localStorage.getItem(PRKEY)||'null');if(o&&o.d&&o.x)PRES=o}catch(e){}}
-function presSave(){try{localStorage.setItem(PRKEY,JSON.stringify(PRES))}catch(e){}}
+function presSave(){try{localStorage.setItem(PRKEY,JSON.stringify(PRES))}catch(e){}syMark('pres','all')}
 function dOf(ds){var p=ds.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
 function dStr(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
 function addD(ds,n){var d=dOf(ds);d.setDate(d.getDate()+n);return dStr(d)}
@@ -1750,7 +1815,7 @@ function icsEsc(s){return String(s).replace(/\\/g,'\\\\').replace(/[,;]/g,functi
 function icsMake(){
  var p=prog(ACT)||prog(f0());if(!p)return null;
  var map=['SU','MO','TU','WE','TH','FR','SA'],url=location.href.split('#')[0]+'#pg',stamp=new Date().toISOString().replace(/[-:]/g,'').slice(0,15)+'Z',n=0,
-  L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//La mia scheda di allenamento//IT','CALSCALE:GREGORIAN','X-WR-CALNAME:Allenamenti'];
+  L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//FitSup//IT','CALSCALE:GREGORIAN','X-WR-CALNAME:FitSup'];
  p.sessions.forEach(function(s,i){if(s.day<0||!s.time)return;
   var t=s.time.split(':'),d=dOf(today());while(d.getDay()!=s.day)d.setDate(d.getDate()+1);
   var ds=dStr(d).replace(/-/g,''),dur=Math.max(30,Math.round(sessMin(s)/5)*5);
@@ -1771,7 +1836,7 @@ function icsDownload(){
 if(!$('pgBody')||!$('prBody')||!$('progBody'))return;
 OVR=lsPlanGet();loadProgs();
 MOBX=lsMGet()||{U:[],L:[]};
-SESS=lsGet();presLoad();
+SESS=lsGet();presLoad();authLoad();
 $('progBody').addEventListener('click',onProgClick);
 $('progBody').addEventListener('input',onProgInput);
 $('progBody').addEventListener('change',onProgInput);
@@ -1786,7 +1851,7 @@ try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persisted(
 /* sezione iniziale: quella del link, altrimenti Oggi se c'è già un programma */
 (function(){var hs=(location.hash||'').slice(1);if(hs=='pt')hs='pm';
  if(!window.showTab)return;if({pg:1,ps:1,pr:1,pm:1}[hs])window.showTab(hs,false);else if(PROGS.length)window.showTab('pg',false)})();
-initDb();
+renderAcc();if(AUTH)syAll();
 })();
 </script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js")})}</script>
