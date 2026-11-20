@@ -18,7 +18,7 @@
 const SESSION_DAYS = 180;
 const MAX_DOCS = 500;            // documenti per richiesta di salvataggio
 const MAX_DOC_BYTES = 200_000;   // dimensione massima di un documento
-const KINDS = new Set(['w', 'plan', 'mobx', 'pres']);
+const KINDS = new Set(['w', 'plan', 'mobx', 'pres', 'bk']);  // bk = backup della scheda (max 2, nel documento)
 const GOOGLE_ISS = new Set(['accounts.google.com', 'https://accounts.google.com']);
 
 export async function onRequest({ request, env }) {

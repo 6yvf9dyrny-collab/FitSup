@@ -41,7 +41,8 @@ input[type=time],input[type=date]{min-height:var(--hit)}
 /* ---------- struttura ---------- */
 header.hd{display:none}
 main{max-width:720px;margin:0 auto;padding:calc(var(--s4) + env(safe-area-inset-top,0px)) var(--s4) calc(var(--nav-h) + var(--s5) + env(safe-area-inset-bottom,0px))}
-.wtop label{min-width:0}.wtop input[type=date],.wtop input[type=time]{-webkit-appearance:none;appearance:none;display:block;text-align:left}
+.wtop label{min-width:0}.wtop input[type=date],.wtop input[type=time]{-webkit-appearance:none;appearance:none;display:flex;align-items:center;justify-content:center;text-align:center;height:var(--hit);line-height:normal;padding:0 var(--s2)}
+.wtop input::-webkit-date-and-time-value{text-align:center;margin:0;line-height:calc(var(--hit) - 2px)}
 .panel{display:block;margin-bottom:28px}.js .panel{display:none;margin-bottom:0}.js .panel.on{display:block}
 .js .panel.on+.panel.on{margin-top:var(--s5);padding-top:var(--s4);border-top:1px solid var(--line)}
 .up{display:inline-block;margin:var(--s3) 0;color:var(--acc);font-size:var(--t-s)}.js .up{display:none}
@@ -998,7 +999,10 @@ function cfmEnsure(){
  document.body.appendChild(d);
  $('cfmBg').onclick=cfmClose;$('cfmX').onclick=cfmClose;$('cfmNo').onclick=cfmClose;
  $('cfmOk').onclick=function(){var f=CFM;cfmClose();if(f)f()};
- $('cfmBody').addEventListener('click',function(ev){var b=ev.target.closest('[data-pset]');if(!b)return;presSet(b.getAttribute('data-d'),b.getAttribute('data-pset'));cfmClose()});
+ $('cfmBody').addEventListener('click',function(ev){var c=ev.target.closest('[data-impc]');if(c){var k=c.getAttribute('data-impc');cfmClose();
+  if(k=='bk'||k=='no'){if(IMP&&IMP.ready)impApply(IMP.ready,k=='bk');return}
+  var bk=BKS.list[+c.getAttribute('data-i')];if(!bk)return;var np=clone(bk.prog);np.id=newId('p');normProg(np);impApply(np,k=='resbk');setMsg('bkM2','Backup «'+bk.name+'» ripristinato.');return}
+  var b=ev.target.closest('[data-pset]');if(!b)return;presSet(b.getAttribute('data-d'),b.getAttribute('data-pset'));cfmClose()});
  document.addEventListener('keydown',function(e){if(e.key=='Escape'&&$('cfm').className.indexOf('show')>=0)cfmClose()});
 }
 function cfmOpen(title,html,ok){
@@ -1157,7 +1161,7 @@ function renderProg(){
  var host=$('progBody');if(!host)return;
  if(NEWSEL||!PROGS.length){host.innerHTML=chooserHtml();return}
  var p=EDITP?DRAFT:prog(ACT),h='';
- if(PROGS.length>1||EDITP)h+='<div class="sub2 pn">'+PROGS.map(function(x){return '<button type="button" data-pgo="'+esc(x.id)+'"'+(x.id==ACT?' class="on"':'')+(EDITP&&x.id!=ACT?' disabled':'')+'>'+esc(x.name)+'</button>'}).join('')+(EDITP?'':'<button type="button" data-pnew="1" aria-label="Nuovo programma">＋</button>')+'</div>';
+ if(PROGS.length>1)h+='<div class="sub2 pn">'+PROGS.map(function(x){return '<button type="button" data-pgo="'+esc(x.id)+'"'+(x.id==ACT?' class="on"':'')+(EDITP&&x.id!=ACT?' disabled':'')+'>'+esc(x.name)+'</button>'}).join('')+(EDITP?'':'<button type="button" data-pnew="1" aria-label="Nuovo programma">＋</button>')+'</div>';
  if(!EDITP){
   h+='<div class="ptool"><button class="btns" type="button" data-pedit="1">Modifica</button><button class="btns" type="button" data-pdup="1">Duplica</button><button class="btns" type="button" data-pnew="1">Nuovo programma</button></div>';
  }else h+='<div class="ptool"><button class="btnp" type="button" data-psave="1">Salva modifiche</button><button class="btns" type="button" data-pcancel="1">Annulla</button></div><p class="tg">Scrivi le serie come 4x8, 3xMAX o 3x8 + MAX. Il muscolo serve ai riepiloghi.</p>';
@@ -1656,6 +1660,7 @@ function syDoc(key){var k=key.split(':')[0],id=key.slice(k.length+1);
  if(k=='plan')return OVR?{kind:k,id:id,data:OVR}:{kind:k,id:id,deleted:true};
  if(k=='mobx')return {kind:k,id:id,data:MOBX};
  if(k=='pres')return {kind:k,id:id,data:PRES};
+ if(k=='bk')return {kind:k,id:id,data:BKS};
  return null}
 function api(path,opt){opt=opt||{};var h={'Content-Type':'application/json'};if(AUTH&&AUTH.token)h.Authorization='Bearer '+AUTH.token;
  return fetch(API+path,{method:opt.method||'GET',headers:h,body:opt.body?JSON.stringify(opt.body):undefined}).then(function(r){
@@ -1676,6 +1681,7 @@ function syPull(){
    if(d.kind=='w'){if(mine)return;if(d.deleted)delete SESS[d.id];else if(d.data)SESS[d.id]=d.data;reg=true}
    else if(d.kind=='plan'){if(mine)return;OVR=d.deleted?null:d.data;plan=true}
    else if(d.kind=='mobx'){if(mine||!d.data||!d.data.U)return;MOBX=d.data;mob=true}
+   else if(d.kind=='bk'){if(mine||!d.data||!d.data.list)return;BKS=d.data;try{localStorage.setItem(BKSKEY,JSON.stringify(BKS))}catch(e){}if(window.renderSettings)renderSettings()}
    else if(d.kind=='pres'){if(!d.data||!d.data.d)return;
     if(mine){PRES.d=Object.assign({},d.data.d,PRES.d);PRES.x=Object.assign({},d.data.x||{},PRES.x)}else PRES=d.data;pre=true}});
   SYNC.since=j.now||Date.now();SYNC.last=Date.now();sySave();
@@ -1690,6 +1696,7 @@ function syFirst(){
  Object.keys(SESS).forEach(function(id){SYNC.q['w:'+id]=1});
  if(OVR)SYNC.q['plan:all']=1;
  if(MOBX.U.length||MOBX.L.length)SYNC.q['mobx:all']=1;
+ if(BKS.list.length)SYNC.q['bk:all']=1;
  if(Object.keys(PRES.d).length||Object.keys(PRES.x).length)SYNC.q['pres:all']=1;
  SYNC.since=0;sySave();return syAll()}
 function signedIn(j){AUTH={token:j.token,email:j.user.email,name:j.user.name};authSave();SYMSG='';ACCV.busy=false;ACCV.m='in';ACCV.rec=j.recovery||'';renderAcc();return syFirst().then(function(){var on=document.querySelector('#tabs a.on');if(!locked()&&PROGS.length&&on&&on.getAttribute('data-p')=='ps'&&!EDITP&&!NEWSEL&&window.showTab)window.showTab('pg',false)})}
@@ -1744,7 +1751,7 @@ function renderAcc(){
 function enterApp(){window.scrollTo(0,0);if(window.showTab)window.showTab(PROGS.length?'pg':'ps',false)}
 /* uscita e cancellazione: i dati del dispositivo appartengono all'account, quindi si tolgono */
 function wipeLocal(msg){
- [KEY,PKEY,MKEY,PRKEY,STKEY,SYKEY,AUKEY,'nu_lastbk_v1'].forEach(function(k){try{localStorage.removeItem(k)}catch(e){}});
+ [KEY,PKEY,MKEY,PRKEY,STKEY,SYKEY,AUKEY,BKSKEY,NTKEY,'nu_lastbk_v1'].forEach(function(k){try{localStorage.removeItem(k)}catch(e){}});
  try{if(msg)sessionStorage.setItem('nu_msg',msg)}catch(e){}
  location.replace(location.pathname);
 }
@@ -1860,7 +1867,8 @@ function impPreview(sess,name){
  var h='<label class="cfl">Nome della scheda<input id="impName" value="'+esc(IMP.name)+'"></label><p class="tg">'+sess.length+(sess.length==1?' giorno':' giorni')+', '+n+' esercizi. Controlla e conferma: potrai modificarla dopo nella Scheda.</p>';
  sess.forEach(function(s){h+='<p class="imph"><b>'+esc(s.label)+'</b>'+(s.day>=0?' · '+GIORNI[s.day]:'')+(s.time?' '+esc(s.time):'')+'</p><ul class="exl">'+s.ex.map(function(e){return '<li><div><b>'+esc(e.name)+'</b><div class="tg">'+esc(e.mu)+(e.note?' · '+esc(e.note):'')+'</div></div><span class="srb">'+esc(e.sr)+'</span></li>'}).join('')+'</ul>'});
  cfmOpen('Importa la scheda',h,function(){var p={id:newId('p'),name:($('impName').value||IMP.name).trim(),notes:'',sessions:IMP.sessions.map(function(s){return {label:s.label,day:s.day==null?-1:s.day,mob:s.mob||'',time:s.time||'',ex:s.ex}})};
-  normProg(p);PROGS.push(p);ACT=p.id;savePlans();afterPlanChange();IMP=null;impMsg('Scheda «'+p.name+'» importata'+(AUTH?' e salvata nel tuo account.':'.'));if(window.showTab)window.showTab('ps')});
+  normProg(p);var old=prog(ACT);if(!old){impApply(p,false);return}
+  setTimeout(function(){cfmOpen('Sostituire la scheda?','<p>Se importi una scheda, quella già salvata («'+esc(old.name)+'») verrà eliminata. Vuoi fare un backup?</p><p class="tg">Il backup si salva nel tuo account: puoi tenerne fino a 2 e ripristinarli da Impostazioni.'+(BKS.list.length>=2?' Hai già 2 backup: il più vecchio verrà sostituito.':'')+'</p><div class="pqb"><button class="btnp" type="button" data-impc="bk">Fai il backup e importa</button><button class="btns" type="button" data-impc="no">Importa senza backup</button></div>',null);IMP.ready=p},320)});
  $('cfmOk').textContent='Importa'}
 /* notifiche: nell'app iPhone sono vere notifiche del sistema; nel browser solo mentre l'app è aperta */
 function ntItems(){var p=prog(ACT)||prog(f0()),out=[];if(!p)return out;
@@ -1886,6 +1894,7 @@ function renderSettings(){
   +'<div class="ptool"><label class="btns filebtn">Scegli un file<input type="file" id="impFileIn" accept=".csv,.tsv,.txt,.md,.xlsx,.xls,.ods,.json,text/plain,text/csv"></label><button class="btns" type="button" data-set="paste">Incolla testo</button></div>'
   +'<div id="pasteBox" hidden><textarea id="pasteT" rows="7" placeholder="Upper A&#10;Panca piana 4x8&#10;Lat machine 3x10&#10;&#10;Lower A&#10;Squat 4x6"></textarea><button class="btnp btnw" type="button" data-set="pasteok">Analizza il testo</button></div>'
   +'<p class="msg" id="impM"></p>'
+  +'<h2>Backup della scheda</h2>'+bksHtml()+'<p class="msg" id="bkM2"></p>'
   +'<h2>Notifiche</h2>'
   +'<label class="swrow"><span><b>Promemoria degli allenamenti</b><br><span class="tg">'+(items.length?'Avviso all’orario di '+items.length+(items.length==1?' allenamento':' allenamenti')+' a settimana.':'Imposta giorno e orario degli allenamenti in Scheda → Modifica.')+'</span></span><input type="checkbox" id="ntOn"'+(NOTIF.on?' checked':'')+(items.length?'':' disabled')+'></label>'
   +'<p class="tg">'+(isNative()?'Sei nell’app per iPhone: i promemoria arrivano anche con l’app chiusa.':'Nel browser i promemoria arrivano solo con l’app aperta. Per riceverli sempre usa il calendario del telefono o l’app per iPhone.')+'</p>'
@@ -1895,12 +1904,32 @@ function renderSettings(){
  var f=$('impFileIn');if(f)f.onchange=function(){impFile(this.files&&this.files[0]);this.value=''};
  var n=$('ntOn');if(n)n.onchange=function(){ntToggle(this.checked)};
 }
-function onSettings(ev){var b=ev.target.closest('[data-set],[data-ics]');if(!b)return;
+function onSettings(ev){var k=ev.target.closest('[data-bk]');if(k){onBk(k);return}var b=ev.target.closest('[data-set],[data-ics]');if(!b)return;
  if(b.hasAttribute('data-ics')){icsDownload();return}
  var a=b.getAttribute('data-set'),p=prog(($('expSel')||{}).value)||prog(ACT);
  if(a=='csv'&&p)exportCsv(p);else if(a=='json'&&p)exportJson(p);
  else if(a=='paste'){var x=$('pasteBox');x.hidden=!x.hidden;if(!x.hidden)$('pasteT').focus()}
  else if(a=='pasteok'){var t=$('pasteT').value;if(!t.trim()){impMsg('Incolla prima il testo della scheda.');return}impPreview(rowsToSessions(textToRows(t)),'Scheda importata')}}
+
+
+/* backup della scheda nell'account: al massimo 2 */
+var BKS={list:[]},BKSKEY='nu_backup_schede_v1';
+function bksLoad(){try{var o=JSON.parse(localStorage.getItem(BKSKEY)||'null');if(o&&o.list)BKS=o}catch(e){}}
+function bksSave(){try{localStorage.setItem(BKSKEY,JSON.stringify(BKS))}catch(e){}syMark('bk','all')}
+function bksAdd(p){BKS.list.unshift({at:Date.now(),name:p.name,prog:clone(p)});BKS.list=BKS.list.slice(0,2);bksSave()}
+function impApply(p,backup){
+ var old=prog(ACT);if(old&&backup)bksAdd(old);
+ if(old){for(var i=0;i<PROGS.length;i++)if(PROGS[i].id==old.id){PROGS[i]=p;break}}else PROGS.push(p);
+ ACT=p.id;cur.plan=p.id;savePlans();afterPlanChange();IMP=null;
+ impMsg('Scheda «'+p.name+'» importata'+(backup?', la precedente è nei backup.':'.'));if(window.showTab)window.showTab('ps')}
+function bksHtml(){
+ if(!BKS.list.length)return '<p class="tg">Nessun backup. Ne viene proposto uno quando importi una scheda; puoi tenerne fino a 2.</p><div class="ptool"><button class="btns" type="button" data-bk="now"'+(PROGS.length?'':' disabled')+'>Fai un backup della scheda attuale</button></div>';
+ return BKS.list.map(function(b,i){return '<div class="dbi"><div><b>'+esc(b.name)+'</b><div class="tg">'+new Date(b.at).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})+'</div></div><div class="mb"><button class="btns" type="button" data-bk="res" data-i="'+i+'">Ripristina</button><button class="btns" type="button" data-bk="del" data-i="'+i+'">Elimina</button></div></div>'}).join('')
+  +(BKS.list.length<2&&PROGS.length?'<div class="ptool"><button class="btns" type="button" data-bk="now">Fai un backup della scheda attuale</button></div>':'')}
+function onBk(b){var a=b.getAttribute('data-bk'),i=+b.getAttribute('data-i');
+ if(a=='now'){var p=prog(ACT);if(p){if(BKS.list.length>=2){armed(b,'Sostituisce il più vecchio: tocca ancora',function(){bksAdd(p);renderSettings();setMsg('bkM2','Backup salvato.')});return}bksAdd(p);renderSettings();setMsg('bkM2','Backup salvato nel tuo account.')}return}
+ if(a=='del'){armed(b,'Conferma',function(){BKS.list.splice(i,1);bksSave();renderSettings()});return}
+ if(a=='res'){var bk=BKS.list[i];if(!bk)return;cfmOpen('Ripristinare il backup?','<p>La scheda attuale verrà sostituita da «'+esc(bk.name)+'».</p><div class="pqb"><button class="btnp" type="button" data-impc="resbk" data-i="'+i+'">Fai il backup dell’attuale e ripristina</button><button class="btns" type="button" data-impc="res" data-i="'+i+'">Ripristina senza backup</button></div>',null)}}
 
 /* ---------- presenze, calendario e recuperi ---------- */
 /* PRES.d[data] = {st:'si'|'no'|'riposo', rec:data del recupero}; PRES.x[data] = seduta di recupero {label,time,from} */
@@ -2041,7 +2070,7 @@ function icsDownload(){
 if(!$('pgBody')||!$('prBody')||!$('progBody'))return;
 OVR=lsPlanGet();loadProgs();
 MOBX=lsMGet()||{U:[],L:[]};
-SESS=lsGet();presLoad();authLoad();ntLoad();
+SESS=lsGet();presLoad();authLoad();ntLoad();bksLoad();
 $('progBody').addEventListener('click',onProgClick);
 $('progBody').addEventListener('input',onProgInput);
 $('progBody').addEventListener('change',onProgInput);
