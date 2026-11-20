@@ -40,7 +40,8 @@ input[type=time],input[type=date]{min-height:var(--hit)}
 
 /* ---------- struttura ---------- */
 header.hd{display:none}
-main{max-width:720px;margin:0 auto;padding:var(--s4) var(--s4) calc(var(--nav-h) + var(--s5) + env(safe-area-inset-bottom,0px))}
+main{max-width:720px;margin:0 auto;padding:calc(var(--s4) + env(safe-area-inset-top,0px)) var(--s4) calc(var(--nav-h) + var(--s5) + env(safe-area-inset-bottom,0px))}
+.wtop label{min-width:0}.wtop input[type=date],.wtop input[type=time]{-webkit-appearance:none;appearance:none;display:block;text-align:left}
 .panel{display:block;margin-bottom:28px}.js .panel{display:none;margin-bottom:0}.js .panel.on{display:block}
 .js .panel.on+.panel.on{margin-top:var(--s5);padding-top:var(--s4);border-top:1px solid var(--line)}
 .up{display:inline-block;margin:var(--s3) 0;color:var(--acc);font-size:var(--t-s)}.js .up{display:none}
@@ -274,7 +275,7 @@ input[type=file]{min-height:var(--hit);font-size:var(--t-in);max-width:100%}
 
 /* pagina di accesso: prima dell'app */
 .gate{display:none}
-html.locked .gate{display:flex;min-height:100vh;min-height:100dvh;align-items:center;justify-content:center;padding:var(--s5) var(--s4) calc(var(--s5) + env(safe-area-inset-bottom,0px));background:var(--bg)}
+html.locked .gate{display:flex;min-height:100vh;min-height:100dvh;align-items:center;justify-content:center;padding:calc(var(--s5) + env(safe-area-inset-top,0px)) var(--s4) calc(var(--s5) + env(safe-area-inset-bottom,0px));background:var(--bg)}
 html.locked main,html.locked .tabs,html.locked header.hd{display:none!important}
 .gcard{width:100%;max-width:400px}
 .glogo{display:block;width:64px;height:64px;border-radius:16px;margin:0 auto var(--s3)}
