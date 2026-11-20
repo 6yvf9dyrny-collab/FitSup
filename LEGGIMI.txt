@@ -17,3 +17,11 @@ Aggiornare l'app
 
 Provare in locale
   npx wrangler@4 pages dev        (sito + API + database locale su http://localhost:8788)
+
+App per iPhone (ios/)
+- È una finestra nativa sul sito FitSup (si aggiorna da sola quando aggiorni il sito) con le notifiche di iOS:
+  i promemoria degli allenamenti arrivano anche ad app chiusa.
+- Per rigenerare il progetto: cd ios && xcodegen generate   (poi apri FitSup.xcodeproj)
+- Per installarla sul tuo iPhone senza App Store: collega l'iPhone, in Xcode scegli il target FitSup →
+  Signing & Capabilities → Team = il tuo Apple ID, seleziona l'iPhone e premi Run. Con l'Apple ID gratuito
+  l'app va reinstallata da Xcode ogni 7 giorni; con l'Apple Developer Program (99 €/anno) dura un anno.
