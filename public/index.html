@@ -57,6 +57,8 @@ main{max-width:720px;margin:0 auto;padding:var(--s4) var(--s4) calc(var(--nav-h)
 .tabs a svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .tabs a.on{color:var(--acc);font-weight:700}
 .tabs a.on svg{stroke-width:2.3}
+.tabs .tl-l{display:none}
+@media (min-width:768px){.tabs .tl-l{display:inline}.tabs .tl-s{display:none}}
 /* computer e tablet in orizzontale: barra in alto, icona e testo affiancati */
 @media (min-width:768px){
  .tabs{position:sticky;top:0;bottom:auto;border-top:0;border-bottom:1px solid var(--line);padding:0 var(--s4);gap:var(--s2)}
@@ -287,7 +289,7 @@ html.locked main,html.locked .tabs,html.locked header.hd{display:none!important}
 .swrow{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);padding:var(--s3);background:var(--card);border:1px solid var(--line);border-radius:var(--r-card)}
 .swrow input{width:24px;height:24px;flex:none}
 .filebtn{position:relative;display:inline-flex;align-items:center}.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
-#pasteT{width:100%;min-height:140px;font:var(--t-in)/1.4 inherit;padding:var(--s2);border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--ink);margin:var(--s2) 0}
+#pasteT{width:100%;min-height:140px;font-family:inherit;font-size:16px;line-height:1.4;padding:var(--s2);border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--ink);margin:var(--s2) 0}
 .imph{margin:var(--s3) 0 var(--s1)}
 
 .nw{white-space:nowrap}
@@ -305,7 +307,7 @@ html.locked main,html.locked .tabs,html.locked header.hd{display:none!important}
 <a href="#ps" data-p="ps" class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M8 8.5h8M8 12h8M8 15.5h5"/></svg>Scheda</a>
 <a href="#pr" data-p="pr"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5h16M6 16l4-5 3.5 3L19 7"/><path d="M15.5 7H19v3.5"/></svg>Progressi</a>
 <a href="#pm" data-p="pm"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5"/></svg>Guida</a>
-<a href="#pi" data-p="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Impostazioni</a>
+<a href="#pi" data-p="pi" aria-label="Impostazioni"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span class="tl-l">Impostazioni</span><span class="tl-s">Opzioni</span></a>
 </nav>
 <main>
 <section class="panel on" id="ps"><h1>Scheda</h1><noscript><p>Questa sezione richiede JavaScript.</p></noscript><div id="progBody"></div><a class="up" href="#tabs">↑ Torna al menu</a></section>
@@ -1813,7 +1815,7 @@ function rowsToSessions(rows){
  if(!rows.length)return [];
  var h=rows[0].map(function(c){return c.toLowerCase()}),col=function(re){for(var i=0;i<h.length;i++)if(re.test(h[i]))return i;return -1};
  var cE=col(/eserciz|exercise|nome/),cG=col(/^(giorno|seduta|day|session|allenamento)$|^giorno$|seduta|workout/),cW=col(/settimana|weekday/),cS=col(/^serie|sets?$/),cR=col(/rip|reps?/),cN=col(/note|notes/),cT=col(/orario|ora|time/),cM=col(/muscol/);
- var sess=[],cur=null;function day(l){l=l||'Giorno '+(sess.length+1);for(var i=0;i<sess.length;i++)if(sess[i].label==l)return sess[i];var s={label:l,day:dayIdx(l),mob:'',time:'',ex:[]};sess.push(s);return s}
+ var sess=[],cur=null;function day(l){var wd=dayIdx((String(l||'').match(/(lun|mar|mer|gio|ven|sab|dom|mon|tue|wed|thu|fri|sat|sun)\w*\.?\)?\s*$/i)||[''])[0]);if(wd>=0){var l2=String(l).replace(/\s*[-–—,:(]?\s*(lun|mar|mer|gio|ven|sab|dom|mon|tue|wed|thu|fri|sat|sun)\w*\.?\)?\s*$/i,'').trim();if(l2)l=l2}l=l||'Giorno '+(sess.length+1);for(var i=0;i<sess.length;i++)if(sess[i].label==l)return sess[i];var s={label:l,day:wd>=0?wd:dayIdx(l),mob:'',time:'',ex:[]};sess.push(s);return s}
  if(cE>=0){rows.slice(1).forEach(function(r){if(!r[cE])return;var s=day(cG>=0?r[cG]:'');
    if(cW>=0&&r[cW]&&s.day<0)s.day=dayIdx(r[cW]);if(cT>=0&&/^\d{1,2}[:.]\d{2}$/.test(r[cT]||''))s.time=r[cT].replace('.',':').padStart(5,'0');
    var sr=cS>=0&&r[cS]?(SETRE.test(r[cS])?r[cS].replace(/\s+/g,''):r[cS]+(cR>=0&&r[cR]?'x'+r[cR]:'x10')):'';
