@@ -1206,7 +1206,7 @@ function renderProg(){
   }else h+='<div class="dayh"><h2>'+esc(s.label)+'</h2><span class="tg">'+(s.day>=0?GIORNI[s.day]+(s.time?' '+esc(s.time):'')+' · ':'')+range(sessMin(s))+'</span></div>'+mobNote(s);
   h+=ptable(p,i);
  });
- if(EDITP)h+='<button class="btns" type="button" data-sadd="1">Modifica programma · '+DRAFT.sessions.length+(DRAFT.sessions.length==1?' giorno':' giorni')+'</button>';
+ if(EDITP)h+='<button class="btns" type="button" data-sadd="1" style="margin-top:var(--s4)">Modifica programma · '+DRAFT.sessions.length+(DRAFT.sessions.length==1?' giorno':' giorni')+'</button>';
  if(EDITP)h+='<h2>Note del programma</h2><textarea class="nt" data-pnotes="1" placeholder="Una riga per paragrafo; le righe che iniziano con - diventano elenco">'+esc(p.notes)+'</textarea>'+dbHtml(p);
  else{h+=weeklyHtml(p)+sugHtml(p)+dbHtml(p);if(p.notes.trim())h+='<h2>Note</h2><div class="notes">'+notesHtml(p.notes)+'</div>';
   h+='<h2>Elimina</h2><p class="tg">Gli allenamenti già registrati restano in Progressi.</p><div class="ptool"><button class="btns dang" type="button" data-pdel="1">Elimina questo programma</button><button class="btns dang" type="button" data-pall="1">Elimina tutti i programmi</button></div>'}
