@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0f7d8c">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -283,6 +283,13 @@ html.locked main,html.locked .tabs,html.locked header.hd{display:none!important}
 .gnote{margin-top:var(--s4);text-align:center}
 .gate .seg{margin-bottom:var(--s2)}
 
+/* Impostazioni */
+.swrow{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);padding:var(--s3);background:var(--card);border:1px solid var(--line);border-radius:var(--r-card)}
+.swrow input{width:24px;height:24px;flex:none}
+.filebtn{position:relative;display:inline-flex;align-items:center}.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+#pasteT{width:100%;min-height:140px;font:var(--t-in)/1.4 inherit;padding:var(--s2);border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--ink);margin:var(--s2) 0}
+.imph{margin:var(--s3) 0 var(--s1)}
+
 .nw{white-space:nowrap}
 .trend{display:flex;align-items:center;gap:6px;color:var(--acc)}.trend small{color:var(--mute);font-size:var(--t-s)}
 </style>
@@ -298,6 +305,7 @@ html.locked main,html.locked .tabs,html.locked header.hd{display:none!important}
 <a href="#ps" data-p="ps" class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M8 8.5h8M8 12h8M8 15.5h5"/></svg>Scheda</a>
 <a href="#pr" data-p="pr"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5h16M6 16l4-5 3.5 3L19 7"/><path d="M15.5 7H19v3.5"/></svg>Progressi</a>
 <a href="#pm" data-p="pm"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5"/></svg>Guida</a>
+<a href="#pi" data-p="pi"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Impostazioni</a>
 </nav>
 <main>
 <section class="panel on" id="ps"><h1>Scheda</h1><noscript><p>Questa sezione richiede JavaScript.</p></noscript><div id="progBody"></div><a class="up" href="#tabs">↑ Torna al menu</a></section>
@@ -416,6 +424,7 @@ html.locked main,html.locked .tabs,html.locked header.hd{display:none!important}
 </table></div>
 <p>Se hai fastidio ai lombari, fai anche 1x8 di cat-camel prima di stacchi e iperestensioni.</p><div id="mobxL"></div></div><a class="up" href="#tabs">↑ Torna al menu</a></section>
 <section class="panel" id="pg"><h1>Allenamento</h1><p class="lead">Tocca ✓ alla fine di ogni serie: parte il recupero. Le caselle grigie sono i valori della volta scorsa.</p><noscript><p>Questa sezione richiede JavaScript.</p></noscript><div id="pgBody"></div><a class="up" href="#tabs">↑ Torna al menu</a></section>
+<section class="panel" id="pi"><h1>Impostazioni</h1><div id="setBody"></div><div id="accBox"></div></section>
 <section class="panel" id="pr"><h1>Progressi</h1><noscript><p>Questa sezione richiede JavaScript.</p></noscript><div id="prBody"></div><a class="up" href="#tabs">↑ Torna al menu</a></section>
 <div class="sheet" id="sheet"><div class="sheet-bg" id="sheetBg"></div><div class="sheet-box" role="dialog" aria-modal="true" aria-label="File Markdown"><div class="sheet-h"><b>File Markdown</b><button class="btns" type="button" id="sheetX">Chiudi</button></div><p class="tg">Testo originale della scheda: non riflette le modifiche fatte nella sezione Scheda.</p><div class="ctl"><button id="mdC">Copia testo</button><button id="mdD">Scarica .md</button></div><div class="mdbox" id="mdout"></div><script type="text/plain" id="mdsrc">
 # Il mio allenamento
@@ -954,9 +963,9 @@ function lsPlanGet(){try{var o=JSON.parse(localStorage.getItem(PKEY)||'null');re
 function lsPlanSet(){try{if(OVR)localStorage.setItem(PKEY,JSON.stringify(OVR));else localStorage.removeItem(PKEY);return true}catch(e){return false}}
 function putSession(o){SESS[o.id]=o;lsSet();syMark('w',o.id);return Promise.resolve(true)}
 function delSession(id){delete SESS[id];lsSet();syMark('w',id)}
-function savePlans(){OVR=clone(PROGS);lsPlanSet();syMark('plan','all')}
+function savePlans(){OVR=clone(PROGS);lsPlanSet();syMark('plan','all');if(window.renderSettings){renderSettings();ntApply()}}
 function resetPlans(){OVR=null;lsPlanSet();syMark('plan','all')}
-function afterPlanChange(){renderProg();renderTempi();refreshPlanUse();if(!dirty&&!editId)buildForm();renderReg();renderMobSug()}
+function afterPlanChange(){if(typeof renderSettings=='function')renderSettings();renderProg();renderTempi();refreshPlanUse();if(!dirty&&!editId)buildForm();renderReg();renderMobSug()}
 /* ---------- consigli: database esercizi e mobilità ---------- */
 function bestSession(p,g){
  var low=!!LOWER[g],best=0,bs=1e9;
@@ -1570,7 +1579,7 @@ function buildReg(){
  $('prBody').innerHTML='<h2 class="ch">Presenze</h2><div class="cal" id="calBox"></div><h2>Esercizi</h2><div class="seg"><button type="button" data-v="e">Per esercizio</button><button type="button" data-v="w">Per data</button></div>'
   +'<details class="dbx fbox" id="fBox"><summary>Filtri <span class="tg" id="fCnt"></span></summary><div class="fld"><label>Programma<select id="fPr"></select></label><label>Seduta<select id="fSed"></select></label><label>Esercizio<select id="fEx"></select></label><label id="fVrL" style="display:none">Variante<select id="fVr"></select></label><label>Dal<input type="date" id="fFrom"></label><label>Al<input type="date" id="fTo"></label>'
   +'<label>Ordine<select id="fOrd"><option value="plan">Ordine di allenamento (scheda)</option><option value="new">Più recenti prima</option><option value="old">Meno recenti prima</option></select></label><label id="fMetL">Grafico degli esercizi<select id="fMet"><option value="e1">Forza stimata (1RM)</option><option value="top">Carico massimo</option><option value="vol">Volume (kg × ripetizioni)</option><option value="comp">Completamento della scheda</option></select></label></div>'
-  +'<button class="btns" type="button" id="fReset">Azzera filtri</button></details><div id="rgList"></div><h2>Account</h2><div id="accBox"></div>';
+  +'<button class="btns" type="button" id="fReset">Azzera filtri</button></details><div id="rgList"></div>';
  $('prBody').addEventListener('click',onReg);$('accBox').addEventListener('click',function(ev){ev.stopPropagation();onAcc(ev)});$('gateBox').addEventListener('click',onAcc);$('calBox').addEventListener('click',function(ev){ev.stopPropagation();onCal(ev)});
  $('fPr').onchange=function(){FIL.pr=this.value;FIL.sed='';FIL.ex='';FIL.vr='';renderReg()};$('fSed').onchange=function(){FIL.sed=this.value;renderReg()};$('fEx').onchange=function(){FIL.ex=this.value;FIL.vr='';renderReg()};$('fVr').onchange=function(){FIL.vr=this.value;renderReg()};
  $('fFrom').onchange=function(){FIL.from=this.value;renderReg()};$('fTo').onchange=function(){FIL.to=this.value;renderReg()};
@@ -1693,7 +1702,7 @@ function formHtml(){
   +'<button class="btnp btnw" type="submit"'+(ACCV.busy?' disabled':'')+'>'+(ACCV.busy?'Attendi…':ttl)+'</button></form>'
   +(m=='in'?'<p class="gcenter"><button class="linkb" type="button" data-accm="rs">Password dimenticata?</button></p>':m=='rs'?'<p class="gcenter"><button class="linkb" type="button" data-accm="in">Torna all’accesso</button></p>':'')
   +(GCID?'<div id="gBtn" class="gbtn"></div>':'')
-  +'<p class="tg gnote">Salviamo email, nome se lo scrivi e i dati che inserisci nell’app, su server Cloudflare in Europa. Puoi cancellare tutto quando vuoi da Progressi → Account.</p>'}
+  +'<p class="tg gnote">Salviamo email, nome se lo scrivi e i dati che inserisci nell’app, su server Cloudflare in Europa. Puoi cancellare tutto quando vuoi da Impostazioni → Account.</p>'}
 function renderAcc(){
  var lock=locked(),was=document.documentElement.classList.contains('locked');
  document.documentElement.classList.toggle('locked',lock);
@@ -1766,6 +1775,116 @@ function reqOpen(v,err){v=v||{};
    window.open('https://wa.me/'+WA_NUM+'?text='+encodeURIComponent(txt),'_blank','noopener')});
  $('cfmOk').textContent='Apri WhatsApp';
 }
+/* ---------- Impostazioni: esporta, importa, notifiche ---------- */
+var NTKEY='nu_notif_v1',NOTIF={on:false},IMP=null,NTT=0;
+function isNative(){return !!(window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.fitsup)}
+function ntLoad(){try{var o=JSON.parse(localStorage.getItem(NTKEY)||'null');if(o)NOTIF=o}catch(e){}}
+function ntSave(){try{localStorage.setItem(NTKEY,JSON.stringify(NOTIF))}catch(e){}}
+function dlFile(name,text,type){var u=URL.createObjectURL(new Blob([text],{type:type})),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u)},4000)}
+function fileName(s){return String(s||'scheda').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'scheda'}
+/* esporta: tabella per Excel/Numbers (CSV con ;) oppure file completo FitSup */
+function csvCell(v){v=String(v==null?'':v);return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function exportCsv(p){
+ var rows=[['Giorno','Giorno della settimana','Orario','Esercizio','Serie','Ripetizioni','Note','Muscolo']];
+ p.sessions.forEach(function(s){s.ex.forEach(function(e){var m=String(e.sr||'').match(/^\s*(\d+(?:-\d+)?)\s*[x×]\s*(.+)$/i);
+  rows.push([s.label,s.day>=0?GIORNI[s.day]:'',s.time||'',e.name,m?m[1]:e.sr,m?m[2].trim():'',e.note||'',e.mu||''])})});
+ dlFile(fileName(p.name)+'.csv','\ufeff'+rows.map(function(r){return r.map(csvCell).join(';')}).join('\r\n'),'text/csv')}
+function exportJson(p){dlFile(fileName(p.name)+'.fitsup.json',JSON.stringify({fitsup:1,programs:[p]},null,1),'application/json')}
+/* importa: da file (CSV, TSV, testo delle Note, Excel, FitSup) o testo incollato */
+function parseDelimited(t){
+ var first=t.split(/\r?\n/).slice(0,5).join('\n'),d=[';','\t',','].reduce(function(b,c){return (first.split(c).length>first.split(b).length)?c:b},';');
+ var rows=[],row=[],cell='',q=false;
+ for(var i=0;i<t.length;i++){var ch=t[i];
+  if(q){if(ch=='"'){if(t[i+1]=='"'){cell+='"';i++}else q=false}else cell+=ch;continue}
+  if(ch=='"'&&!cell){q=true;continue}
+  if(ch==d){row.push(cell);cell='';continue}
+  if(ch=='\n'||ch=='\r'){if(ch=='\r'&&t[i+1]=='\n')i++;row.push(cell);rows.push(row);row=[];cell='';continue}
+  cell+=ch}
+ if(cell||row.length){row.push(cell);rows.push(row)}
+ return rows}
+var SETRE=/(\d+(?:\s*-\s*\d+)?)\s*[x×*]\s*(\d+(?:\s*-\s*\d+)?|max)(\s*\+\s*max)?/i;
+function dayIdx(t){t=String(t||'').toLowerCase();for(var i=0;i<7;i++){var g=GIORNI[i].replace('ì','i');if(t.indexOf(g)>=0||t.indexOf(GIORNI[i])>=0)return i}
+ var ab={lun:1,mar:2,mer:3,gio:4,ven:5,sab:6,dom:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6,sun:0};var m=t.match(/^(lun|mar|mer|gio|ven|sab|dom|mon|tue|wed|thu|fri|sat|sun)\b/);return m?ab[m[1]]:-1}
+function cleanName(s){return String(s||'').replace(/^[\s\-•*·–—>\d.)]+/,'').replace(/[\s:\-–—,;]+$/,'').trim()}
+function mkEx(name,sr,note){name=cleanName(name);var d=dbFind(name);return {name:name,sr:sr||(d?d[3]:'3x10'),note:(note||'').trim(),mu:d?d[1]:guess(name),vars:catVars(name)}}
+/* righe di una tabella: con intestazione si usano le colonne, senza si riconoscono giorni ed esercizi */
+function rowsToSessions(rows){
+ rows=rows.map(function(r){return r.map(function(c){return String(c==null?'':c).trim()})}).filter(function(r){return r.some(function(c){return c})});
+ if(!rows.length)return [];
+ var h=rows[0].map(function(c){return c.toLowerCase()}),col=function(re){for(var i=0;i<h.length;i++)if(re.test(h[i]))return i;return -1};
+ var cE=col(/eserciz|exercise|nome/),cG=col(/^(giorno|seduta|day|session|allenamento)$|^giorno$|seduta|workout/),cW=col(/settimana|weekday/),cS=col(/^serie|sets?$/),cR=col(/rip|reps?/),cN=col(/note|notes/),cT=col(/orario|ora|time/),cM=col(/muscol/);
+ var sess=[],cur=null;function day(l){l=l||'Giorno '+(sess.length+1);for(var i=0;i<sess.length;i++)if(sess[i].label==l)return sess[i];var s={label:l,day:dayIdx(l),mob:'',time:'',ex:[]};sess.push(s);return s}
+ if(cE>=0){rows.slice(1).forEach(function(r){if(!r[cE])return;var s=day(cG>=0?r[cG]:'');
+   if(cW>=0&&r[cW]&&s.day<0)s.day=dayIdx(r[cW]);if(cT>=0&&/^\d{1,2}[:.]\d{2}$/.test(r[cT]||''))s.time=r[cT].replace('.',':').padStart(5,'0');
+   var sr=cS>=0&&r[cS]?(SETRE.test(r[cS])?r[cS].replace(/\s+/g,''):r[cS]+(cR>=0&&r[cR]?'x'+r[cR]:'x10')):'';
+   var e=mkEx(r[cE],sr,cN>=0?r[cN]:'');if(cM>=0&&MUSCOLI.indexOf(r[cM])>=0)e.mu=r[cM];s.ex.push(e)});
+  return sess.filter(function(s){return s.ex.length})}
+ rows.forEach(function(r){var line=r.filter(function(c){return c}).join(' ');var m=line.match(SETRE);
+  if(m){var name=line.slice(0,m.index),note=line.slice(m.index+m[0].length).replace(/^[\s\-–—:,]+/,'');if(!cleanName(name))return;
+   if(!cur)cur=day('');cur.ex.push(mkEx(name,(m[1]+'x'+m[2]+(m[3]?'+MAX':'')).replace(/\s+/g,'').replace(/max/i,'MAX'),note));return}
+  var t=cleanName(line.replace(/^#+/,''));if(t&&t.length<=40)cur=day(t);
+  else if(t&&cur)cur.ex.push(mkEx(t,'',''))});
+ return sess.filter(function(s){return s.ex.length})}
+function textToRows(t){if(/[;\t]/.test(t)&&t.split(/\r?\n/).filter(function(l){return /[;\t]/.test(l)}).length>=2)return parseDelimited(t);return t.split(/\r?\n/).map(function(l){return [l]})}
+function loadXlsx(cb){if(window.XLSX)return cb();var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=cb;s.onerror=function(){impMsg('Per leggere i file Excel serve la connessione.')};document.head.appendChild(s)}
+function impMsg(t){var m=$('impM');if(m)m.textContent=t}
+function impFile(f){
+ if(!f)return;var n=f.name.toLowerCase(),base=f.name.replace(/\.[^.]+$/,'');
+ if(/\.(xlsx|xls|ods|numbers)$/.test(n)){if(/\.numbers$/.test(n)){impMsg('Da Numbers: File → Esporta come → CSV o Excel, poi importa quel file.');return}
+  impMsg('Lettura del file Excel…');loadXlsx(function(){var r=new FileReader();r.onload=function(){try{var wb=XLSX.read(new Uint8Array(r.result),{type:'array'});
+   var rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:false,defval:''});impPreview(rowsToSessions(rows),base)}catch(e){impMsg('Questo file Excel non si riesce a leggere.')}};r.readAsArrayBuffer(f)});return}
+ var r=new FileReader();r.onload=function(){var t=String(r.result).replace(/^\ufeff/,'');
+  if(/\.json$/.test(n)){try{var o=JSON.parse(t);if(o&&o.programs&&o.programs[0]){impPreview(o.programs[0].sessions,o.programs[0].name);return}}catch(e){}impMsg('File FitSup non valido.');return}
+  impPreview(rowsToSessions(/\.(csv|tsv)$/.test(n)?parseDelimited(t):textToRows(t)),base)};r.readAsText(f)}
+function impPreview(sess,name){
+ if(!sess||!sess.length){impMsg('Non ho trovato esercizi. Serve una riga per esercizio con le serie, per esempio «Panca piana 4x8», oppure una tabella con le colonne Giorno, Esercizio, Serie, Ripetizioni.');return}
+ impMsg('');IMP={name:name||'Scheda importata',sessions:sess};
+ var n=0;sess.forEach(function(s){n+=s.ex.length});
+ var h='<label class="cfl">Nome della scheda<input id="impName" value="'+esc(IMP.name)+'"></label><p class="tg">'+sess.length+(sess.length==1?' giorno':' giorni')+', '+n+' esercizi. Controlla e conferma: potrai modificarla dopo nella Scheda.</p>';
+ sess.forEach(function(s){h+='<p class="imph"><b>'+esc(s.label)+'</b>'+(s.day>=0?' · '+GIORNI[s.day]:'')+(s.time?' '+esc(s.time):'')+'</p><ul class="exl">'+s.ex.map(function(e){return '<li><div><b>'+esc(e.name)+'</b><div class="tg">'+esc(e.mu)+(e.note?' · '+esc(e.note):'')+'</div></div><span class="srb">'+esc(e.sr)+'</span></li>'}).join('')+'</ul>'});
+ cfmOpen('Importa la scheda',h,function(){var p={id:newId('p'),name:($('impName').value||IMP.name).trim(),notes:'',sessions:IMP.sessions.map(function(s){return {label:s.label,day:s.day==null?-1:s.day,mob:s.mob||'',time:s.time||'',ex:s.ex}})};
+  normProg(p);PROGS.push(p);ACT=p.id;savePlans();afterPlanChange();IMP=null;impMsg('Scheda «'+p.name+'» importata'+(AUTH?' e salvata nel tuo account.':'.'));if(window.showTab)window.showTab('ps')});
+ $('cfmOk').textContent='Importa'}
+/* notifiche: nell'app iPhone sono vere notifiche del sistema; nel browser solo mentre l'app è aperta */
+function ntItems(){var p=prog(ACT)||prog(f0()),out=[];if(!p)return out;
+ p.sessions.forEach(function(s){if(s.day<0||!s.time)return;var t=s.time.split(':');out.push({weekday:s.day+1,hour:+t[0],minute:+t[1],title:'FitSup',body:'È l’ora di '+s.label+'. Buon allenamento!'})});return out}
+function ntApply(){
+ if(isNative()){try{window.webkit.messageHandlers.fitsup.postMessage({type:'schedule',enabled:!!NOTIF.on,items:NOTIF.on?ntItems():[]})}catch(e){}return}
+ clearTimeout(NTT);if(!NOTIF.on||!('Notification' in window)||Notification.permission!='granted')return;
+ var now=new Date(),best=null;ntItems().forEach(function(it){var d=new Date(now);d.setHours(it.hour,it.minute,0,0);var add=(it.weekday-1-d.getDay()+7)%7;d.setDate(d.getDate()+add);if(d<=now)d.setDate(d.getDate()+7);if(!best||d<best.d)best={d:d,it:it}});
+ if(!best||best.d-now>864e5*2)return;
+ NTT=setTimeout(function(){var it=best.it;navigator.serviceWorker&&navigator.serviceWorker.ready?navigator.serviceWorker.ready.then(function(r){r.showNotification(it.title,{body:it.body,icon:'icon-192.png'})}):new Notification(it.title,{body:it.body});setTimeout(ntApply,60000)},best.d-now)}
+function ntToggle(on){
+ if(!on){NOTIF.on=false;ntSave();ntApply();renderSettings();return}
+ if(isNative()){NOTIF.on=true;ntSave();ntApply();renderSettings();return}
+ if(!('Notification' in window)){NOTIF.on=false;renderSettings();setMsg('ntM','Questo browser non supporta le notifiche: usa i promemoria nel calendario o l’app per iPhone.');return}
+ Notification.requestPermission().then(function(r){NOTIF.on=r=='granted';ntSave();ntApply();renderSettings();if(r!='granted')setMsg('ntM','Permesso negato: puoi riattivarlo dalle impostazioni del browser.')})}
+function setMsg(id,t){var m=$(id);if(m)m.textContent=t}
+function renderSettings(){
+ var host=$('setBody');if(!host)return;var p=prog(ACT)||prog(f0()),items=ntItems();
+ var progOpts=PROGS.map(function(x){return '<option value="'+esc(x.id)+'"'+(x.id==(p&&p.id)?' selected':'')+'>'+esc(x.name)+'</option>'}).join('');
+ host.innerHTML='<h2>Schede</h2>'
+  +(PROGS.length?'<label class="cfl">Scheda da esportare<select id="expSel">'+progOpts+'</select></label><div class="ptool"><button class="btns" type="button" data-set="csv">Esporta tabella (Excel, Numbers)</button><button class="btns" type="button" data-set="json">Esporta file FitSup</button></div>':'<p class="tg">Non hai ancora schede da esportare.</p>')
+  +'<p class="tg">Importa una scheda da un file Excel, CSV, una nota (testo) o un file FitSup. Basta una riga per esercizio con le serie, per esempio «Panca piana 4x8», e una riga con il nome del giorno sopra ogni gruppo.</p>'
+  +'<div class="ptool"><label class="btns filebtn">Scegli un file<input type="file" id="impFileIn" accept=".csv,.tsv,.txt,.md,.xlsx,.xls,.ods,.json,text/plain,text/csv"></label><button class="btns" type="button" data-set="paste">Incolla testo</button></div>'
+  +'<div id="pasteBox" hidden><textarea id="pasteT" rows="7" placeholder="Upper A&#10;Panca piana 4x8&#10;Lat machine 3x10&#10;&#10;Lower A&#10;Squat 4x6"></textarea><button class="btnp btnw" type="button" data-set="pasteok">Analizza il testo</button></div>'
+  +'<p class="msg" id="impM"></p>'
+  +'<h2>Notifiche</h2>'
+  +'<label class="swrow"><span><b>Promemoria degli allenamenti</b><br><span class="tg">'+(items.length?'Avviso all’orario di '+items.length+(items.length==1?' allenamento':' allenamenti')+' a settimana.':'Imposta giorno e orario degli allenamenti in Scheda → Modifica.')+'</span></span><input type="checkbox" id="ntOn"'+(NOTIF.on?' checked':'')+(items.length?'':' disabled')+'></label>'
+  +'<p class="tg">'+(isNative()?'Sei nell’app per iPhone: i promemoria arrivano anche con l’app chiusa.':'Nel browser i promemoria arrivano solo con l’app aperta. Per riceverli sempre usa il calendario del telefono o l’app per iPhone.')+'</p>'
+  +'<p class="msg" id="ntM"></p>'
+  +(isNative()?'':'<p><button class="btns btnw" type="button" data-ics="1">Aggiungi i promemoria al calendario del telefono</button></p><p class="msg" id="icsM"></p>')
+  +'<h2>Account</h2>';
+ var f=$('impFileIn');if(f)f.onchange=function(){impFile(this.files&&this.files[0]);this.value=''};
+ var n=$('ntOn');if(n)n.onchange=function(){ntToggle(this.checked)};
+}
+function onSettings(ev){var b=ev.target.closest('[data-set],[data-ics]');if(!b)return;
+ if(b.hasAttribute('data-ics')){icsDownload();return}
+ var a=b.getAttribute('data-set'),p=prog(($('expSel')||{}).value)||prog(ACT);
+ if(a=='csv'&&p)exportCsv(p);else if(a=='json'&&p)exportJson(p);
+ else if(a=='paste'){var x=$('pasteBox');x.hidden=!x.hidden;if(!x.hidden)$('pasteT').focus()}
+ else if(a=='pasteok'){var t=$('pasteT').value;if(!t.trim()){impMsg('Incolla prima il testo della scheda.');return}impPreview(rowsToSessions(textToRows(t)),'Scheda importata')}}
+
 /* ---------- presenze, calendario e recuperi ---------- */
 /* PRES.d[data] = {st:'si'|'no'|'riposo', rec:data del recupero}; PRES.x[data] = seduta di recupero {label,time,from} */
 var PRKEY='nu_presenze_v1',STKEY='nu_inizio_v1',PRES={d:{},x:{}},CALV={m:'m',off:0},PQ={d:'',step:''};
@@ -1819,7 +1938,7 @@ function renderCal(){
   h+='</div>'}
  h+=calStats(a,b,T,st0,td);
  h+='<div class="cleg"><span><i class="lg si"></i>allenato</span><span><i class="lg no"></i>saltato</span><span><i class="lg plan"></i>previsto</span><span><i class="lg rest"></i>riposo</span></div>';
- h+='<p><button class="btns btnw" type="button" data-ics="1">Promemoria nel calendario del telefono</button></p><div class="msg" id="icsM"></div>';
+ 
  host.innerHTML=h;
 }
 function onCal(ev){var t=ev.target,b;
@@ -1905,7 +2024,7 @@ function icsDownload(){
 if(!$('pgBody')||!$('prBody')||!$('progBody'))return;
 OVR=lsPlanGet();loadProgs();
 MOBX=lsMGet()||{U:[],L:[]};
-SESS=lsGet();presLoad();authLoad();
+SESS=lsGet();presLoad();authLoad();ntLoad();
 $('progBody').addEventListener('click',onProgClick);
 $('progBody').addEventListener('input',onProgInput);
 $('progBody').addEventListener('change',onProgInput);
@@ -1919,8 +2038,8 @@ renderMobx();renderMobSug();
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persisted().then(function(p){if(!p)return navigator.storage.persist()}).catch(function(){})}catch(e){}
 /* sezione iniziale: quella del link, altrimenti Oggi se c'è già un programma */
 (function(){var hs=(location.hash||'').slice(1);if(hs=='pt')hs='pm';
- if(!window.showTab)return;if({pg:1,ps:1,pr:1,pm:1}[hs])window.showTab(hs,false);else if(PROGS.length)window.showTab('pg',false)})();
-renderAcc();if(AUTH)syAll();
+ if(!window.showTab)return;if({pg:1,ps:1,pr:1,pm:1,pi:1}[hs])window.showTab(hs,false);else if(PROGS.length)window.showTab('pg',false)})();
+renderAcc();renderSettings();$('setBody').addEventListener('click',onSettings);ntApply();if(AUTH)syAll();
 })();
 </script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js")})}</script>
