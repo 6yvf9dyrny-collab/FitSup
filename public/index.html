@@ -1458,7 +1458,7 @@ function cardHtml(i,open){
  h+='</div><div class="addrow"><button class="btns" type="button" data-add="'+i+'">+ Serie</button>'
   +(it.vars.length?'<button class="btns" type="button" data-addvar="'+i+'">+ Variante</button>':'')
   +(it.dup?'<button class="btns" type="button" data-rmcard="'+i+'">Togli variante</button>':'')
-  +'<button class="btns mvb" type="button" data-up="'+i+'" aria-label="Sposta su">↑</button><button class="btns mvb" type="button" data-dn="'+i+'" aria-label="Sposta giù">↓</button>'
+  
   +'</div><div class="sum" id="sum'+i+'"></div></div></details>';
  return h;
 }
