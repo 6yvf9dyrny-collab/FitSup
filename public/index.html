@@ -1206,7 +1206,7 @@ function renderProg(){
   }else h+='<div class="dayh"><h2>'+esc(s.label)+'</h2><span class="tg">'+(s.day>=0?GIORNI[s.day]+(s.time?' '+esc(s.time):'')+' · ':'')+range(sessMin(s))+'</span></div>'+mobNote(s);
   h+=ptable(p,i);
  });
- if(EDITP)h+='<button class="btns" type="button" data-sadd="1">+ Aggiungi giorno</button>';
+ if(EDITP)h+='<button class="btns" type="button" data-sadd="1">Modifica programma · '+DRAFT.sessions.length+(DRAFT.sessions.length==1?' giorno':' giorni')+'</button>';
  if(EDITP)h+='<h2>Note del programma</h2><textarea class="nt" data-pnotes="1" placeholder="Una riga per paragrafo; le righe che iniziano con - diventano elenco">'+esc(p.notes)+'</textarea>'+dbHtml(p);
  else{h+=weeklyHtml(p)+sugHtml(p)+dbHtml(p);if(p.notes.trim())h+='<h2>Note</h2><div class="notes">'+notesHtml(p.notes)+'</div>';
   h+='<h2>Elimina</h2><p class="tg">Gli allenamenti già registrati restano in Progressi.</p><div class="ptool"><button class="btns dang" type="button" data-pdel="1">Elimina questo programma</button><button class="btns dang" type="button" data-pall="1">Elimina tutti i programmi</button></div>'}
@@ -1263,7 +1263,10 @@ function onProgClick(ev){
  if(sh){var si=+sh.getAttribute('data-si'),ss=DRAFT.sessions;
   if(b=t.closest('[data-smv]')){var q2=si+(+b.getAttribute('data-smv'));if(q2>=0&&q2<ss.length){var y=ss[si];ss[si]=ss[q2];ss[q2]=y;renderProg()}return}
   if(t.closest('[data-srm]')){if(ss.length<=1){PMSG='Serve almeno un giorno.';renderProg();return}ss.splice(si,1);renderProg();return}}
- if(t.closest('[data-sadd]')){DRAFT.sessions.push({label:'Giorno '+(DRAFT.sessions.length+1),day:-1,mob:'',ex:[{name:'Nuovo esercizio',sr:'3x10',note:'',mu:'Altro',vars:[]}]});renderProg()}
+ if(t.closest('[data-sadd]')){var n0=DRAFT.sessions.length,o='';for(var k=1;k<=7;k++)o+='<option value="'+k+'"'+(k==n0?' selected':'')+'>'+k+(k==1?' giorno':' giorni')+' a settimana</option>';
+  cfmOpen('Modifica programma','<p>Quanti giorni di allenamento ha il programma?</p><label class="cfl">Giorni<select id="pgN">'+o+'</select></label><p class="tg">Se aumenti, i nuovi giorni si aggiungono in fondo. Se diminuisci, gli ultimi giorni vengono tolti con i loro esercizi.</p>',function(){
+   var n=+$('pgN').value;while(DRAFT.sessions.length<n)DRAFT.sessions.push({label:'Giorno '+(DRAFT.sessions.length+1),day:-1,mob:'',ex:[{name:'Nuovo esercizio',sr:'3x10',note:'',mu:'Altro',vars:[]}]});
+   DRAFT.sessions.length=n;renderProg()})}
 }
 function onProgInput(ev){
  if(!EDITP)return;var el=ev.target;
