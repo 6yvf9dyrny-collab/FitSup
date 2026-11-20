@@ -242,6 +242,9 @@ input[type=file]{min-height:var(--hit);font-size:var(--t-in);max-width:100%}
 .exe[open]>summary::after{transform:rotate(-135deg);margin-bottom:-4px}
 .exe[open]{background:var(--head)}
 .exs{flex:1;min-width:0;display:flex;flex-direction:column}.exs b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.exsug{display:flex;flex-direction:column;max-height:260px;overflow:auto;border:1px solid var(--line,#2a3338);border-radius:10px;margin-top:-4px}
+.exsug button{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-bottom:1px solid var(--line,#2a3338)}
+.exsug button:last-child{border-bottom:0}.exsug button:hover,.exsug button:focus{background:rgba(127,127,127,.12)}
 .exf{padding:0 var(--s3) var(--s3);display:flex;flex-direction:column;gap:var(--s2)}
 .exe label{display:flex;flex-direction:column;gap:var(--s1);font-size:var(--t-s);color:var(--mute);min-width:0}
 .exe input,.exe select{min-height:var(--hit);font-size:var(--t-in);padding:0 var(--s2);border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--ink);width:100%;min-width:0}
@@ -926,6 +929,21 @@ function clone(o){return JSON.parse(JSON.stringify(o))}
 function newId(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function summ(sets){return sets.map(function(s){return s.skip?'—':(s.w||'–')+'/'+(s.r||'–')}).join(' ')}
 function slots(sr){var m=String(sr).match(/^(\d+)(?:-(\d+))?\s*x\s*(.*)$/i);if(!m)return 3;return parseInt(m[2]||m[1],10)+(/\+\s*MAX/i.test(m[3])?1:0)}
+function fold(s){return nk(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
+function muExact(v){var f=fold(v);if(!f)return '';for(var i=0;i<MUSCOLI.length;i++)if(fold(MUSCOLI[i])==f&&MUSCOLI[i]!='Altro')return MUSCOLI[i];return ''}
+/* elenco esercizi suggeriti mentre scrivi il nome (cerca nel nome e nel muscolo) */
+function exMatches(v){var f=fold(v);if(f.length<2)return [];var w=f.split(' ');
+ return DBX.map(function(d,i){var t=fold(d[0]),m=fold(d[1]),ok=w.every(function(x){return t.indexOf(x)>=0||m.indexOf(x)>=0});
+  return ok?{i:i,sc:(t.indexOf(f)==0?0:m.indexOf(f)==0?1:2)}:null}).filter(Boolean).sort(function(a,b){return a.sc-b.sc}).slice(0,12).map(function(o){return o.i})}
+function exSug(tr,v){var box=tr.querySelector('.exsug');if(!box)return;var l=exMatches(v);
+ if(!l.length||(l.length==1&&fold(DBX[l[0]][0])==fold(v))){box.hidden=true;box.innerHTML='';return}
+ box.innerHTML=l.map(function(i){var d=DBX[i];return '<button type="button" data-pick="'+i+'"><b>'+esc(d[0])+'</b><span class="tg">'+esc(d[1])+' · '+esc(d[2])+' · '+esc(d[3])+'</span></button>'}).join('');box.hidden=false}
+function exPick(ev){var b=ev.target.closest('[data-pick]');if(!b)return;ev.preventDefault();var tr=b.closest('.exe'),d=DBX[+b.getAttribute('data-pick')];
+ var e=DRAFT.sessions[+tr.getAttribute('data-i')].ex[+tr.getAttribute('data-j')];e.name=d[0];e.mu=MUSCOLI.indexOf(d[1])>=0?d[1]:guess(d[0]);e.auto=0;
+ if(!e.sr||e.sr=='3x10')e.sr=d[3];if(!e.note)e.note=d[4];
+ var q=function(s){return tr.querySelector(s)};q('input[data-f=name]').value=e.name;q('select[data-f=mu]').value=e.mu;q('input[data-f=sr]').value=e.sr;q('input[data-f=note]').value=e.note;
+ if(!e._vcustom){e._vt=varsToText(catVars(e.name));var vi=q('input[data-f=vars]');if(vi)vi.value=e._vt}
+ q('.exs b').textContent=e.name;q('.exs .tg').textContent=e.mu;q('summary .srb').textContent=e.sr;var bx=q('.exsug');bx.hidden=true;bx.innerHTML=''}
 function guess(name){for(var i=0;i<MUR.length;i++)if(MUR[i][1].test(name))return MUR[i][0];return 'Altro'}
 function prog(id){for(var i=0;i<PROGS.length;i++)if(PROGS[i].id==id)return PROGS[i];return null}
 function sessionsOf(id){var p=prog(id);return p?p.sessions:[]}
@@ -1192,7 +1210,7 @@ function ptable(p,i){
  if(!EDITP)return '<ul class="exl">'+s.ex.map(function(e){var nv=(e.vars||[]).length;return '<li><div><b>'+esc(e.name)+'</b><div class="tg">'+esc(e.mu||'')+(nv?' · '+nv+(nv==1?' variante':' varianti'):'')+'</div>'+(e.note?'<div class="tg">'+esc(e.note)+'</div>':'')+'</div><span class="srb">'+esc(e.sr)+'</span></li>'}).join('')+'</ul>';
  return '<div class="exed">'+s.ex.map(function(e,j){
   return '<details class="exe" data-i="'+i+'" data-j="'+j+'"'+(e._open?' open':'')+'><summary><span class="exs"><b>'+esc(e.name||'Nuovo esercizio')+'</b><span class="tg">'+esc(e.mu||'')+'</span></span><span class="srb">'+esc(e.sr||'–')+'</span></summary>'
-   +'<div class="exf"><label class="fw">Esercizio<input data-f="name" value="'+esc(e.name)+'"></label>'
+   +'<div class="exf"><label class="fw">Esercizio<input data-f="name" value="'+esc(e.name)+'" placeholder="Scrivi o scegli: es. femorali" autocomplete="off"></label><div class="exsug" hidden></div>'
    +'<div class="row2"><label>Serie<input data-f="sr" value="'+esc(e.sr)+'" placeholder="4x8"></label><label>Muscolo'+muSel(e.mu,'data-f="mu"')+'</label></div>'
    +'<label class="fw">Note<input data-f="note" value="'+esc(e.note)+'" placeholder="facoltativo"></label>'
    +'<details class="vdet"><summary>Varianti</summary><label class="fw"><span class="tg">Nome=muscolo, separate da punto e virgola</span><input data-f="vars" value="'+esc(e._vt!==undefined?e._vt:varsToText(e.vars))+'" placeholder="Piedi alti=Glutei; Piedi bassi=Quadricipiti"></label></details>'
@@ -1248,7 +1266,8 @@ function onProgInput(ev){
  if(sh&&el.hasAttribute('data-sf')){var s=DRAFT.sessions[+sh.getAttribute('data-si')],f=el.getAttribute('data-sf');s[f]=f=='day'?+el.value:el.value;return}
  var tr=el.closest('.exe');
  if(tr&&el.hasAttribute('data-f')){var e=DRAFT.sessions[+tr.getAttribute('data-i')].ex[+tr.getAttribute('data-j')],ff=el.getAttribute('data-f');e[ff]=el.value;
-  if(ff=='name'){var g=guess(el.value),sel=tr.querySelector('select[data-f=mu]');if(sel&&(e.mu=='Altro'||e.auto)){e.mu=g;e.auto=1;sel.value=g}}
+  if(ff=='name'){exSug(tr,el.value);var mm=muExact(el.value);if(mm){e.mu=mm;e.auto=1;var s0=tr.querySelector('select[data-f=mu]');if(s0)s0.value=mm}}
+  if(ff=='name'&&!muExact(el.value)){var g=guess(el.value),sel=tr.querySelector('select[data-f=mu]');if(sel&&(e.mu=='Altro'||e.auto)){e.mu=g;e.auto=1;sel.value=g}}
   if(ff=='vars'){e._vt=el.value;e._vcustom=1}
   if(ff=='name'&&!e._vcustom){var vt=varsToText(catVars(el.value)),vi=tr.querySelector('input[data-f=vars]');e._vt=vt;if(vi)vi.value=vt}
   if(ff=='mu')e.auto=0;
@@ -2078,7 +2097,9 @@ OVR=lsPlanGet();loadProgs();
 MOBX=lsMGet()||{U:[],L:[]};
 SESS=lsGet();presLoad();authLoad();ntLoad();bksLoad();
 $('progBody').addEventListener('click',onProgClick);
-$('progBody').addEventListener('input',onProgInput);
+$('progBody').addEventListener('input',onProgInput);$('progBody').addEventListener('mousedown',exPick);$('progBody').addEventListener('click',exPick);
+$('progBody').addEventListener('focusin',function(ev){var el=ev.target;if(EDITP&&el.matches&&el.matches('.exe input[data-f=name]'))exSug(el.closest('.exe'),el.value||' ')});
+$('progBody').addEventListener('focusout',function(ev){var el=ev.target;if(el.matches&&el.matches('.exe input[data-f=name]'))setTimeout(function(){var b=el.closest('.exe');b=b&&b.querySelector('.exsug');if(b){b.hidden=true}},250)});
 $('progBody').addEventListener('change',onProgInput);
 $('progBody').addEventListener('input',onDbf);$('progBody').addEventListener('change',onDbf);
 $('progBody').addEventListener('toggle',function(ev){if(!ev.target.classList)return;if(ev.target.classList.contains('exe')&&EDITP){var ee=DRAFT.sessions[+ev.target.getAttribute('data-i')].ex[+ev.target.getAttribute('data-j')];if(ee)ee._open=ev.target.open;return}if(ev.target.classList.contains('sugd'))SUG.open=ev.target.open;else if(ev.target.classList.contains('dbx'))DBF.open=ev.target.open},true);
