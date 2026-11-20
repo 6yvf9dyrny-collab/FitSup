@@ -282,6 +282,8 @@ input[type=file]{min-height:var(--hit);font-size:var(--t-in);max-width:100%}
 /* pagina di accesso: prima dell'app */
 .gate{display:none}
 html.locked .gate{display:flex;min-height:100vh;min-height:100dvh;align-items:center;justify-content:center;padding:calc(var(--s5) + env(safe-area-inset-top,0px)) var(--s4) calc(var(--s5) + env(safe-area-inset-bottom,0px));background:var(--bg)}
+html.kb .tabs{display:none}
+@media (min-width:768px){html.kb .tabs{display:flex}}
 html.locked main,html.locked .tabs,html.locked header.hd{display:none!important}
 .gcard{width:100%;max-width:400px}
 .glogo{display:block;width:64px;height:64px;border-radius:16px;margin:0 auto var(--s3)}
@@ -1006,7 +1008,7 @@ function cfmEnsure(){
  document.addEventListener('keydown',function(e){if(e.key=='Escape'&&$('cfm').className.indexOf('show')>=0)cfmClose()});
 }
 function cfmOpen(title,html,ok){
- cfmEnsure();$('cfmOk').textContent='Conferma';$('cfmT0').textContent=title;$('cfmBody').innerHTML=html;CFM=ok;$('cfmOk').style.display=ok?'':'none';$('cfmNo').textContent=ok?'Annulla':'Chiudi';
+ cfmEnsure();$('cfmOk').textContent='Conferma';$('cfmT0').textContent=title;$('cfmBody').innerHTML=html;CFM=ok;$('cfmOk').style.display=ok?'':'none';$('cfmNo').textContent='Annulla';$('cfmNo').style.display=ok?'':'none';
  var el=$('cfm');el.className='sheet show';requestAnimationFrame(function(){requestAnimationFrame(function(){el.className='sheet show open'})});document.body.style.overflow='hidden';
 }
 function cfmClose(){var el=$('cfm');if(!el)return;CFM=null;el.className='sheet show';document.body.style.overflow='';setTimeout(function(){el.className='sheet'},300)}
@@ -1780,6 +1782,9 @@ function onAcc(ev){var b;
   api('/account',{method:'DELETE'}).then(function(){wipeLocal('Account e dati cancellati.')})
    .catch(function(e){SYMSG='Cancellazione non riuscita: '+e.message;renderAcc()})});return}}
 window.addEventListener('online',function(){syAll()});
+/* con la tastiera aperta la barra in basso si nasconde (nell'app iPhone resterebbe sopra la tastiera) */
+document.addEventListener('focusin',function(e){if(e.target.matches&&e.target.matches('input:not([type=checkbox]):not([type=range]):not([type=file]),textarea,select'))document.documentElement.classList.add('kb')});
+document.addEventListener('focusout',function(){setTimeout(function(){var a=document.activeElement;if(!a||!a.matches||!a.matches('input,textarea,select'))document.documentElement.classList.remove('kb')},50)});
 document.addEventListener('visibilitychange',function(){if(!document.hidden&&AUTH&&Date.now()-(SYNC.last||0)>30000)syAll()});
 
 /* ---------- richiesta di un esercizio che non c'è: messaggio WhatsApp già scritto ---------- */
