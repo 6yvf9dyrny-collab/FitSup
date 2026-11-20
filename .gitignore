@@ -5,3 +5,6 @@ node_modules/
 ios/build/
 ios/**/xcuserdata/
 *.xcuserstate
+research/
+.hyperresearch/
+.claude/skills/hyperresearch*/

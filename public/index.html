@@ -202,7 +202,13 @@ input[type=file]{min-height:var(--hit);font-size:var(--t-in);max-width:100%}
 .mdbox{white-space:pre-wrap;word-break:break-word;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:var(--s2);margin:var(--s2) 0}
 
 /* ---------- Mobilità 3D (da rifare con le animazioni) ---------- */
-#stage{width:100%;aspect-ratio:1/0.9;min-height:240px;background:var(--stage);border-radius:var(--r);overflow:hidden;touch-action:pan-y;cursor:grab}
+#stage{width:100%}
+.vthumb,.vframe,.v3d{position:relative;display:block;width:100%;aspect-ratio:16/9;border:0;padding:0;border-radius:var(--r);overflow:hidden;background:var(--stage);cursor:pointer}
+.vthumb img{width:100%;height:100%;object-fit:cover;display:block}
+.vplay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:26px;line-height:64px;text-align:center}
+.vframe iframe{width:100%;height:100%;border:0;display:block}
+.v3d{cursor:grab;touch-action:pan-y}.v3d .btnp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+.vcred{font-size:var(--t-s);color:var(--mute);margin:var(--s1) 0 var(--s2)}
 #cv{display:block;width:100%;height:100%}
 #cap{font-size:var(--t-s);color:var(--mute);margin:var(--s1) 0;min-height:20px}
 #tt{font-size:var(--t-l);margin:var(--s1) 0 0}
@@ -340,13 +346,10 @@ html.locked main,html.locked .tabs,html.locked header.hd{display:none!important}
 <hr />
 <a class="up" href="#tabs">↑ Torna al menu</a></section>
 <section class="panel" id="pm"><h1>Guida</h1><h2>Mobilità prima dell’allenamento</h2><div class="card"><div class="sub"><button data-g="U" class="on">Mobilità Upper</button><button data-g="L">Mobilità Lower</button></div><div class="chips" id="chipsU"></div><div class="chips" id="chipsL" style="display:none"></div>
-<div id="stage"><canvas id="cv"></canvas></div>
-<div class="ctl"><button id="bA">Partenza</button><button id="bB">Arrivo</button><button id="bP" class="on">Anima</button><button id="bS">Velocità 1×</button></div>
-<div class="rot"><label>Rotazione a 360°<input type="range" id="rotA" min="0" max="360" step="1" value="35"></label><label>Inclinazione<input type="range" id="rotE" min="-25" max="85" step="1" value="15"></label></div>
-<div class="ctl"><button id="vF">Fronte</button><button id="vL">Lato</button><button id="vR">Retro</button><button id="vT">Alto</button><button id="bG">Gira</button></div>
+<div id="stage" class="vstage"></div>
 <p id="cap"></p><h3 id="tt"></h3><p id="dose"></p><p id="note"></p>
-<p class="leg"><span class="dot" style="background:#0fa5b8"></span>parti che lavorano &nbsp; <span class="dot" style="background:#f5b301"></span>freccia gialla: direzione dello sguardo &nbsp; <span class="dot" style="background:#f08c26"></span>elastico &nbsp; linea tratteggiata azzurra: percorso del movimento (cerchio vuoto = partenza, pieno = arrivo). Ogni esercizio è vicino a un muro in mattoni che il manichino tocca. Trascina o usa i cursori per girare attorno al manichino a 360°. Sono modelli semplificati.</p></div>
-<p>Tocca una riga della tabella per vedere l’esercizio in 3D.</p><div id="mobSug"></div>
+</div>
+<p>Tocca un esercizio o una riga della tabella per vedere il video.</p><div id="mobSug"></div>
 <p>Durata: 8-10 minuti, già inclusi nei tempi stimati sopra. La mobilità è divisa in due sezioni: Upper per le sedute di parte alta, Lower per le sedute di gambe. Usa solo mobilità attiva e movimenti dinamici, senza stretching statico lungo prima dei carichi. Dopo la mobilità fai 2-3 serie di riscaldamento progressive sul primo esercizio, aumentando il carico.</p>
 <div class="mg" id="mob-up"><h2>Mobilità Upper (per le sedute di parte alta)</h2>
 <div class="tw"><table>
@@ -449,6 +452,43 @@ Nessun testo: crea il tuo programma nella sezione Scheda.
 
 </main>
 <script>
+/* ---------- Video di mobilità (YouTube, licenza CC BY) e animazione 3D di riserva ---------- */
+var VID={data:null,wait:[]};
+function vfold(s){return String(s).toLowerCase().replace(/[’']/g,'').replace(/\s+/g,' ').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
+function vesc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function vidLoad(cb){if(VID.data){cb();return}VID.wait.push(cb);if(VID.wait.length>1)return;
+ function done(d){VID.data=d||{};VID.wait.splice(0).forEach(function(f){f()})}
+ fetch('video-mobilita.json').then(function(r){return r.json()}).then(done,function(){done({})})}
+function vidFind(name){var f=vfold(name);if(!VID.data)return null;for(var k in VID.data){var e=VID.data[k],g=vfold(e.name);if(g==f||g.indexOf(f)==0||f.indexOf(g)==0){var o=Object.assign({key:k},e);return o}}return null}
+function vidHtml(e){
+ if(!e)return '<p class="tg">Video non ancora disponibile per questo esercizio.</p>';
+ if(e.video){var v=e.video;return '<button class="vthumb" type="button" data-vplay="'+v.id+'" aria-label="Guarda il video: '+vesc(e.name)+'"><img src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg" alt="" loading="lazy"><span class="vplay" aria-hidden="true">▶</span></button>'
+  +'<p class="vcred">Video «'+vesc(v.title)+'» di <b>'+vesc(v.channel)+'</b> · licenza CC BY · <a href="'+vesc(v.url)+'" target="_blank" rel="noopener">apri su YouTube</a></p>'}
+ return '<div class="v3d" data-v3d="'+vesc(e.key)+'"><button class="btnp" type="button" data-v3dgo="1">Scarica animazione 3D (0,3 MB)</button></div><p class="vcred">Animazione 3D FitSup: non esiste un video libero di questa versione. Una volta scaricata resta disponibile anche senza internet.</p>'}
+function vidPlay(b){var id=b.getAttribute('data-vplay'),w=document.createElement('div');w.className='vframe';
+ w.innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&rel=0&playsinline=1&modestbranding=1" title="Video dell’esercizio" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>';b.replaceWith(w)}
+document.addEventListener('click',function(ev){var b=ev.target.closest('[data-vplay]');if(b){ev.preventDefault();vidPlay(b);return}
+ b=ev.target.closest('[data-v3dgo]');if(b){var box=b.closest('[data-v3d]');b.disabled=true;b.textContent='Download in corso…';anim3d(box,box.getAttribute('data-v3d'));return}
+ b=ev.target.closest('[data-vid]');if(b){var n=b.getAttribute('data-vid');vidLoad(function(){window.cfmOpen(n,vidHtml(vidFind(n)),null)})}});
+/* animazione 3D di riserva: manichino condiviso + file dell'esercizio, scaricati solo su richiesta */
+var A3=null;
+function anim3d(box,key){
+ var T='https://cdn.jsdelivr.net/npm/three@0.160.0/';
+ function getBuf(u){return caches.open('anim-fitsup').then(function(c){return c.match(u).then(function(r){return r||fetch(u).then(function(n){if(!n.ok)throw 0;c.put(u,n.clone());return n})})}).then(function(r){return r.arrayBuffer()})}
+ (A3||(A3=Promise.all([import(T+'+esm'),import(T+'examples/jsm/loaders/GLTFLoader.js/+esm'),import(T+'examples/jsm/controls/OrbitControls.js/+esm')])))
+ .then(function(m){var THREE=m[0],L=new m[1].GLTFLoader();
+  return Promise.all([getBuf('anim/manichino.glb'),getBuf('anim/'+key+'.glb')]).then(function(b){
+   return Promise.all(b.map(function(x){return new Promise(function(ok,ko){L.parse(x,'',ok,ko)})}))}).then(function(g){
+   box.innerHTML='';var R=new THREE.WebGLRenderer({antialias:true});R.setPixelRatio(Math.min(devicePixelRatio,2));box.appendChild(R.domElement);
+   var S=new THREE.Scene();S.background=new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--stage').trim()||'#eef2f1');
+   var C=new THREE.PerspectiveCamera(40,16/9,.05,50);C.position.set(2.6,1.5,2.6);var O=new m[2].OrbitControls(C,R.domElement);O.target.set(0,.8,0);O.update();
+   S.add(new THREE.HemisphereLight(0xffffff,0x667780,1.4));var sun=new THREE.DirectionalLight(0xffffff,1.8);sun.position.set(3,5,3);S.add(sun);
+   var fl=new THREE.Mesh(new THREE.CircleGeometry(2.5,48),new THREE.MeshStandardMaterial({color:0x9fb0b4}));fl.rotation.x=-Math.PI/2;S.add(fl);
+   S.add(g[0].scene);S.add(g[1].scene);var clip=g[1].animations[0],mx=[g[0].scene,g[1].scene].map(function(r){var x=new THREE.AnimationMixer(r);x.clipAction(clip).play();return x});
+   var ck=new THREE.Clock();function sz(){var w=box.clientWidth;R.setSize(w,w*9/16)}sz();addEventListener('resize',sz);
+   R.setAnimationLoop(function(){if(!box.isConnected){R.setAnimationLoop(null);R.dispose();return}var d=ck.getDelta();mx.forEach(function(x){x.update(d)});R.render(S,C)});
+  })}).catch(function(){box.innerHTML='<p class="tg" style="padding:var(--s3)">Non riesco a scaricare l’animazione: serve la connessione la prima volta.</p>'})}
+
 (function(){
 var RD=Math.PI/180;
 function add(a,b){return [a[0]+b[0],a[1]+b[1],a[2]+b[2]]}
@@ -541,7 +581,7 @@ var BODY=[138,164,171],ACC=[15,165,184],HEADC=[201,214,217],PROP=[160,170,172];
 
 /* ---------- Visualizzatore 3D su canvas, senza librerie ---------- */
 var stage=document.getElementById('stage');if(!stage)return;
-var cv=document.getElementById('cv'),cx=cv.getContext('2d'),W=300,H=270,DPR=1;
+var cv=document.createElement('canvas'),cx=cv.getContext('2d'),W=300,H=270,DPR=1;
 var cur=0,Ja,Jb,tgt=[0,.5,0],az=.6,el=.25,rad=3.3,mode='loop',tT=0,tNow=0,t0=performance.now(),P=[];
 function resize(){var r=cv.getBoundingClientRect();DPR=Math.min(window.devicePixelRatio||1,2);W=r.width;H=r.height;cv.width=W*DPR;cv.height=H*DPR}
 function cssv(n,d){var v=getComputedStyle(document.documentElement).getPropertyValue(n).trim();return v||d}
@@ -684,24 +724,6 @@ function frame(now){
  requestAnimationFrame(frame);
 }
 var drag=null;
-stage.addEventListener('pointerdown',function(ev){drag=[ev.clientX,ev.clientY];stage.setPointerCapture(ev.pointerId);stage.style.cursor='grabbing'});
-stage.addEventListener('pointermove',function(ev){if(!drag)return;az-=(ev.clientX-drag[0])*.011;if(ev.pointerType=='mouse')el=Math.max(-.44,Math.min(1.5,el+(ev.clientY-drag[1])*.008));drag=[ev.clientX,ev.clientY]});
-stage.addEventListener('pointercancel',function(){drag=null});
-stage.addEventListener('pointerup',function(){drag=null;stage.style.cursor='grab'});
-function setMode(m){mode=m;['bA','bB','bP'].forEach(function(id){document.getElementById(id).className=''});
- if(m=='loop')document.getElementById('bP').className='on';else{tT=m=='A'?0:1;document.getElementById(m=='A'?'bA':'bB').className='on'}}
-document.getElementById('bA').onclick=function(){setMode('A')};
-document.getElementById('bB').onclick=function(){setMode('B')};
-document.getElementById('bP').onclick=function(){t0=performance.now();setMode('loop')};
-document.getElementById('bS').onclick=function(){spd=SPS[(SPS.indexOf(spd)+1)%SPS.length];this.textContent='Velocità '+spd+'×'};
-document.getElementById('vF').onclick=function(){az=0;el=.1};
-document.getElementById('vL').onclick=function(){az=1.5708;el=.1};
-document.getElementById('vT').onclick=function(){az=.3;el=1.3};
-document.getElementById('vR').onclick=function(){az=Math.PI;el=.1};
-document.getElementById('bG').onclick=function(){auto=!auto;this.className=auto?'on':''};
-['rotA','rotE'].forEach(function(id){var s=document.getElementById(id);
- s.addEventListener('input',function(){slAct=true;if(id=='rotA')az=(+s.value)*Math.PI/180;else el=(+s.value)*Math.PI/180});
- ['change','pointerup','touchend','blur'].forEach(function(ev){s.addEventListener(ev,function(){slAct=false})})});
 EX.forEach(function(e,i){var b=document.createElement('button');b.textContent=e.t;b.onclick=function(){load(i)};document.getElementById(i<7?'chipsU':'chipsL').appendChild(b)});
 function grp(g){[].forEach.call(document.querySelectorAll('.sub button'),function(b){b.className=b.getAttribute('data-g')==g?'on':''});
  document.getElementById('mob-up').className='mg'+(g=='U'?'':' off');document.getElementById('mob-lo').className='mg'+(g=='L'?'':' off');
@@ -713,7 +735,7 @@ function grp(g){[].forEach.call(document.querySelectorAll('.sub button'),functio
 /* righe della tabella mobilità cliccabili */
 [].forEach.call(document.querySelectorAll('#pm tbody tr'),function(tr){
  var tx=tr.cells[0].textContent.toLowerCase();
- for(var i=0;i<KEYS.length;i++)if(tx.indexOf(KEYS[i][0])>=0){(function(ix){tr.className='clk';tr.onclick=function(){load(ix);stage.scrollIntoView({behavior:'smooth',block:'center'})}})(KEYS[i][1]);break}
+ for(var i=0;i<KEYS.length;i++)if(tx.indexOf(KEYS[i][0])>=0){(function(ix){tr.className='clk';tr.onclick=function(){load(ix);document.getElementById('chipsU').scrollIntoView({behavior:'smooth',block:'start'})}})(KEYS[i][1]);break}
 });
 /* file markdown incorporato */
 var sheet=document.getElementById('sheet');
@@ -740,8 +762,8 @@ function showTab(id,push){var show=GROUP[id]||[id];window.scrollTo(0,0);
  if(push!==false&&history.replaceState)history.replaceState(null,'','#'+id)}
 window.showTab=showTab;
 [].forEach.call(tb,function(b){b.onclick=function(ev){ev.preventDefault();showTab(b.getAttribute('data-p'))}});
-window.addEventListener('resize',resize);
-resize();load(0);if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)setMode('A');requestAnimationFrame(frame);
+var _ld=load;load=function(i){_ld(i);vidLoad(function(){stage.innerHTML=vidHtml(vidFind(EX[i].t))})};
+load(0);
 })();
 </script>
 <script>(function(){
@@ -1032,6 +1054,7 @@ function cfmEnsure(){
   var b=ev.target.closest('[data-pset]');if(!b)return;presSet(b.getAttribute('data-d'),b.getAttribute('data-pset'));cfmClose()});
  document.addEventListener('keydown',function(e){if(e.key=='Escape'&&$('cfm').className.indexOf('show')>=0)cfmClose()});
 }
+window.cfmOpen=function(t,x,o){return cfmOpen(t,x,o)};
 function cfmOpen(title,html,ok){
  cfmEnsure();$('cfmOk').textContent='Conferma';$('cfmT0').textContent=title;$('cfmBody').innerHTML=html;CFM=ok;$('cfmOk').style.display=ok?'':'none';$('cfmNo').textContent='Annulla';$('cfmNo').style.display=ok?'':'none';
  var el=$('cfm');el.className='sheet show';requestAnimationFrame(function(){requestAnimationFrame(function(){el.className='sheet show open'})});document.body.style.overflow='hidden';
@@ -1116,14 +1139,14 @@ function renderMobSug(){
  if(MMSG){h+='<div class="msg">'+esc(MMSG)+'</div>';MMSG=''}
  if(!list.length)h+='<p class="tg">Nessun altro esercizio da suggerire per questa scelta: hai già tutto in routine.</p>';
  list.forEach(function(m){var i=MOBDB.indexOf(m);
-  h+='<div class="dbi"><div><b>'+esc(m[0])+'</b> <small class="tg">'+esc(m[1])+' · '+esc(m[3])+'</small><div class="tg">'+esc(m[4])+'</div></div><span class="mb">'
+  h+='<div class="dbi"><div><b>'+esc(m[0])+'</b> <small class="tg">'+esc(m[1])+' · '+esc(m[3])+'</small><div class="tg">'+esc(m[4])+'</div></div><span class="mb"><button class="btns" type="button" data-vid="'+esc(m[0])+'">▶ Video</button>'
    +(m[2].indexOf('U')>=0?'<button class="btns" type="button" data-mxadd="U:'+i+'">＋ Upper</button>':'')
    +(m[2].indexOf('L')>=0?'<button class="btns" type="button" data-mxadd="L:'+i+'">＋ Lower</button>':'')+'</span></div>'});
- host.innerHTML='<details class="dbx msug"'+(MSG2.open?' open':'')+'><summary><b>Esercizi di mobilità consigliati</b> <span class="tg">· '+list.length+' suggerimenti</span></summary>'+h+'<p class="tg">Gli esercizi aggiunti compaiono sotto le tabelle di Upper e Lower, ma non hanno ancora il modello 3D.</p></details>';
+ host.innerHTML='<details class="dbx msug"'+(MSG2.open?' open':'')+'><summary><b>Esercizi di mobilità consigliati</b> <span class="tg">· '+list.length+' suggerimenti</span></summary>'+h+'<p class="tg">Gli esercizi aggiunti compaiono sotto le tabelle di Upper e Lower, con il loro video.</p></details>';
 }
 function renderMobx(){
  ['U','L'].forEach(function(g){var host=$('mobx'+g);if(!host)return;var a=MOBX[g];
-  host.innerHTML=a.length?'<h3>Esercizi aggiunti da te</h3>'+a.map(function(x,i){return '<div class="dbi"><div><b>'+esc(x.n)+'</b> <small class="tg">'+esc(x.a)+' · '+esc(x.d)+'</small><div class="tg">'+esc(x.h)+'</div></div><button class="btns" type="button" data-mxrm="'+g+':'+i+'">Rimuovi</button></div>'}).join(''):'';
+  host.innerHTML=a.length?'<h3>Esercizi aggiunti da te</h3>'+a.map(function(x,i){return '<div class="dbi"><div><b>'+esc(x.n)+'</b> <small class="tg">'+esc(x.a)+' · '+esc(x.d)+'</small><div class="tg">'+esc(x.h)+'</div></div><span class="mb"><button class="btns" type="button" data-vid="'+esc(x.n)+'">▶ Video</button><button class="btns" type="button" data-mxrm="'+g+':'+i+'">Rimuovi</button></span></div>'}).join(''):'';
  });
 }
 function doMobAdd(g,i){
