@@ -1096,7 +1096,7 @@ function chooserHtml(){
 }
 function makeProg(ti){
  var np;
- if(ti<0)np={id:newId('p'),name:'Nuovo programma',sessions:[{label:'Giorno 1',day:-1,mob:'',ex:[{name:'Nuovo esercizio',sr:'3x10',note:'',mu:'Altro',vars:[]}]}],notes:''};
+ if(ti<0)np={id:newId('p'),name:'Nuovo programma',sessions:[{label:'Giorno 1',day:-1,mob:'UL',ex:[{name:'Nuovo esercizio',sr:'3x10',note:'',mu:'Altro',vars:[]}]}],notes:''};
  else{var t=TPLS[ti],nm='Scheda '+t.n,k=2;while(PROGS.some(function(x){return x.name==nm}))nm='Scheda '+t.n+' ('+(k++)+')';np={id:newId('p'),name:nm,notes:'',sessions:t.s.map(function(x){return {label:x.l,day:x.d,mob:x.m,ex:x.e.map(function(nm){var d=dbFind(nm);return {name:nm,sr:d?d[3]:'3x10',note:'',mu:d?d[1]:guess(nm),vars:catVars(nm)}})}})}}
  PROGS.push(np);ACT=np.id;NEWP=np.id;NEWSEL=false;EDITP=true;DRAFT=clone(np);renderProg();
 }
@@ -1202,7 +1202,7 @@ function renderProg(){
     +'<select data-sf="day" aria-label="Giorno consigliato"><option value="-1">Nessun giorno</option>'+GIORNI.map(function(g,k){return '<option value="'+k+'"'+(s.day==k?' selected':'')+'>'+g+'</option>'}).join('')+'</select>'
     +'<input type="time" data-sf="time" value="'+esc(s.time||'')+'" aria-label="Orario medio">'
     +'<select data-sf="mob" aria-label="Mobilità"><option value="">Senza mobilità</option><option value="U"'+(s.mob=='U'?' selected':'')+'>Mobilità Upper</option><option value="L"'+(s.mob=='L'?' selected':'')+'>Mobilità Lower</option><option value="UL"'+(s.mob=='UL'?' selected':'')+'>Mobilità Upper e Lower</option></select>'
-    +'<span class="rc"><button type="button" data-smv="-1" aria-label="Sposta su">▲</button><button type="button" data-smv="1" aria-label="Sposta giù">▼</button><button type="button" data-srm="1" aria-label="Elimina giorno">✕</button></span></div>';
+    +'</div>';
   }else h+='<div class="dayh"><h2>'+esc(s.label)+'</h2><span class="tg">'+(s.day>=0?GIORNI[s.day]+(s.time?' '+esc(s.time):'')+' · ':'')+range(sessMin(s))+'</span></div>'+mobNote(s);
   h+=ptable(p,i);
  });
@@ -1265,7 +1265,7 @@ function onProgClick(ev){
   if(t.closest('[data-srm]')){if(ss.length<=1){PMSG='Serve almeno un giorno.';renderProg();return}ss.splice(si,1);renderProg();return}}
  if(t.closest('[data-sadd]')){var n0=DRAFT.sessions.length,o='';for(var k=1;k<=7;k++)o+='<option value="'+k+'"'+(k==n0?' selected':'')+'>'+k+(k==1?' giorno':' giorni')+' a settimana</option>';
   cfmOpen('Modifica programma','<p>Quanti giorni di allenamento ha il programma?</p><label class="cfl">Giorni<select id="pgN">'+o+'</select></label><p class="tg">Se aumenti, i nuovi giorni si aggiungono in fondo. Se diminuisci, gli ultimi giorni vengono tolti con i loro esercizi.</p>',function(){
-   var n=+$('pgN').value;while(DRAFT.sessions.length<n)DRAFT.sessions.push({label:'Giorno '+(DRAFT.sessions.length+1),day:-1,mob:'',ex:[{name:'Nuovo esercizio',sr:'3x10',note:'',mu:'Altro',vars:[]}]});
+   var n=+$('pgN').value;while(DRAFT.sessions.length<n)DRAFT.sessions.push({label:'Giorno '+(DRAFT.sessions.length+1),day:-1,mob:'UL',ex:[{name:'Nuovo esercizio',sr:'3x10',note:'',mu:'Altro',vars:[]}]});
    DRAFT.sessions.length=n;renderProg()})}
 }
 function onProgInput(ev){
@@ -1872,7 +1872,7 @@ function rowsToSessions(rows){
  if(!rows.length)return [];
  var h=rows[0].map(function(c){return c.toLowerCase()}),col=function(re){for(var i=0;i<h.length;i++)if(re.test(h[i]))return i;return -1};
  var cE=col(/eserciz|exercise|nome/),cG=col(/^(giorno|seduta|day|session|allenamento)$|^giorno$|seduta|workout/),cW=col(/settimana|weekday/),cS=col(/^serie|sets?$/),cR=col(/rip|reps?/),cN=col(/note|notes/),cT=col(/orario|ora|time/),cM=col(/muscol/);
- var sess=[],cur=null;function day(l){var wd=dayIdx((String(l||'').match(/(lun|mar|mer|gio|ven|sab|dom|mon|tue|wed|thu|fri|sat|sun)\w*\.?\)?\s*$/i)||[''])[0]);if(wd>=0){var l2=String(l).replace(/\s*[-–—,:(]?\s*(lun|mar|mer|gio|ven|sab|dom|mon|tue|wed|thu|fri|sat|sun)\w*\.?\)?\s*$/i,'').trim();if(l2)l=l2}l=l||'Giorno '+(sess.length+1);for(var i=0;i<sess.length;i++)if(sess[i].label==l)return sess[i];var s={label:l,day:wd>=0?wd:dayIdx(l),mob:'',time:'',ex:[]};sess.push(s);return s}
+ var sess=[],cur=null;function day(l){var wd=dayIdx((String(l||'').match(/(lun|mar|mer|gio|ven|sab|dom|mon|tue|wed|thu|fri|sat|sun)\w*\.?\)?\s*$/i)||[''])[0]);if(wd>=0){var l2=String(l).replace(/\s*[-–—,:(]?\s*(lun|mar|mer|gio|ven|sab|dom|mon|tue|wed|thu|fri|sat|sun)\w*\.?\)?\s*$/i,'').trim();if(l2)l=l2}l=l||'Giorno '+(sess.length+1);for(var i=0;i<sess.length;i++)if(sess[i].label==l)return sess[i];var s={label:l,day:wd>=0?wd:dayIdx(l),mob:'UL',time:'',ex:[]};sess.push(s);return s}
  if(cE>=0){rows.slice(1).forEach(function(r){if(!r[cE])return;var s=day(cG>=0?r[cG]:'');
    if(cW>=0&&r[cW]&&s.day<0)s.day=dayIdx(r[cW]);if(cT>=0&&/^\d{1,2}[:.]\d{2}$/.test(r[cT]||''))s.time=r[cT].replace('.',':').padStart(5,'0');
    var sr=cS>=0&&r[cS]?(SETRE.test(r[cS])?r[cS].replace(/\s+/g,''):r[cS]+(cR>=0&&r[cR]?'x'+r[cR]:'x10')):'';
