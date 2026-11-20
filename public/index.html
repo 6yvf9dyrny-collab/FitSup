@@ -1258,7 +1258,7 @@ function onProgClick(ev){
  if(tr){var i=+tr.getAttribute('data-i'),j=+tr.getAttribute('data-j'),arr=DRAFT.sessions[i].ex;
   if(b=t.closest('[data-mv]')){var q=j+(+b.getAttribute('data-mv'));if(q>=0&&q<arr.length){var x=arr[j];arr[j]=arr[q];arr[q]=x;renderProg()}return}
   if(t.closest('[data-rm]')){arr.splice(j,1);renderProg();return}}
- if(b=t.closest('[data-addex]')){DRAFT.sessions[+b.getAttribute('data-addex')].ex.push({name:'Nuovo esercizio',sr:'3x10',note:'',mu:'Altro',vars:[],_open:true});renderProg();return}
+ if(b=t.closest('[data-addex]')){DRAFT.sessions[+b.getAttribute('data-addex')].ex.push({name:'',sr:'3x10',note:'',mu:'Altro',vars:[],_open:true});renderProg();var ins=document.querySelectorAll('#progBody details.exe[open] input[data-f=name]');for(var q=0;q<ins.length;q++)if(!ins[q].value){ins[q].focus();break}return}
  var sh=t.closest('.shd');
  if(sh){var si=+sh.getAttribute('data-si'),ss=DRAFT.sessions;
   if(b=t.closest('[data-smv]')){var q2=si+(+b.getAttribute('data-smv'));if(q2>=0&&q2<ss.length){var y=ss[si];ss[si]=ss[q2];ss[q2]=y;renderProg()}return}
