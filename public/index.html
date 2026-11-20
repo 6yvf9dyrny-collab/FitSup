@@ -341,7 +341,7 @@ html.locked main,html.locked .tabs,html.locked header.hd{display:none!important}
 <thead>
 <tr>
 <th>Esercizio</th>
-<th>Serie x rip.</th>
+<th>Serie x rep.</th>
 <th>Note</th>
 </tr>
 </thead>
@@ -388,7 +388,7 @@ html.locked main,html.locked .tabs,html.locked header.hd{display:none!important}
 <thead>
 <tr>
 <th>Esercizio</th>
-<th>Serie x rip.</th>
+<th>Serie x rep.</th>
 <th>Note</th>
 </tr>
 </thead>
@@ -1292,7 +1292,7 @@ function buildUI(){
 }
 /* una riga per serie: numero · chili · ripetizioni · fatta. Le caselle vuote mostrano i valori della volta scorsa */
 function slotHtml(j,st,ls){
- var ok=ls&&!ls.skip,pw=ok&&ls.w?ls.w:'kg',pr=ok&&ls.r?ls.r:'rip',dn=!!(st.w||st.r),n=j+1;
+ var ok=ls&&!ls.skip,pw=ok&&ls.w?ls.w:'kg',pr=ok&&ls.r?ls.r:'rep',dn=!!(st.w||st.r),n=j+1;
  return '<div class="slot'+(dn?' done':'')+'"><span class="sn" aria-hidden="true">'+n+'</span>'
   +'<input inputmode="decimal" enterkeyhint="next" placeholder="'+esc(pw)+'" aria-label="Serie '+n+', chili" data-w="'+j+'" value="'+esc(st.w)+'">'
   +'<input inputmode="numeric" enterkeyhint="done" placeholder="'+esc(pr)+'" aria-label="Serie '+n+', ripetizioni" data-r="'+j+'" value="'+esc(st.r)+'">'
@@ -1453,7 +1453,7 @@ function progr(c,p){
  var parts=[],dir=0;
  if(c.top!==null&&p.top!==null){var d=c.top-p.top;dir=d>0?1:(d<0?-1:0);parts.push(d==0?'carico invariato':sg(d)+fmt(Math.abs(d))+' kg'+(p.top>0?' ('+sg(d)+fmt(Math.abs(d)/p.top*100)+'%)':''))}
  if(c.vol!==null&&p.vol!==null&&p.vol>0){var dv=c.vol-p.vol;if(dir==0)dir=dv>0?1:(dv<0?-1:0);parts.push('volume '+(dv==0?'invariato':sg(dv)+fmt(Math.abs(dv)/p.vol*100)+'%'))}
- if(c.top===null||p.top===null){var dr=c.reps-p.reps;dir=dr>0?1:(dr<0?-1:0);parts=[dr==0?'ripetizioni invariate':sg(dr)+fmt(Math.abs(dr))+' rip.']}
+ if(c.top===null||p.top===null){var dr=c.reps-p.reps;dir=dr>0?1:(dr<0?-1:0);parts=[dr==0?'ripetizioni invariate':sg(dr)+fmt(Math.abs(dr))+' rep.']}
  return {t:(dir>0?'▲ ':dir<0?'▼ ':'= ')+parts.join(' · '),c:dir>0?'up2':dir<0?'dn':'eq'};
 }
 function spark(v){
@@ -1500,7 +1500,7 @@ function viewW(list){
    ws.forEach(function(s){
     var exs=(FIL.ex||FIL.vr)?s.ex.filter(matchEx):s.ex;
     h+='<div class="wk"><div class="wh"><span><b>'+esc(s.label)+'</b> <small class="tg">'+esc(pname(s))+(s.ts?' · '+hhmm(s.ts):'')+'</small></span><span class="wb"><button class="btns" type="button" data-edit="'+esc(s.id)+'">Modifica</button><button class="btns" type="button" data-del="'+esc(s.id)+'">Elimina</button></span></div>'
-     +'<div class="tw"><table><thead><tr><th>Esercizio</th><th>Serie (kg/rip)</th><th>Max</th></tr></thead><tbody>';
+     +'<div class="tw"><table><thead><tr><th>Esercizio</th><th>Serie (kg/rep)</th><th>Max</th></tr></thead><tbody>';
     exs.forEach(function(e){var m=met(e.sets);
      h+='<tr><td>'+esc(eBase(e))+vchip(e)+'</td><td>'+e.sets.map(function(x){return x.skip?'<span class="nw tg" title="Serie non effettuata">—</span>':'<span class="nw">'+esc((x.w||'–')+'/'+(x.r||'–'))+'</span>'}).join(' ')+'</td><td>'+(m.top!==null?'<span class="nw">'+fmt(m.top)+' kg</span>':'–')+'</td></tr>'});
     h+='</tbody></table></div></div>';
@@ -1524,7 +1524,7 @@ function mval(r,k){
  if(k=='vol')return r.m.vol!==null?r.m.vol:r.m.reps;
  return compl(r.sets,r.sr||'');
 }
-function fnum(v,k,wt){return k=='comp'?fmt(v)+'%':fmt(v)+(wt?' kg':' rip.')}
+function fnum(v,k,wt){return k=='comp'?fmt(v)+'%':fmt(v)+(wt?' kg':' rep.')}
 function chart(rs,k){
  var wt=rs.every(function(r){return r.m.top!==null});
  var pts=rs.map(function(r){return {t:dayN(r.date),d:r.date,y:mval(r,k)}}).filter(function(p){return p.y!==null&&isFinite(p.y)});
@@ -1564,9 +1564,9 @@ function viewE(list){
    rs.forEach(function(r,i){r.p=progr(r.m,i?rs[i-1].m:null)});
    var ch=chart(rs,FIL.met),title=multi?(vk||'Standard'):b.name;
    h+='<div class="exr"><div class="eh"><h3>'+esc(title)+'</h3>'+(v.mu?'<small class="tg">'+esc(v.mu)+'</small>':'')+'</div>'+ch.svg+'<div class="cinfo '+ch.cls+'">'+esc(ch.info)+'</div>';
-   h+='<div class="tw"><table><thead><tr><th>Data</th><th>Serie (kg/rip)</th><th>Max</th><th>Progressione</th></tr></thead><tbody>';
+   h+='<div class="tw"><table><thead><tr><th>Data</th><th>Serie (kg/rep)</th><th>Max</th><th>Progressione</th></tr></thead><tbody>';
    rs.slice().reverse().forEach(function(r){
-    h+='<tr><td>'+dS(r.date)+'</td><td>'+r.sets.map(function(x){return x.skip?'<span class="nw tg">—</span>':'<span class="nw">'+esc((x.w||'–')+'/'+(x.r||'–'))+'</span>'}).join(' ')+'</td><td>'+(r.m.top!==null?'<span class="nw">'+fmt(r.m.top)+' kg</span>':'–')+'<br><small class="tg">'+(r.m.vol!==null?'vol. '+fmt(r.m.vol):(r.m.reps?r.m.reps+' rip.':''))+'</small></td><td class="'+r.p.c+'">'+esc(r.p.t)+'</td></tr>'});
+    h+='<tr><td>'+dS(r.date)+'</td><td>'+r.sets.map(function(x){return x.skip?'<span class="nw tg">—</span>':'<span class="nw">'+esc((x.w||'–')+'/'+(x.r||'–'))+'</span>'}).join(' ')+'</td><td>'+(r.m.top!==null?'<span class="nw">'+fmt(r.m.top)+' kg</span>':'–')+'<br><small class="tg">'+(r.m.vol!==null?'vol. '+fmt(r.m.vol):(r.m.reps?r.m.reps+' rep.':''))+'</small></td><td class="'+r.p.c+'">'+esc(r.p.t)+'</td></tr>'});
    h+='</tbody></table></div></div>';
   });
   if(multi)h+='</div>';
