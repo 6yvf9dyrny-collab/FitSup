@@ -141,7 +141,7 @@ textarea.nt,#impT{width:100%;min-height:110px;padding:var(--s2)}
 .slot{position:relative;transition:padding .2s}
 .slot .del{position:absolute;left:0;top:0;bottom:0;width:48px;border:0;border-radius:var(--r);background:var(--bad);color:#fff;opacity:0;pointer-events:none;display:flex;align-items:center;justify-content:center;transition:opacity .2s;cursor:pointer}
 .slot .del svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.slot.sw{padding-left:56px}.slot.sw .sn{visibility:hidden}.slot.sw .del{opacity:1;pointer-events:auto}
+.slot.sw{padding-left:56px;grid-template-columns:1fr 1fr var(--hit)}.slot.sw .sn{display:none}.slot.sw .del{opacity:1;pointer-events:auto}
 @media (hover:hover) and (pointer:fine){.slot{grid-template-columns:28px 1fr 1fr var(--hit) 36px}.slot .del{position:static;width:36px;height:36px;opacity:1;pointer-events:auto;background:transparent;color:var(--mute);border:1px solid var(--line)}.slot .del:hover{color:var(--bad);border-color:var(--bad)}}
 .addrow{display:flex;flex-wrap:wrap;gap:var(--s2);margin-top:var(--s3)}
 .addrow .btns{flex:1 1 0;padding:0 var(--s2);font-size:var(--t-s);white-space:nowrap}
