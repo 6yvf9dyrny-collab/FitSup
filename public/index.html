@@ -981,7 +981,7 @@ function afterPlanChange(){if(typeof renderSettings=='function')renderSettings()
 function bestSession(p,g){
  var low=!!LOWER[g],best=0,bs=1e9;
  p.sessions.forEach(function(s,i){var sets=0;s.ex.forEach(function(e){sets+=slots(e.sr)});
-  var isL=s.mob=='L'||/lower|gamb|leg/i.test(s.label),isU=s.mob=='U'||/upper|push|pull/i.test(s.label),pen=0;
+  var isL=s.mob=='L'||s.mob=='UL'||/lower|gamb|leg/i.test(s.label),isU=s.mob=='U'||s.mob=='UL'||/upper|push|pull/i.test(s.label),pen=0;
   if(low&&!isL&&isU)pen=1000;if(!low&&isL&&!isU)pen=1000;
   var sc=pen+sets;if(sc<bs){bs=sc;best=i}});
  return best;
@@ -1125,7 +1125,7 @@ function weekly(p){
  return MUSCOLI.filter(function(m){return M[m]}).map(function(m){return {m:m,sets:M[m].sets,ses:Object.keys(M[m].ses).length}});
 }
 function sessMin(s){
- var t=s.mob?10:0;
+ var t=s.mob=='UL'?18:(s.mob?10:0);
  s.ex.forEach(function(e){
   var n=slots(e.sr),fm=String(e.sr).match(/x\s*(\d+)/i),first=fm?parseInt(fm[1],10):10,nm=e.name.toLowerCase(),mu=e.mu||'',
    big=/deadlift|stacco|hack|squat|leg press/.test(nm),uni=/singolo|single|serratus/.test(nm),
@@ -1144,6 +1144,7 @@ function daysLine(p){
 }
 function mobNote(s){
  if(!s.mob)return '';
+ if(s.mob=='UL')return '<a class="mlink mrow" href="#mob-up"><span>Prima: mobilità Upper e Lower · '+(13+MOBX.U.length+MOBX.L.length)+' esercizi, 15-20 min</span><span aria-hidden="true">›</span></a>';
  var u=s.mob=='U';return '<a class="mlink mrow" href="'+(u?'#mob-up':'#mob-lo')+'"><span>Prima: mobilità '+(u?'Upper':'Lower')+' · '+(u?7+MOBX.U.length:6+MOBX.L.length)+' esercizi, 8-10 min</span><span aria-hidden="true">›</span></a>';
 }
 function notesHtml(t){
@@ -1175,7 +1176,7 @@ function renderProg(){
    h+='<div class="shd" data-si="'+i+'"><input class="nm" data-sf="label" value="'+esc(s.label)+'" aria-label="Nome del giorno">'
     +'<select data-sf="day" aria-label="Giorno consigliato"><option value="-1">Nessun giorno</option>'+GIORNI.map(function(g,k){return '<option value="'+k+'"'+(s.day==k?' selected':'')+'>'+g+'</option>'}).join('')+'</select>'
     +'<input type="time" data-sf="time" value="'+esc(s.time||'')+'" aria-label="Orario medio">'
-    +'<select data-sf="mob" aria-label="Mobilità"><option value="">Senza mobilità</option><option value="U"'+(s.mob=='U'?' selected':'')+'>Mobilità Upper</option><option value="L"'+(s.mob=='L'?' selected':'')+'>Mobilità Lower</option></select>'
+    +'<select data-sf="mob" aria-label="Mobilità"><option value="">Senza mobilità</option><option value="U"'+(s.mob=='U'?' selected':'')+'>Mobilità Upper</option><option value="L"'+(s.mob=='L'?' selected':'')+'>Mobilità Lower</option><option value="UL"'+(s.mob=='UL'?' selected':'')+'>Mobilità Upper e Lower</option></select>'
     +'<span class="rc"><button type="button" data-smv="-1" aria-label="Sposta su">▲</button><button type="button" data-smv="1" aria-label="Sposta giù">▼</button><button type="button" data-srm="1" aria-label="Elimina giorno">✕</button></span></div>';
   }else h+='<div class="dayh"><h2>'+esc(s.label)+'</h2><span class="tg">'+(s.day>=0?GIORNI[s.day]+(s.time?' '+esc(s.time):'')+' · ':'')+range(sessMin(s))+'</span></div>'+mobNote(s);
   h+=ptable(p,i);
