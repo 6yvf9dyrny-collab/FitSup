@@ -8,6 +8,7 @@
  *   GET    /api/me                            → { user }
  *   GET    /api/sync?since=ms                 → { now, docs }     cosa è cambiato dopo «since»
  *   POST   /api/sync          { docs }        → { now, saved }    salva i documenti cambiati
+ *            (un invio è una sola transazione D1: report trimestrale e cancellazioni del registro passano insieme o per niente)
  *   POST   /api/logout                        → { ok }
  *   DELETE /api/account                       → { ok }            cancella l'utente e tutti i suoi dati
  *
@@ -18,7 +19,7 @@
 const SESSION_DAYS = 180;
 const MAX_DOCS = 500;            // documenti per richiesta di salvataggio
 const MAX_DOC_BYTES = 200_000;   // dimensione massima di un documento
-const KINDS = new Set(['w', 'plan', 'mobx', 'pres', 'bk']);  // bk = backup della scheda (max 2, nel documento)
+const KINDS = new Set(['w', 'plan', 'mobx', 'pres', 'bk', 'qr']);  // bk = backup della scheda (max 2, nel documento), qr = report trimestrale
 const GOOGLE_ISS = new Set(['accounts.google.com', 'https://accounts.google.com']);
 
 export async function onRequest({ request, env }) {
