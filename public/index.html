@@ -316,7 +316,7 @@ html.locked main,html.locked .tabs,html.locked header.hd{display:none!important}
 .swrow input{width:24px;height:24px;flex:none}
 .filebtn{position:relative;display:inline-flex;align-items:center}.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
 #pasteT{width:100%;min-height:140px;font-family:inherit;font-size:16px;line-height:1.4;padding:var(--s2);border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--ink);margin:var(--s2) 0}
-.imph{margin:var(--s3) 0 var(--s1)}
+.imph{margin:var(--s3) 0 var(--s1)}.imps{font-size:var(--t-s);color:var(--acc);font-weight:600}.imps.new{color:var(--mute)}.impk{margin-top:var(--s4)}
 
 .nw{white-space:nowrap}
 .trend{display:flex;align-items:center;gap:6px;color:var(--acc)}.trend small{color:var(--mute);font-size:var(--t-s)}
@@ -663,7 +663,7 @@ function cfmEnsure(){
  $('cfmBg').onclick=cfmClose;$('cfmX').onclick=cfmClose;$('cfmNo').onclick=cfmClose;
  $('cfmOk').onclick=function(){var f=CFM;cfmClose();if(f)f()};
  $('cfmBody').addEventListener('click',function(ev){var c=ev.target.closest('[data-impc]');if(c){var k=c.getAttribute('data-impc');cfmClose();
-  if(k=='bk'||k=='no'){if(IMP&&IMP.ready)impApply(IMP.ready,k=='bk');return}
+  if(k=='bk'||k=='no'){if(IMP&&IMP.ready){if(IMP.keep)impMerge(IMP.ready,k=='bk');else impApply(IMP.ready,k=='bk')}return}
   var bk=BKS.list[+c.getAttribute('data-i')];if(!bk)return;var np=clone(bk.prog);np.id=newId('p');normProg(np);impApply(np,k=='resbk');setMsg('bkM2','Backup «'+bk.name+'» ripristinato.');return}
   var b=ev.target.closest('[data-pset]');if(!b)return;presSet(b.getAttribute('data-d'),b.getAttribute('data-pset'));cfmClose()});
  document.addEventListener('keydown',function(e){if(e.key=='Escape'&&$('cfm').className.indexOf('show')>=0)cfmClose()});
@@ -1821,13 +1821,43 @@ function bkAsk(o,t){
 function impPreview(sess,name){
  if(!sess||!sess.length){impMsg('Non ho trovato esercizi. Serve una riga per esercizio con le serie, per esempio «Panca piana 4x8», oppure una tabella con le colonne Giorno, Esercizio, Serie, Ripetizioni.');return}
  impMsg('');IMP={name:name||'Scheda importata',sessions:sess};
- var n=0;sess.forEach(function(s){n+=s.ex.length});
+ var n=0;sess.forEach(function(s){n+=s.ex.length});var old=prog(ACT);
  var h='<label class="cfl">Nome della scheda<input id="impName" value="'+esc(IMP.name)+'"></label><p class="tg">'+sess.length+(sess.length==1?' giorno':' giorni')+', '+n+' esercizi. Controlla e conferma: potrai modificarla dopo nella Scheda.</p>';
- sess.forEach(function(s){h+='<p class="imph"><b>'+esc(s.label)+'</b>'+(s.day>=0?' · '+GIORNI[s.day]:'')+(s.time?' '+esc(s.time):'')+'</p><ul class="exl">'+s.ex.map(function(e){return '<li><div><b>'+esc(e.name)+'</b><div class="tg">'+esc(e.mu)+(e.note?' · '+esc(e.note):'')+'</div></div><span class="srb">'+esc(e.sr)+'</span></li>'}).join('')+'</ul>'});
- cfmOpen('Importa la scheda',h,function(){var p={id:newId('p'),name:($('impName').value||IMP.name).trim(),notes:'',sessions:IMP.sessions.map(function(s){return {label:s.label,day:s.day==null?-1:s.day,mob:s.mob||'',time:s.time||'',ex:s.ex}})};
+ sess.forEach(function(s,i){h+='<p class="imph"><b>'+esc(s.label)+'</b>'+(s.day>=0?' · '+GIORNI[s.day]:'')+(s.time?' '+esc(s.time):'')+' <span class="imps" id="imps'+i+'"></span></p><ul class="exl">'+s.ex.map(function(e){return '<li><div><b>'+esc(e.name)+'</b><div class="tg">'+esc(e.mu)+(e.note?' · '+esc(e.note):'')+'</div></div><span class="srb">'+esc(e.sr)+'</span></li>'}).join('')+'</ul>'});
+ if(old){var few=sess.length<old.sessions.length;
+  h+='<label class="swrow impk"><span><b>Mantieni gli altri giorni attivi</b><br><span class="tg">Cambia solo i giorni importati nella scheda «'+esc(old.name)+'» e lascia com’è il resto.</span></span><input type="checkbox" id="impKeep"'+(few?' checked':'')+'></label>'
+   +'<p class="tg" id="impHint">Un giorno viene sostituito solo se nel file ha <b>lo stesso nome</b> che ha nella Scheda. I giorni della scheda «'+esc(old.name)+'» sono: <b>'+old.sessions.map(function(x){return esc(x.label)}).join(', ')+'</b>. Un giorno con un nome diverso viene aggiunto come giorno nuovo.</p>'}
+ cfmOpen('Importa la scheda',h,function(){
+  var keep=!!($('impKeep')&&$('impKeep').checked);
+  var p={id:newId('p'),name:($('impName').value||IMP.name).trim(),notes:'',sessions:IMP.sessions.map(function(s){return {label:s.label,day:s.day==null?-1:s.day,mob:s.mob||'',time:s.time||'',ex:s.ex}})};
   normProg(p);var old=prog(ACT);if(!old){impApply(p,false);return}
-  setTimeout(function(){cfmOpen('Sostituire la scheda?','<p>Se importi una scheda, quella già salvata («'+esc(old.name)+'») verrà eliminata. Vuoi fare un backup?</p><p class="tg">Il backup si salva nel tuo account: puoi tenerne fino a 2 e ripristinarli da Impostazioni.'+(BKS.list.length>=2?' Hai già 2 backup: il più vecchio verrà sostituito.':'')+'</p><div class="pqb"><button class="btnp" type="button" data-impc="bk">Fai il backup e importa</button><button class="btns" type="button" data-impc="no">Importa senza backup</button></div>',null);IMP.ready=p},320)});
- $('cfmOk').textContent='Importa'}
+  IMP.ready=p;IMP.keep=keep;
+  if(keep){var m=impMatch(old,p.sessions),rep=m.filter(function(x){return x.i>=0}).map(function(x){return old.sessions[x.i].label}),add=m.filter(function(x){return x.i<0}).map(function(x){return x.s.label});
+   setTimeout(function(){cfmOpen('Cambiare '+(rep.length==1?'un giorno':'i giorni')+' della scheda?','<p>Nella scheda «'+esc(old.name)+'» '+(rep.length?'sostituisco <b>'+esc(rep.join(', '))+'</b>':'non sostituisco nessun giorno')+(add.length?' e aggiungo <b>'+esc(add.join(', '))+'</b>':'')+'. Gli altri giorni restano come sono.</p><p>Vuoi fare prima un backup?</p><p class="tg">Il backup salva <b>tutta la scheda, con tutti i giorni</b>, nel tuo account, con il nome «'+esc(impBkName(old,rep))+'». Puoi tenerne fino a 2.'+(BKS.list.length>=2?' Hai già 2 backup: il più vecchio verrà sostituito.':'')+'</p><div class="pqb"><button class="btnp" type="button" data-impc="bk">Fai il backup e importa</button><button class="btns" type="button" data-impc="no">Importa senza backup</button></div>',null)},320);return}
+  setTimeout(function(){cfmOpen('Sostituire la scheda?','<p>Se importi una scheda, quella già salvata («'+esc(old.name)+'») verrà eliminata. Vuoi fare un backup?</p><p class="tg">Il backup si salva nel tuo account: puoi tenerne fino a 2 e ripristinarli da Impostazioni.'+(BKS.list.length>=2?' Hai già 2 backup: il più vecchio verrà sostituito.':'')+'</p><div class="pqb"><button class="btnp" type="button" data-impc="bk">Fai il backup e importa</button><button class="btns" type="button" data-impc="no">Importa senza backup</button></div>',null)},320)});
+ $('cfmOk').textContent='Importa';
+ if(old){var upd=function(){var k=$('impKeep').checked,m=impMatch(old,sess);
+   m.forEach(function(x,i){var el=$('imps'+i);if(el){el.textContent=k?(x.i>=0?'· sostituisce «'+old.sessions[x.i].label+'»':'· giorno nuovo, viene aggiunto'):'';el.className='imps'+(k&&x.i<0?' new':'')}});
+   var nm=$('impName');nm.disabled=k;nm.value=k?old.name:IMP.name;$('impHint').hidden=!k};
+  $('impKeep').onchange=upd;upd()}
+}
+/* giorni importati → posizione del giorno con lo stesso nome nella scheda attuale (-1 = giorno nuovo) */
+function impMatch(old,ss){var used={};return ss.map(function(s){var i=-1;old.sessions.forEach(function(o,j){if(i<0&&!used[j]&&nk(o.label)==nk(s.label))i=j});if(i>=0)used[i]=1;return {s:s,i:i}})}
+function impBkName(old,rep){return old.name+(rep&&rep.length?' · prima di cambiare '+rep.join(', '):'')}
+function impMerge(p,backup){
+ var old=prog(ACT);if(!old){impApply(p,backup);return}
+ var m=impMatch(old,p.sessions),rep=m.filter(function(x){return x.i>=0}).map(function(x){return old.sessions[x.i].label});
+ if(backup)bksAdd(old,impBkName(old,rep));
+ var np=clone(old);
+ m.forEach(function(x){var s=x.s;
+  if(x.i>=0){var t=np.sessions[x.i];t.ex=s.ex;if(s.day>=0)t.day=s.day;if(s.time)t.time=s.time}
+  else np.sessions.push({label:s.label,day:s.day,time:s.time||'',mob:s.mob||'UL',ex:s.ex})});
+ normProg(np);
+ for(var i=0;i<PROGS.length;i++)if(PROGS[i].id==old.id){PROGS[i]=np;break}
+ savePlans();afterPlanChange();IMP=null;
+ var add=m.length-rep.length;
+ impMsg('Scheda «'+np.name+'»: '+(rep.length?'sostituit'+(rep.length==1?'o ':'i ')+rep.join(', '):'')+(rep.length&&add?' e ':'')+(add?add+(add==1?' giorno aggiunto':' giorni aggiunti'):'')+'.'+(backup?' La scheda di prima è nei backup.':''));
+ if(window.showTab)window.showTab('ps')}
 /* notifiche: nell'app iPhone sono vere notifiche del sistema; nel browser solo mentre l'app è aperta */
 function ntItems(){var p=prog(ACT)||prog(f0()),out=[];if(!p)return out;
  p.sessions.forEach(function(s){if(s.day<0||!s.time)return;var t=s.time.split(':');out.push({weekday:s.day+1,hour:+t[0],minute:+t[1],title:'FitSup',body:'È l’ora di '+s.label+'. Buon allenamento!'})});return out}
@@ -1848,7 +1878,7 @@ function renderSettings(){
  var progOpts=PROGS.map(function(x){return '<option value="'+esc(x.id)+'"'+(x.id==(p&&p.id)?' selected':'')+'>'+esc(x.name)+'</option>'}).join('');
  host.innerHTML='<h2>Schede</h2>'
   +(PROGS.length?'<label class="cfl">Scheda da esportare<select id="expSel">'+progOpts+'</select></label><div class="ptool"><button class="btns" type="button" data-set="csv">Esporta tabella (Excel, Numbers)</button><button class="btns" type="button" data-set="json">Esporta file FitSup</button></div>':'<p class="tg">Non hai ancora schede da esportare.</p>')
-  +'<p class="tg">Importa una scheda da un file Excel, CSV, una nota (testo) o un file FitSup. Basta una riga per esercizio con le serie, per esempio «Panca piana 4x8», e una riga con il nome del giorno sopra ogni gruppo.</p>'
+  +'<p class="tg">Importa una scheda da un file Excel, CSV, una nota (testo) o un file FitSup. Basta una riga per esercizio con le serie, per esempio «Panca piana 4x8», e una riga con il nome del giorno sopra ogni gruppo.</p><p class="tg"><b>Per cambiare solo uno o due giorni</b>, nel file dai al giorno lo stesso nome che ha nella Scheda (per esempio «Giorno 1») e, prima di importare, lascia attivo «Mantieni gli altri giorni attivi».</p>'
   +'<div class="ptool"><label class="btns filebtn">Scegli un file<input type="file" id="impFileIn" accept=".csv,.tsv,.txt,.md,.xlsx,.xls,.ods,.json,text/plain,text/csv"></label><button class="btns" type="button" data-set="paste">Incolla testo</button></div>'
   +'<div id="pasteBox" hidden><textarea id="pasteT" rows="7" placeholder="Upper A&#10;Panca piana 4x8&#10;Lat machine 3x10&#10;&#10;Lower A&#10;Squat 4x6"></textarea><button class="btnp btnw" type="button" data-set="pasteok">Analizza il testo</button></div>'
   +'<p class="msg" id="impM"></p>'
@@ -1876,7 +1906,7 @@ function onSettings(ev){var k=ev.target.closest('[data-bk]');if(k){onBk(k);retur
 var BKS={list:[]},BKSKEY='nu_backup_schede_v1';
 function bksLoad(){try{var o=JSON.parse(localStorage.getItem(BKSKEY)||'null');if(o&&o.list)BKS=o}catch(e){}}
 function bksSave(){try{localStorage.setItem(BKSKEY,JSON.stringify(BKS))}catch(e){}syMark('bk','all')}
-function bksAdd(p){BKS.list.unshift({at:Date.now(),name:p.name,prog:clone(p)});BKS.list=BKS.list.slice(0,2);bksSave()}
+function bksAdd(p,name){BKS.list.unshift({at:Date.now(),name:name||p.name,prog:clone(p)});BKS.list=BKS.list.slice(0,2);bksSave()}
 function impApply(p,backup){
  var old=prog(ACT);if(old&&backup)bksAdd(old);
  if(old){for(var i=0;i<PROGS.length;i++)if(PROGS[i].id==old.id){PROGS[i]=p;break}}else PROGS.push(p);
@@ -1884,7 +1914,7 @@ function impApply(p,backup){
  impMsg('Scheda «'+p.name+'» importata'+(backup?', la precedente è nei backup.':'.'));if(window.showTab)window.showTab('ps')}
 function bksHtml(){
  if(!BKS.list.length)return '<p class="tg">Nessun backup. Ne viene proposto uno quando importi una scheda; puoi tenerne fino a 2.</p><div class="ptool"><button class="btns" type="button" data-bk="now"'+(PROGS.length?'':' disabled')+'>Fai un backup della scheda attuale</button></div>';
- return BKS.list.map(function(b,i){return '<div class="dbi"><div><b>'+esc(b.name)+'</b><div class="tg">'+new Date(b.at).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})+'</div></div><div class="mb"><button class="btns" type="button" data-bk="res" data-i="'+i+'">Ripristina</button><button class="btns" type="button" data-bk="del" data-i="'+i+'">Elimina</button></div></div>'}).join('')
+ return BKS.list.map(function(b,i){var ns=b.prog&&b.prog.sessions?b.prog.sessions.length:0;return '<div class="dbi"><div><b>'+esc(b.name)+'</b><div class="tg">Scheda intera, '+ns+(ns==1?' giorno':' giorni')+' · '+new Date(b.at).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})+'</div></div><div class="mb"><button class="btns" type="button" data-bk="res" data-i="'+i+'">Ripristina</button><button class="btns" type="button" data-bk="del" data-i="'+i+'">Elimina</button></div></div>'}).join('')
   +(BKS.list.length<2&&PROGS.length?'<div class="ptool"><button class="btns" type="button" data-bk="now">Fai un backup della scheda attuale</button></div>':'')}
 function onBk(b){var a=b.getAttribute('data-bk'),i=+b.getAttribute('data-i');
  if(a=='now'){var p=prog(ACT);if(p){if(BKS.list.length>=2){armed(b,'Sostituisce il più vecchio: tocca ancora',function(){bksAdd(p);renderSettings();setMsg('bkM2','Backup salvato.')});return}bksAdd(p);renderSettings();setMsg('bkM2','Backup salvato nel tuo account.')}return}
