@@ -2002,18 +2002,29 @@ function presSet(ds,st,rec){
 }
 /* domanda in Oggi: «ci sei andato?» e, se no, quando recuperi */
 function pendingDay(){
- var T=trainedSet(),td=today(),st0=startDay(),pl=plannedOn(td);
- if(pl&&!T[td]&&!PRES.d[td]&&(!pl.time||nowHM()>=pl.time))return td;
- for(var i=1;i<=7;i++){var d=addD(td,-i);if(d<st0)break;if(!T[d]&&!PRES.d[d]&&plannedOn(d))return d}
+ /* la domanda compare solo oggi, dall'orario scritto nella scheda in poi; senza orario non si chiede (c'è il bottone) */
+ var T=trainedSet(),td=today(),pl=plannedOn(td);
+ if(pl&&pl.time&&!T[td]&&!PRES.d[td]&&nowHM()>=pl.time)return td;
  return '';
 }
 function renderPres(){
  var host=$('presQ');if(!host)return;var td=today(),h='';
- /* niente domanda automatica «ci sei andato?»: la presenza si conferma con il bottone sotto «Salva allenamento» */
- var pt=plannedOn(td),T=trainedSet();
- if(pt&&!T[td]&&!PRES.d[td])h='<p class="pinfo">Oggi: <b>'+esc(pt.label)+'</b>'+(pt.time?' alle '+esc(pt.time):'')+(pt.from?' · recupero':'')+'</p>';
+ if(PQ.step=='rec'&&PQ.d){var p0=plannedOn(PQ.d)||{label:'l’allenamento'};
+  h='<div class="pq"><b>Quando recuperi '+esc(p0.label)+'?</b><p class="tg">Quel giorno l’app ti richiede se ci sei andato, all’orario della scheda.</p><div class="pqb">'
+   +'<button class="btns" type="button" data-prec="1">Domani</button><button class="btns" type="button" data-prec="2">Dopodomani</button><button class="btns" type="button" data-prec="7">Settimana prossima</button></div>'
+   +'<p><button class="linkb" type="button" data-prec="0">Non recupero</button></p></div>';
+  host.innerHTML=h;renderPresB();return}
+ var d=pendingDay(),T=trainedSet();
+ if(d){var p=plannedOn(d);PQ.d=d;
+  h='<div class="pq"><b>Oggi · '+esc(p.label)+' alle '+esc(p.time)+(p.from?' (recupero)':'')+'</b><p>Ci sei andato?</p><div class="pqb">'
+   +'<button class="btnp" type="button" data-pans="si">Sì</button><button class="btns" type="button" data-pans="no">No</button></div><p class="tg">Ci sei andato a un altro orario? Usa «Sono andato in palestra» sotto «Salva allenamento».</p></div>';
+ }else{var pt=plannedOn(td);
+  if(pt&&!T[td]&&!PRES.d[td])h='<p class="pinfo">Oggi: <b>'+esc(pt.label)+'</b>'+(pt.time?' alle '+esc(pt.time):'')+(pt.from?' · recupero':'')+'</p>';}
  host.innerHTML=h;renderPresB();
 }
+/* se l'app resta aperta, la domanda compare appena arriva l'orario */
+setInterval(function(){if(!document.hidden&&!PQ.step&&$('presQ'))renderPres()},60000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&$('presQ'))renderPres()});
 function presDay(){var d=cur.date||today();return d>today()?today():d}
 function renderPresB(){
  var host=$('presB');if(!host)return;if(editId){host.innerHTML='';return}
@@ -2042,7 +2053,7 @@ document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.targe
  var d=b.getAttribute('data-prdel');cfmClose();presSet(d,'x');msg('Presenza tolta.')});
 function onPres(ev){var t=ev.target,b;
  if(b=t.closest('[data-pans]')){var a=b.getAttribute('data-pans');
-  if(a=='si'){presSet(PQ.d,'si');msg(PQ.d==today()?'Presenza segnata. Registra le serie qui sotto.':'Presenza segnata.');return}
+  if(a=='si'){var pp=plannedOn(PQ.d);presSet(PQ.d,'si');if(pp&&pp.time&&PRES.d[PQ.d]){PRES.d[PQ.d].time=pp.time;presSave();renderPres()}msg(PQ.d==today()?'Presenza segnata. Registra le serie qui sotto.':'Presenza segnata.');return}
   PQ.step='rec';renderPres();return}
  if(b=t.closest('[data-prec]')){var n=+b.getAttribute('data-prec'),d=PQ.d,p=plannedOn(d)||{label:'Allenamento',time:''},rec=null;
   var moved='';
