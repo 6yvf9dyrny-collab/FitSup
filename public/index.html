@@ -292,6 +292,8 @@ input[type=file]{min-height:var(--hit);font-size:var(--t-in);max-width:100%}
 .pq{background:var(--acc-soft);border:1px solid var(--acc);border-radius:var(--r-card);padding:var(--s3);margin:0 0 var(--s4)}
 .pq p{margin:var(--s1) 0 var(--s3)}
 .pqb{display:flex;flex-wrap:wrap;gap:var(--s2)}.pqb button{flex:1 1 30%}
+.presok{margin:var(--s3) 0;font-size:var(--t-s)}
+#presB{margin-top:var(--s3)}#presB .tg{margin:var(--s1) 0 0}
 .pinfo{margin:0 0 var(--s3);padding:var(--s2) var(--s3);background:var(--head);border-radius:var(--r);font-size:var(--t-s)}
 
 /* pagina di accesso: prima dell'app */
@@ -1056,13 +1058,14 @@ function buildUI(){
   +'<div class="msg" id="gNote"></div><div id="gForm"></div>'
   +'<div class="dock"><div class="msg" id="gMsg" role="status"></div><div class="rest" id="rest" role="timer" aria-live="off"><b id="restT">0:00</b><span id="restL">Recupero</span><button type="button" data-rest="-15" aria-label="Togli 15 secondi">−15</button><button type="button" data-rest="15" aria-label="Aggiungi 15 secondi">+15</button><button type="button" data-rest="0">Fine</button></div>'
   +'<button class="btnp" id="gSave" type="button">Salva allenamento</button></div>'
+  +'<div id="presB"></div>'
   +'<p><button class="linkb" id="gClear" type="button">Svuota il modulo</button></p>';
  cur.date=today();fillProgs();fillDays();suggest();$('gDay').value=cur.idx;$('gDate').value=cur.date;
  $('gPlan').onchange=function(){var v=this.value;this.value=cur.plan;awGuard(function(){cur.plan=v;$('gPlan').value=v;cur.idx=0;fillDays();suggest();$('gDay').value=cur.idx;dirty=false;buildForm()},'Cambiare programma')};
  $('gDay').onchange=function(){var v=+this.value;this.value=cur.idx;awGuard(function(){cur.idx=v;$('gDay').value=v;dirty=false;buildForm()},'Cambiare seduta')};
- $('gDate').onchange=function(){if(!this.value)return;cur.date=this.value;if(!editId&&!dirty){suggest();$('gDay').value=cur.idx;buildForm()}else{refreshLast();awSoon()}};
+ $('gDate').onchange=function(){if(!this.value)return;cur.date=this.value;renderPres();if(!editId&&!dirty){suggest();$('gDay').value=cur.idx;buildForm()}else{refreshLast();awSoon()}};
  $('gSave').onclick=save;$('gClear').onclick=function(){if(editId){editId=null;dirty=false;buildForm();return}awGuard(function(){buildForm()},'Svuotare il modulo')};
- $('rest').addEventListener('click',onRest);$('presQ').addEventListener('click',onPres);
+ $('rest').addEventListener('click',onRest);$('presQ').addEventListener('click',onPres);$('presB').addEventListener('click',onPresB);
  $('gNote').addEventListener('click',function(ev){if(ev.target.closest('[data-cancel]')){editId=null;dirty=false;buildForm()}});
  $('gForm').addEventListener('input',function(ev){dirty=true;var c=ev.target.closest('.exc');if(c)updSum(+c.getAttribute('data-i'));awSoon()});
  $('gForm').addEventListener('click',onFormClick);$('gForm').addEventListener('click',awSoon);$('gForm').addEventListener('change',awSoon);
@@ -1955,7 +1958,7 @@ function onCal(ev){var t=ev.target,b;
 function dayOpen(ds){
  var T=trainedSet(),st=dayStatus(ds,T,startDay(),today()),pl=plannedOn(ds),ws=[];
  Object.keys(SESS).forEach(function(k){if(SESS[k].date==ds)ws.push(SESS[k].label||'Allenamento')});
- var lab={si:'Allenato',no:'Saltato',plan:'Previsto',rest:'Riposo'}[st],h='<p><b>'+lab+'</b>'+(pl?' · in programma: '+esc(pl.label)+(pl.time?' alle '+esc(pl.time):'')+(pl.from?' (recupero di '+esc(dNice(pl.from))+')':''):'')+'</p>';
+ var lab={si:'Allenato',no:'Saltato',plan:'Previsto',rest:'Riposo'}[st]+(PRES.d[ds]&&PRES.d[ds].time?' alle '+PRES.d[ds].time:''),h='<p><b>'+esc(lab)+'</b>'+(pl?' · in programma: '+esc(pl.label)+(pl.time?' alle '+esc(pl.time):'')+(pl.from?' (recupero di '+esc(dNice(pl.from))+')':''):'')+'</p>';
  if(ws.length)h+='<p class="tg">Registrato: '+esc(ws.join(', '))+'. Per toglierlo elimina l’allenamento in Progressi, vista Per data.</p>';
  var r=PRES.d[ds];if(r&&r.rec)h+='<p class="tg">Recupero previsto '+esc(dNice(r.rec))+'.</p>';
  if(ds<=today())h+='<div class="pqb"><button class="btns" type="button" data-pset="si" data-d="'+ds+'">Allenato</button><button class="btns" type="button" data-pset="no" data-d="'+ds+'">Saltato</button><button class="btns" type="button" data-pset="riposo" data-d="'+ds+'">Riposo</button></div>'+(r?'<p><button class="linkb" type="button" data-pset="x" data-d="'+ds+'">Togli il segno</button></p>':'');
@@ -1976,19 +1979,37 @@ function pendingDay(){
 }
 function renderPres(){
  var host=$('presQ');if(!host)return;var td=today(),h='';
- if(PQ.step=='rec'&&PQ.d){var p0=plannedOn(PQ.d)||{label:'l’allenamento'};
-  h='<div class="pq"><b>Quando recuperi '+esc(p0.label)+'?</b><p class="tg">Quel giorno l’app ti richiede se ci sei andato.</p><div class="pqb">'
-   +'<button class="btns" type="button" data-prec="1">Domani</button><button class="btns" type="button" data-prec="2">Dopodomani</button><button class="btns" type="button" data-prec="7">Settimana prossima</button></div>'
-   +'<p><button class="linkb" type="button" data-prec="0">Non recupero</button></p></div>';
-  host.innerHTML=h;return}
- var d=pendingDay();
- if(d){var p=plannedOn(d);PQ.d=d;
-  h='<div class="pq"><b>'+(d==td?'Oggi':esc(dNice(d)).replace(/^./,function(c){return c.toUpperCase()}))+' · '+esc(p.label)+(p.time?' alle '+esc(p.time):'')+(p.from?' (recupero)':'')+'</b><p>Ci sei andato?</p><div class="pqb">'
-   +'<button class="btnp" type="button" data-pans="si">Sì</button><button class="btns" type="button" data-pans="no">No</button></div></div>';
- }else{var pt=plannedOn(td),T=trainedSet();
-  if(pt&&!T[td]&&!PRES.d[td])h='<p class="pinfo">Oggi: <b>'+esc(pt.label)+'</b>'+(pt.time?' alle '+esc(pt.time):'')+(pt.from?' · recupero':'')+'</p>';}
+ /* niente domanda automatica «ci sei andato?»: la presenza si conferma con il bottone sotto «Salva allenamento» */
+ var pt=plannedOn(td),T=trainedSet();
+ if(pt&&!T[td]&&!PRES.d[td])h='<p class="pinfo">Oggi: <b>'+esc(pt.label)+'</b>'+(pt.time?' alle '+esc(pt.time):'')+(pt.from?' · recupero':'')+'</p>';
+ host.innerHTML=h;renderPresB();
+}
+function presDay(){var d=cur.date||today();return d>today()?today():d}
+function renderPresB(){
+ var host=$('presB');if(!host)return;if(editId){host.innerHTML='';return}
+ var d=presDay(),r=PRES.d[d],had=Object.keys(SESS).some(function(k){return SESS[k].date==d}),when=d==today()?'oggi':dNice(d),h;
+ if(r&&r.st=='si')h='<p class="presok">✓ Presenza segnata '+esc(when)+(r.time?' alle <b>'+esc(r.time)+'</b>':'')+' <button class="linkb" type="button" data-presb="1">Modifica</button></p>';
+ else if(had)h='<p class="presok">✓ Allenamento registrato '+esc(when)+' <button class="linkb" type="button" data-presb="1">Aggiungi l’orario</button></p>';
+ else h='<button class="btns btnw" type="button" data-presb="1">Sono andato in palestra</button><p class="tg">Segna la presenza '+esc(when)+' e l’orario, anche senza registrare le serie.</p>';
  host.innerHTML=h;
 }
+function onPresB(ev){if(ev.target.closest('[data-presb]'))presForm(presDay())}
+function presForm(d,err){
+ var r=PRES.d[d],pl=plannedOn(d),t=(r&&r.time)||(d==today()?nowHM():(pl&&pl.time)||'');
+ cfmOpen('Presenza in palestra',(err?'<p class="warn">'+esc(err)+'</p>':'')
+  +(pl?'<p class="tg">In programma: '+esc(pl.label)+(pl.time?' alle '+esc(pl.time):'')+'.</p>':'<p class="tg">Giorno senza allenamento in programma: va bene lo stesso.</p>')
+  +'<label class="cfl">Giorno<input type="date" id="prD" value="'+esc(d)+'" max="'+today()+'"></label>'
+  +'<label class="cfl">Orario in cui sei andato<input type="time" id="prT" value="'+esc(t)+'"></label>'
+  +(r?'<p><button class="linkb" type="button" data-prdel="'+esc(d)+'">Togli la presenza</button></p>':''),
+  function(){var nd=$('prD').value,nt=$('prT').value;
+   if(!nd||nd>today()){setTimeout(function(){presForm(d,'Scegli un giorno di oggi o passato.')},320);return}
+   var o=PRES.d[nd];if(o&&o.rec&&PRES.x[o.rec]&&PRES.x[o.rec].from==nd)delete PRES.x[o.rec];
+   PRES.d[nd]={st:'si'};if(nt)PRES.d[nd].time=nt;presSave();renderCal();renderPres();
+   msg('Presenza segnata '+(nd==today()?'oggi':dNice(nd))+(nt?' alle '+nt:'')+'.')});
+ $('cfmOk').textContent='Conferma';
+}
+document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('[data-prdel]');if(!b||!b.closest('#cfmBody'))return;
+ var d=b.getAttribute('data-prdel');cfmClose();presSet(d,'x');msg('Presenza tolta.')});
 function onPres(ev){var t=ev.target,b;
  if(b=t.closest('[data-pans]')){var a=b.getAttribute('data-pans');
   if(a=='si'){presSet(PQ.d,'si');msg(PQ.d==today()?'Presenza segnata. Registra le serie qui sotto.':'Presenza segnata.');return}
