@@ -619,7 +619,9 @@ function doImport(txt){
  if(o.plan&&typeof o.plan=='object'){OVR=o.plan;loadProgs();savePlans();afterPlanChange()}
  if(o.mobx&&o.mobx.U&&o.mobx.L){MOBX=mobNorm(o.mobx);saveMobx();mobChanged()}
  if(o.pres&&o.pres.d&&o.pres.x){PRES=o.pres;presSave();renderPres()}
- if(o.qr&&Array.isArray(o.qr.list)){o.qr.list.forEach(function(r){if(r&&r.id&&r.general&&!qrGet(r.id)){QR.list.push(r);syMark('qr',r.id)}});qrSort();qrStore()}
+ if(o.qr&&Array.isArray(o.qr.list)){o.qr.list.forEach(function(r){if(r&&r.id&&r.general&&!qrGet(r.id)){QR.list.push(r);syMark('qr',r.id)}});qrSort()}
+ /* gli allenamenti ripristinati non vanno ricancellati dalla pulizia del report che li riassume */
+ QR.list.forEach(function(r){if(!r.ids)return;var k=r.ids.filter(function(id){return !SESS[id]});if(k.length!=r.ids.length){r.ids=k;syMark('qr',r.id)}});qrStore();
  bkMark();renderReg();if(!dirty&&!editId)buildForm();
  return n+' allenamenti importati'+(o.plan?' e programma ripristinato':'')+'.';
 }
@@ -1741,8 +1743,17 @@ function impFile(f){
   impMsg('Lettura del file Excel…');loadXlsx(function(){var r=new FileReader();r.onload=function(){try{var wb=XLSX.read(new Uint8Array(r.result),{type:'array'});
    var rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:false,defval:''});impPreview(rowsToSessions(rows),base)}catch(e){impMsg('Questo file Excel non si riesce a leggere.')}};r.readAsArrayBuffer(f)});return}
  var r=new FileReader();r.onload=function(){var t=String(r.result).replace(/^\ufeff/,'');
-  if(/\.json$/.test(n)){try{var o=JSON.parse(t);if(o&&o.programs&&o.programs[0]){impPreview(o.programs[0].sessions,o.programs[0].name);return}}catch(e){}impMsg('File FitSup non valido.');return}
+  if(/\.json$/.test(n)){try{var o=JSON.parse(t);if(o&&o.programs&&o.programs[0]){impPreview(o.programs[0].sessions,o.programs[0].name);return}
+   if(o&&(Array.isArray(o.sessions)||o.plan)){bkAsk(o,t);return}}catch(e){}impMsg('File FitSup non valido.');return}
   impPreview(rowsToSessions(/\.(csv|tsv)$/.test(n)?parseDelimited(t):textToRows(t)),base)};r.readAsText(f)}
+function bkAsk(o,t){
+ var ss=Array.isArray(o.sessions)?o.sessions:[],nw=ss.filter(function(x){return x&&x.id&&!SESS[x.id]}).length,qn=o.qr&&Array.isArray(o.qr.list)?o.qr.list.length:0;
+ cfmOpen('Ripristinare il backup?','<p>Backup completo'+(o.saved?' del <b>'+dL(String(o.saved).slice(0,10))+'</b>':'')+': '+ss.length+' allenament'+(ss.length==1?'o':'i')+(nw?', di cui <b>'+nw+'</b> non presenti ora':'')+(qn?', '+qn+' report trimestral'+(qn==1?'e':'i'):'')+'.</p>'
+  +'<p>Gli allenamenti si aggiungono al registro senza doppioni.'+(o.plan?' <b>Programmi</b>'+(o.mobx?', <b>mobilità</b>':'')+(o.pres?' e <b>presenze</b>':'')+' vengono sostituiti da quelli del backup.':'')+'</p>'
+  +'<p class="tg">Gli allenamenti già riassunti in un report trimestrale tornano nel registro e restano lì.</p>',
+  function(){impMsg(doImport(t))});
+ $('cfmOk').textContent='Ripristina';
+}
 function impPreview(sess,name){
  if(!sess||!sess.length){impMsg('Non ho trovato esercizi. Serve una riga per esercizio con le serie, per esempio «Panca piana 4x8», oppure una tabella con le colonne Giorno, Esercizio, Serie, Ripetizioni.');return}
  impMsg('');IMP={name:name||'Scheda importata',sessions:sess};
@@ -1778,7 +1789,7 @@ function renderSettings(){
   +'<div id="pasteBox" hidden><textarea id="pasteT" rows="7" placeholder="Upper A&#10;Panca piana 4x8&#10;Lat machine 3x10&#10;&#10;Lower A&#10;Squat 4x6"></textarea><button class="btnp btnw" type="button" data-set="pasteok">Analizza il testo</button></div>'
   +'<p class="msg" id="impM"></p>'
   +'<h2>Backup della scheda</h2>'+bksHtml()+'<p class="msg" id="bkM2"></p>'
-  +'<h2>Backup completo</h2><p class="tg">Un file .json con allenamenti, programmi, mobilità, presenze e report trimestrali. Per recuperarlo usa «Scegli un file» qui sopra.'+(bkHint()?' '+bkHint():'')+'</p><div class="ptool"><button class="btns" type="button" data-qrbk="1">Scarica backup completo</button></div>'
+  +'<h2>Backup completo</h2><p class="tg">Un file .json con allenamenti, programmi, mobilità, presenze e report trimestrali. Per ripristinarlo usa «Scegli un file» qui sopra e scegli questo file.'+(bkHint()?' '+bkHint():'')+'</p><div class="ptool"><button class="btns" type="button" data-qrbk="1">Scarica backup completo</button></div>'
   +(WA_NUM?'<h2>Esercizio mancante</h2><p class="tg">Non trovi un esercizio nel database? Descrivilo: si apre WhatsApp con il messaggio già scritto.</p><div class="ptool"><button class="btns" type="button" data-req="1">Chiedi un esercizio su WhatsApp</button></div>':'')
   +'<h2>Notifiche</h2>'
   +'<label class="swrow"><span><b>Promemoria degli allenamenti</b><br><span class="tg">'+(items.length?'Avviso all’orario di '+items.length+(items.length==1?' allenamento':' allenamenti')+' a settimana.':'Imposta giorno e orario degli allenamenti in Scheda → Modifica.')+'</span></span><input type="checkbox" id="ntOn"'+(NOTIF.on?' checked':'')+(items.length?'':' disabled')+'></label>'
