@@ -240,6 +240,8 @@ input[type=file]{min-height:var(--hit);font-size:var(--t-in);max-width:100%}
 .exl li{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);padding:var(--s3);border-top:1px solid var(--line)}.exl li:first-child{border-top:0}
 .srb{flex:none;font-weight:700;font-variant-numeric:tabular-nums;padding:2px var(--s2);border-radius:999px;background:var(--head)}
 .mck{display:flex;gap:var(--s3);align-items:center;min-height:var(--hit);padding:var(--s2) 0;border-bottom:1px solid var(--line)}.mck input{width:22px;height:22px;flex:none;accent-color:var(--acc)}
+.mck small{display:block}.mrow small{display:block;font-weight:400;color:var(--mute);font-size:var(--t-s)}.mrow{padding-top:var(--s2);padding-bottom:var(--s2)}
+.mox summary{cursor:pointer;min-height:var(--hit);display:flex;align-items:center;font-weight:700;color:var(--acc)}
 .mdh{display:flex;gap:var(--s2);align-items:center;flex-wrap:wrap;margin:var(--s3) 0 var(--s1)}
 .mrow{display:flex;justify-content:space-between;align-items:center;min-height:var(--hit);padding:0 var(--s3);margin:0 0 var(--s2);background:var(--acc-soft);border-radius:var(--r);text-decoration:none;font-weight:600;font-size:var(--t-s)}
 .exed{display:flex;flex-direction:column;gap:var(--s3);margin:0 0 var(--s3)}
@@ -633,7 +635,7 @@ function putSession(o){SESS[o.id]=o;lsSet();syMark('w',o.id);return Promise.reso
 function delSession(id){delete SESS[id];lsSet();syMark('w',id)}
 function savePlans(){OVR=clone(PROGS);lsPlanSet();syMark('plan','all');if(window.renderSettings){renderSettings();ntApply()}}
 function resetPlans(){OVR=null;lsPlanSet();syMark('plan','all')}
-function afterPlanChange(){if(typeof renderSettings=='function')renderSettings();renderProg();renderTempi();refreshPlanUse();if(!dirty&&!editId)buildForm();renderReg();renderMobSug()}
+function afterPlanChange(){if(typeof renderSettings=='function')renderSettings();renderProg();renderTempi();refreshPlanUse();if(!dirty&&!editId)buildForm();renderReg();renderMobSug();renderMob()}
 /* ---------- consigli: database esercizi e mobilità ---------- */
 function bestSession(p,g){
  var low=!!LOWER[g],best=0,bs=1e9;
@@ -744,7 +746,7 @@ var MOBDEF={U:[['Open book','1x8 per lato','Da sdraiato su un fianco'],['Cat-cam
 var MOBG='U';
 function mobDb(n){var k=nk(n);for(var i=0;i<MOBDB.length;i++)if(nk(MOBDB[i][0])==k)return MOBDB[i];return null}
 function mobItem(n,d,h,a){var m=mobDb(n);return {id:newId('m'),n:n,a:a||(m?m[1]:''),d:d||'',h:h||''}}
-/* id fissi per la routine di base: la scelta degli esercizi di un giorno (s.moff) resta valida a ogni avvio e su ogni dispositivo */
+/* id fissi per la routine di base: restano uguali a ogni avvio e su ogni dispositivo */
 function mobDefault(){var o={v:2,U:[],L:[]};['U','L'].forEach(function(g){MOBDEF[g].forEach(function(x,i){var it=mobItem(x[0],x[1],x[2]);it.id='mb'+g+i;o[g].push(it)})});return o}
 /* il vecchio formato (base fissa + «aggiunti da te») diventa una sola lista modificabile */
 function mobNorm(o){
@@ -755,22 +757,41 @@ function mobNorm(o){
  return r}
 function mobMinN(n){return n?Math.max(3,Math.round(n*1.3)):0}
 function mobMin(g){return mobMinN(g=='UL'?MOBX.U.length+MOBX.L.length:(MOBX[g]||[]).length)}
-/* mobilità di un singolo giorno: la routine del gruppo meno gli esercizi tolti per quel giorno (s.moff = id esclusi) */
-function mobGroups(s){return s.mob=='UL'?['U','L']:(s.mob=='U'||s.mob=='L'?[s.mob]:[])}
-function mobAll(s){var r=[];mobGroups(s).forEach(function(g){MOBX[g].forEach(function(x){r.push(x)})});return r}
-function mobDay(s){var off=s.moff||[];return mobAll(s).filter(function(x){return off.indexOf(x.id)<0})}
+/* mobilità del giorno: l'app consiglia gli esercizi in base ai muscoli allenati quel giorno,
+   l'utente ne sceglie alcuni (s.mobi = nomi scelti; se manca valgono i primi MOBAUTO consigliati) */
+var MOBTOP=7,MOBAUTO=3;
+function mobPool(){var r=[],seen={};
+ ['U','L'].forEach(function(g){MOBX[g].forEach(function(x){var k=nk(x.n);if(seen[k])return;seen[k]=1;var m=mobDb(x.n);r.push({n:x.n,a:x.a||(m?m[1]:''),d:x.d,h:x.h,mine:/^mb[UL]\d/.test(x.id)?1:2})})});
+ MOBDB.forEach(function(m){var k=nk(m[0]);if(seen[k])return;seen[k]=1;r.push({n:m[0],a:m[1],d:m[3],h:m[4]})});
+ return r}
+function mobAreas(s){var sc={};(s.ex||[]).forEach(function(e){(AREAMAP[grp(e.mu||'')]||[]).forEach(function(a){sc[a]=(sc[a]||0)+slots(e.sr)})});return sc}
+function mobRank(s){
+ var sc=mobAreas(s),pool=mobPool(),i=0;pool.forEach(function(x){x.sc=sc[x.a]||0;x.o=i++});
+ pool.sort(function(a,b){return b.sc-a.sc||(b.mine||0)-(a.mine||0)||a.o-b.o});
+ /* scelta a turno tra le aree: ogni esercizio già preso dimezza il peso della sua area, così i consigli non sono tutti uguali */
+ var cand=pool.filter(function(x){return x.sc>0}),top=[],used={},tk={};
+ while(top.length<MOBTOP&&cand.length){var bi=0,bv=-1;cand.forEach(function(x,i){var v=x.sc/Math.pow(2,used[x.a]||0);if(v>bv){bv=v;bi=i}});var x=cand.splice(bi,1)[0];used[x.a]=(used[x.a]||0)+1;top.push(x)}
+ top.forEach(function(x){tk[nk(x.n)]=1});
+ return {top:top,rest:pool.filter(function(x){return !tk[nk(x.n)]}),areas:Object.keys(sc).sort(function(a,b){return sc[b]-sc[a]})}}
+function mobDay(s){
+ if(!s.mob)return [];var rk=mobRank(s);
+ if(!Array.isArray(s.mobi))return rk.top.slice(0,MOBAUTO);
+ var all={};rk.top.concat(rk.rest).forEach(function(x){all[nk(x.n)]=x});
+ return s.mobi.map(function(n){return all[nk(n)]||{n:n,a:'',d:'',h:''}})}
 function mobChanged(){renderMob();renderMobSug();renderProg();renderTempi()}
 function mobShow(g){MOBG=g=='L'?'L':'U';renderMob()}
 function mobHave(){var h={};['U','L'].forEach(function(g){MOBX[g].forEach(function(x){h[nk(x.n)]=1})});return h}
-function mobUse(g){
- var p=prog(ACT);if(!p)return '';var u=[];
- p.sessions.forEach(function(s){if(mobGroups(s).indexOf(g)<0)return;var a=MOBX[g],off=s.moff||[],n=a.filter(function(x){return off.indexOf(x.id)<0}).length;u.push(esc(s.label)+(n<a.length?' ('+n+' di '+a.length+')':''))});
- return u.length?'<p class="tg">Nella scheda «'+esc(p.name)+'»: '+u.join(', ')+'. Per scegliere gli esercizi di un solo giorno tocca «Prima: mobilità» in Scheda.</p>':'';
+function mobDaysHtml(){
+ var p=prog(ACT);if(!p||!p.sessions.length)return '';var h='';
+ p.sessions.forEach(function(s,i){var d=mobDay(s);
+  h+='<li class="mi"><div class="mt"><b>'+esc(s.label)+'</b><span class="tg">'+(!s.mob?'Senza mobilità (si cambia in Scheda → Modifica)':(d.length?esc(d.map(function(x){return x.n}).join(' · '))+' · circa '+mobMinN(d.length)+' min':'Nessun esercizio scelto'))+(s.mob&&!Array.isArray(s.mobi)?' <i>(consigliati in automatico)</i>':'')+'</span></div>'
+   +(s.mob?'<span class="ma"><button class="btns" type="button" data-mobs="'+i+'">Scegli</button></span>':'')+'</li>'});
+ return '<h2>Mobilità di ogni giorno</h2><p class="tg">Per ogni giorno della scheda «'+esc(p.name)+'» l’app consiglia '+MOBTOP+' esercizi in base ai muscoli che alleni quel giorno: tu scegli quali fare.</p><ol class="mlist">'+h+'</ol><h2>I tuoi esercizi di mobilità</h2><p class="tg">Qui aggiungi esercizi tuoi e cambi dosi e note: l’app li usa nei consigli di ogni giorno.</p>';
 }
 function renderMob(){
- var host=$('mobBody');if(!host)return;var g=MOBG,a=MOBX[g],h='';
+ var host=$('mobBody');if(!host)return;var g=MOBG,a=MOBX[g],h=mobDaysHtml();
  h+='<div class="sub"><button type="button" data-mg="U"'+(g=='U'?' class="on"':'')+'>Mobilità Upper</button><button type="button" data-mg="L"'+(g=='L'?' class="on"':'')+'>Mobilità Lower</button></div>';
- h+='<div class="mhead"><span class="tg">'+(g=='U'?'Per le sedute di parte alta':'Per le sedute di gambe')+' · '+a.length+' eserciz'+(a.length==1?'io':'i')+(a.length?' · circa '+mobMin(g)+' min':'')+'</span></div>'+mobUse(g);
+ h+='<div class="mhead"><span class="tg">'+(g=='U'?'Per le sedute di parte alta':'Per le sedute di gambe')+' · '+a.length+' eserciz'+(a.length==1?'io':'i')+'</span></div>';
  if(MMSG){h+='<div class="msg" role="status">'+esc(MMSG)+'</div>';MMSG=''}
  if(!a.length)h+='<p class="tg">Nessun esercizio in questa routine: aggiungine uno qui sotto.</p>';
  h+='<ol class="mlist">'+a.map(function(x,i){return '<li class="mi"><span class="mn" aria-hidden="true">'+(i+1)+'</span><div class="mt"><b>'+esc(x.n)+'</b><span class="tg">'+esc([x.d,x.a].filter(Boolean).join(' · '))+'</span>'+(x.h?'<div class="tg">'+esc(x.h)+'</div>':'')+'</div><span class="ma">'
@@ -826,6 +847,7 @@ function askMob(g,i){
 }
 function onMob(ev){
  var t=ev.target,b,a=MOBX[MOBG];
+ if(b=t.closest('[data-mobs]')){mobDayForm(+b.getAttribute('data-mobs'));return}
  if(b=t.closest('[data-mg]')){MOBG=b.getAttribute('data-mg');renderMob();return}
  if(b=t.closest('[data-mxadd]')){var q=b.getAttribute('data-mxadd').split(':');askMob(q[0],+q[1]);return}
  if(b=t.closest('[data-mnew]')){mobForm(MOBG,-1);return}
@@ -862,24 +884,34 @@ function daysLine(p){
 }
 function mobNote(s,si){
  if(!s.mob)return '';
- var g=s.mob,tot=mobAll(s).length,n=mobDay(s).length,lab=g=='UL'?'Upper e Lower':(g=='U'?'Upper':'Lower');
- return '<a class="mlink mrow" href="#pm" data-mobs="'+si+'"><span>Prima: mobilità '+lab+' · '+(n<tot?n+' di '+tot:n)+' eserciz'+(tot==1?'io':'i')+(n?', circa '+mobMinN(n)+' min':'')+'</span><span aria-hidden="true">›</span></a>';
+ var d=mobDay(s),n=d.length;
+ return '<a class="mlink mrow" href="#pm" data-mobs="'+si+'"><span>Prima: mobilità · '+(n?n+' eserciz'+(n==1?'io':'i')+', circa '+mobMinN(n)+' min':'nessun esercizio scelto')+(n?'<small>'+esc(d.map(function(x){return x.n}).join(' · '))+'</small>':'')+'</span><span aria-hidden="true">›</span></a>';
 }
+function mobCk(x,on){return '<label class="mck"><input type="checkbox" data-mid="'+esc(x.n)+'"'+(on?' checked':'')+'><span><b>'+esc(x.n)+'</b> <span class="tg">'+esc([x.d,x.a].filter(Boolean).join(' · '))+'</span>'+(x.h?'<small class="tg">'+esc(x.h)+'</small>':'')+'</span></label>'}
 function mobDayForm(si){
- var p=prog(ACT),s=p&&p.sessions[si];if(!s)return;var off=s.moff||[],h='';
- mobGroups(s).forEach(function(g){var a=MOBX[g];
-  h+='<p class="mdh"><b>Mobilità '+(g=='U'?'Upper':'Lower')+'</b> <button class="linkb" type="button" data-mgo="'+g+'">Modifica la routine</button></p>';
-  if(!a.length)h+='<p class="tg">Routine vuota.</p>';
-  h+=a.map(function(x){return '<label class="mck"><input type="checkbox" data-mid="'+esc(x.id)+'"'+(off.indexOf(x.id)<0?' checked':'')+'><span><b>'+esc(x.n)+'</b> <span class="tg">'+esc(x.d)+'</span></span></label>'}).join('')});
- cfmOpen('Mobilità di «'+s.label+'»','<p class="tg">Togli la spunta agli esercizi che in questo giorno non vuoi fare. La routine resta uguale per gli altri giorni.</p>'
-  +'<p class="mdh"><button class="linkb" type="button" data-mall="1">Tutti</button> · <button class="linkb" type="button" data-mall="0">Nessuno</button></p>'+h,
-  function(){var no=[];document.querySelectorAll('#cfmBody [data-mid]').forEach(function(c){if(!c.checked)no.push(c.getAttribute('data-mid'))});
-   var q=prog(ACT),t=q&&q.sessions[si];if(!t)return;if(no.length)t.moff=no;else delete t.moff;
-   var n=mobDay(t).length;PMSG='Mobilità di «'+t.label+'»: '+(n?n+' eserciz'+(n==1?'io':'i'):'nessun esercizio')+'.';savePlans();afterPlanChange();renderMob()});
- $('cfmOk').textContent='Salva';
+ var p=prog(ACT),s=p&&p.sessions[si];if(!s)return;
+ var rk=mobRank(s),sel={};mobDay(s).forEach(function(x){sel[nk(x.n)]=1});
+ var extra=Array.isArray(s.mobi)?s.mobi.filter(function(n){return !rk.top.concat(rk.rest).some(function(x){return nk(x.n)==nk(n)})}):[];
+ var restSel=rk.rest.filter(function(x){return sel[nk(x.n)]}).length+extra.length;
+ var h='<p class="tg">'+(rk.areas.length?'Muscoli di questo giorno → aree da mobilizzare: <b>'+esc(rk.areas.slice(0,3).join(', '))+'</b>.':'Questo giorno non ha ancora esercizi: ecco alcuni esercizi generali.')+' Scegline 2 o 3, oppure quanti vuoi.</p>'
+  +'<p class="mdh"><span class="tg" id="mobCnt"></span> <button class="linkb" type="button" data-mall="0">Nessuno</button>'+(Array.isArray(s.mobi)?' · <button class="linkb" type="button" data-mauto="1">Torna ai consigliati</button>':'')+'</p>'
+  +'<p class="mdh"><b>Consigliati per questo giorno</b></p>'+(rk.top.length?rk.top.map(function(x){return mobCk(x,sel[nk(x.n)])}).join(''):'<p class="tg">Nessun consiglio: apri «Altri esercizi».</p>')
+  +'<details class="mox"'+(restSel||!rk.top.length?' open':'')+'><summary>Altri esercizi ('+(rk.rest.length+extra.length)+')</summary>'+extra.map(function(n){return mobCk({n:n,a:'',d:'',h:''},1)}).join('')+rk.rest.map(function(x){return mobCk(x,sel[nk(x.n)])}).join('')+'</details>'
+  +'<p class="tg"><button class="linkb" type="button" data-mgo="U">Aggiungi un esercizio tuo o cambia dosi e note</button></p>';
+ cfmOpen('Mobilità di «'+s.label+'»',h,function(){
+  var q=prog(ACT),t=q&&q.sessions[si];if(!t)return;
+  if(MOBAUTOSET){delete t.mobi}else{var ch=[];document.querySelectorAll('#cfmBody [data-mid]').forEach(function(c){if(c.checked)ch.push(c.getAttribute('data-mid'))});t.mobi=ch}
+  delete t.moff;MOBAUTOSET=0;
+  var n=mobDay(t).length;PMSG='Mobilità di «'+t.label+'»: '+(n?n+' eserciz'+(n==1?'io':'i'):'nessun esercizio')+'.';savePlans();afterPlanChange();renderMob()});
+ MOBAUTOSET=0;$('cfmOk').textContent='Salva';mobCount();
 }
-document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('[data-mall],[data-mgo]');if(!b||!b.closest('#cfmBody'))return;
- if(b.hasAttribute('data-mall')){var v=b.getAttribute('data-mall')=='1';document.querySelectorAll('#cfmBody [data-mid]').forEach(function(c){c.checked=v});return}
+var MOBAUTOSET=0;
+function mobCount(){var c=$('mobCnt');if(!c)return;var n=document.querySelectorAll('#cfmBody [data-mid]:checked').length;c.textContent='Scelti: '+n+(n?' · circa '+mobMinN(n)+' min':'')+' ·'}
+document.addEventListener('change',function(ev){if(ev.target.closest&&ev.target.closest('#cfmBody [data-mid]')){MOBAUTOSET=0;mobCount()}});
+document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('[data-mall],[data-mgo],[data-mauto]');if(!b||!b.closest('#cfmBody'))return;
+ if(b.hasAttribute('data-mall')){document.querySelectorAll('#cfmBody [data-mid]').forEach(function(c){c.checked=false});MOBAUTOSET=0;mobCount();return}
+ if(b.hasAttribute('data-mauto')){MOBAUTOSET=1;var bx=[].slice.call(document.querySelectorAll('#cfmBody [data-mid]')),k=0;bx.forEach(function(c){c.checked=false});
+  bx.forEach(function(c){if(!c.closest('details')&&k<MOBAUTO){c.checked=true;k++}});mobCount();return}
  cfmClose();mobShow(b.getAttribute('data-mgo'));if(window.showTab)window.showTab('pm')});
 function notesHtml(t){
  var h='',ul=false;
@@ -910,7 +942,7 @@ function renderProg(){
    h+='<div class="shd" data-si="'+i+'"><input class="nm" data-sf="label" value="'+esc(s.label)+'" aria-label="Nome del giorno">'
     +'<select data-sf="day" aria-label="Giorno consigliato"><option value="-1">Nessun giorno</option>'+GIORNI.map(function(g,k){return '<option value="'+k+'"'+(s.day==k?' selected':'')+'>'+g+'</option>'}).join('')+'</select>'
     +'<input type="time" data-sf="time" value="'+esc(s.time||'')+'" aria-label="Orario medio">'
-    +'<select data-sf="mob" aria-label="Mobilità"><option value="">Senza mobilità</option><option value="U"'+(s.mob=='U'?' selected':'')+'>Mobilità Upper</option><option value="L"'+(s.mob=='L'?' selected':'')+'>Mobilità Lower</option><option value="UL"'+(s.mob=='UL'?' selected':'')+'>Mobilità Upper e Lower</option></select>'
+    +'<select data-sf="mob" aria-label="Mobilità"><option value="UL"'+(s.mob?' selected':'')+'>Con mobilità</option><option value=""'+(s.mob?'':' selected')+'>Senza mobilità</option></select>'
     +'</div>';
   }else h+='<div class="dayh"><h2>'+esc(s.label)+'</h2><span class="tg">'+(s.day>=0?GIORNI[s.day]+(s.time?' '+esc(s.time):'')+' · ':'')+range(sessMin(s))+'</span></div>'+mobNote(s,i);
   h+=ptable(p,i);
@@ -2007,7 +2039,7 @@ $('progBody').addEventListener('toggle',function(ev){if(!ev.target.classList)ret
 (function(){var m=document.querySelector('main');if(!m)return;var d=document.createElement('div');d.className='awbar';d.id='awBar';d.setAttribute('role','status');
  d.innerHTML='<span><b>Allenamento in corso</b><br><span id="awTxt"></span></span><button type="button" id="awGo">Riprendi</button>';m.insertBefore(d,m.firstChild);$('awGo').onclick=awResume})();
 (function(){var a=document.querySelector('#tabs a.on');TABNOW=a?a.getAttribute('data-p'):''})();
-window.onTabShown=function(id){if(id!='pg'&&FORMLIVE)awSave();TABNOW=id;awBar()};
+window.onTabShown=function(id){if(id!='pg'&&FORMLIVE)awSave();TABNOW=id;awBar();if(id=='pm')renderMob()};
 document.addEventListener('visibilitychange',function(){if(document.hidden&&FORMLIVE)awSave()});
 window.addEventListener('pagehide',function(){if(FORMLIVE)awSave()});
 renderProg();renderTempi();
