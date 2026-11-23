@@ -133,6 +133,7 @@ textarea.nt,#impT{width:100%;min-height:110px;padding:var(--s2)}
 .exc.fin .exn{color:var(--mute)}
 .exnote{display:block;margin-top:4px;padding:4px 8px;border-left:3px solid var(--acc);background:var(--acc-soft);border-radius:4px;font-size:var(--t-s);color:var(--ink);white-space:normal}
 .exc.ssg{border-left:4px solid var(--acc)}.ssb{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--acc-ink);background:var(--acc);border-radius:4px;padding:1px 6px;margin-right:6px;vertical-align:2px}
+.wun{display:flex;gap:6px}.wun input{flex:1;min-width:0}.wun select{width:76px;flex:none}
 .sspk{display:flex;flex-direction:column;gap:6px;padding:var(--s2) var(--s3);border:1px dashed var(--acc);border-radius:var(--r);margin:var(--s2) 0}.ssw{margin-top:6px;padding:8px;border-radius:var(--r);background:var(--acc-soft);font-size:var(--t-s)}.ssb2{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
 .sspk .ssck{display:flex!important;flex-direction:row!important;align-items:center;justify-content:flex-start;gap:12px;min-height:48px;margin:0;padding:8px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--ink);font-weight:600;text-align:left;cursor:pointer}.sspk .ssck:has(input:checked){border-color:var(--acc);background:var(--acc-soft)}.sspk .ssck input{flex:none;width:22px!important;height:22px!important;min-height:0!important;margin:0;padding:0;accent-color:var(--acc)}.sspk .ssck .tg{font-weight:400}
 .exl li.ssg{border-left:4px solid var(--acc);padding-left:8px}
@@ -598,7 +599,7 @@ function dL(d){var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0]}
 function norm(n){return n.replace(/\s*\(.*?\)\s*/g,' ').replace(/\s+/g,' ').trim()}
 function clone(o){return JSON.parse(JSON.stringify(o))}
 function newId(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
-function summ(sets){return sets.map(function(s){return s.skip?'—':(s.w||'–')+'/'+(s.r||'–')}).join(' ')}
+function summ(sets){return sets.map(function(s){return s.skip?'—':(s.lb?s.lb+' lb':(s.w||'–'))+'/'+(s.r||'–')}).join(' ')}
 function slots(sr){var m=String(sr).match(/^(\d+)(?:-(\d+))?\s*x\s*(.*)$/i);if(!m)return 3;return parseInt(m[2]||m[1],10)+(/\+\s*MAX/i.test(m[3])?1:0)}
 function fold(s){return nk(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
 function muExact(v){var f=fold(v);if(!f)return '';for(var i=0;i<MUSCOLI.length;i++)if(fold(MUSCOLI[i])==f&&MUSCOLI[i]!='Altro')return MUSCOLI[i];return ''}
@@ -1039,12 +1040,12 @@ function bookGo(k){var p=prog(ACT);if(!p||EDITP)return;var n=p.sessions.length;i
   if(ev.key=='ArrowRight')bookGo(BOOK.i+1);else if(ev.key=='ArrowLeft')bookGo(BOOK.i-1)})})();
 function ptable(p,i){
  var s=p.sessions[i];
- if(!EDITP)return '<ul class="exl">'+s.ex.map(function(e){var nv=(e.vars||[]).length;return '<li'+(e.ss?' class="ssg"':'')+'><div>'+(e.ss?'<span class="ssb">Superserie '+esc(e.ss)+'</span>':'')+'<b>'+esc(e.name)+'</b><div class="tg">'+esc(e.mu||'')+(nv?' · '+nv+(nv==1?' variante':' varianti'):'')+(e.mod?' · '+esc(e.mod):'')+' · recupero '+recTxt(recOf(e))+'</div>'+(e.note?'<div class="tg">'+esc(e.note)+'</div>':'')+'</div>'+(function(){var lw=e.kg?null:lastW(e.name);return '<span class="srw">'+(e.kg?'<span class="wtb" title="Peso previsto dalla scheda">'+esc(e.kg)+' kg</span>':(lw?'<span class="wtb wlast" title="Nessun peso nella scheda: peso usato l’ultima volta, '+dL(lw.date)+'">'+esc(lw.w)+' kg</span>':''))+'<span class="srb">'+esc(e.sr)+'</span></span>'})()+'</li>'}).join('')+'</ul>';
+ if(!EDITP)return '<ul class="exl">'+s.ex.map(function(e){var nv=(e.vars||[]).length;return '<li'+(e.ss?' class="ssg"':'')+'><div>'+(e.ss?'<span class="ssb">Superserie '+esc(e.ss)+'</span>':'')+'<b>'+esc(e.name)+'</b><div class="tg">'+esc(e.mu||'')+(nv?' · '+nv+(nv==1?' variante':' varianti'):'')+(e.mod?' · '+esc(e.mod):'')+' · recupero '+recTxt(recOf(e))+'</div>'+(e.note?'<div class="tg">'+esc(e.note)+'</div>':'')+'</div>'+(function(){var lw=e.kg?null:lastW(e.name);return '<span class="srw">'+(e.kg?'<span class="wtb" title="Peso previsto dalla scheda">'+esc(wTxt(e.kg,e.u))+'</span>':(lw?'<span class="wtb wlast" title="Nessun peso nella scheda: peso usato l’ultima volta, '+dL(lw.date)+'">'+esc(lw.w)+' kg</span>':''))+'<span class="srb">'+esc(e.sr)+'</span></span>'})()+'</li>'}).join('')+'</ul>';
  return '<div class="exed">'+s.ex.map(function(e,j){
-  return '<details class="exe" data-i="'+i+'" data-j="'+j+'"'+(e._open?' open':'')+'><summary><span class="exs"><b>'+esc(e.name||'Nuovo esercizio')+'</b><span class="tg">'+esc(e.mu||'')+'</span></span><span class="srw">'+(e.kg?'<span class="wtb">'+esc(e.kg)+' kg</span>':'')+'<span class="srb">'+esc(e.sr||'–')+'</span></span></summary>'
+  return '<details class="exe" data-i="'+i+'" data-j="'+j+'"'+(e._open?' open':'')+'><summary><span class="exs"><b>'+esc(e.name||'Nuovo esercizio')+'</b><span class="tg">'+esc(e.mu||'')+'</span></span><span class="srw">'+(e.kg?'<span class="wtb">'+esc(wTxt(e.kg,e.u))+'</span>':'')+'<span class="srb">'+esc(e.sr||'–')+'</span></span></summary>'
    +'<div class="exf"><label class="fw">Esercizio<input data-f="name" value="'+esc(e.name)+'" placeholder="Scrivi o scegli: es. femorali" autocomplete="off"></label><button class="btns exdb" type="button" data-exdb="1">Scegli dal database esercizi</button><div class="exsug" hidden></div>'
    +'<div class="row2"><label>Serie<input data-f="sr" value="'+esc(e.sr)+'" placeholder="4x8"></label><label>Muscolo'+muSel(e.mu,'data-f="mu"')+'</label></div>'
-   +'<div class="row2"><label>Peso (kg)<input data-f="kg" inputmode="decimal" value="'+esc(e.kg||'')+'" placeholder="es. 60 oppure 45→40"></label><label>Recupero'+recSel(e)+'</label></div>'
+   +'<div class="row2"><label>Peso<span class="wun"><input data-f="kg" inputmode="decimal" value="'+esc(e.kg||'')+'" placeholder="es. 60 oppure 45→40"><select data-f="u" aria-label="Unità"><option value="">kg</option><option value="lb"'+(e.u=='lb'?' selected':'')+'>lb</option></select></span></label><label>Recupero'+recSel(e)+'</label></div>'
    +'<label class="fw">Modalità<select data-f="mod">'+MODS.map(function(m){return '<option value="'+(m=='Normale'?'':m)+'"'+(modOf(e)==m?' selected':'')+'>'+m+'</option>'}).join('')+'</select></label>'
    +(modOf(e)=='Superserie'?ssPick(s,j):'')
    +'<label class="fw">Note<input data-f="note" value="'+esc(e.note)+'" placeholder="es. RIR 1, ultima serie a cedimento"></label>'
@@ -1133,7 +1134,7 @@ function onProgInput(ev){
   if(ff=='name'){exSug(tr,el.value);var mm=muExact(el.value);if(mm){e.mu=mm;e.auto=1;var s0=tr.querySelector('select[data-f=mu]');if(s0)s0.value=mm}}
   if(ff=='name'&&!muExact(el.value)){var g=guess(el.value),sel=tr.querySelector('select[data-f=mu]');if(sel&&(e.mu=='Altro'||e.auto)){e.mu=g;e.auto=1;sel.value=g}}
   if(ff=='vars'){e._vt=el.value;e._vcustom=1}
-  if(ff=='kg'||ff=='sr'){var sw=tr.querySelector('summary .srw');if(sw)sw.innerHTML=(e.kg?'<span class="wtb">'+esc(e.kg)+' kg</span>':'')+'<span class="srb">'+esc(e.sr||'–')+'</span>'}
+  if(ff=='u'&&!e.u)delete e.u;if(ff=='kg'||ff=='sr'||ff=='u'){var sw=tr.querySelector('summary .srw');if(sw)sw.innerHTML=(e.kg?'<span class="wtb">'+esc(wTxt(e.kg,e.u))+'</span>':'')+'<span class="srb">'+esc(e.sr||'–')+'</span>'}
   if(ff=='name'&&!e._vcustom){var vt=varsToText(catVars(el.value)),vi=tr.querySelector('input[data-f=vars]');e._vt=vt;if(vi)vi.value=vt}
   if(ff=='mu')e.auto=0;
   var sm=tr.querySelector('.exs b'),sb=tr.querySelector('summary .srb'),sg=tr.querySelector('.exs .tg');if(sm)sm.textContent=e.name||'Nuovo esercizio';if(sb)sb.textContent=e.sr||'–';if(sg)sg.textContent=e.mu||''}
@@ -1200,22 +1201,29 @@ function buildUI(){
 }
 /* una riga per serie: numero · chili · ripetizioni · fatta. Le caselle vuote mostrano i valori della volta scorsa */
 /* peso della scheda per serie: «45» tutte a 45; «45→40» le prime a 45 e l'ultima a 40; «50→45→40» una per serie in fondo */
+/* libbre: un esercizio può avere il peso in lb (e.u='lb'); negli allenamenti si salva sempre in kg, con il valore in lb accanto */
+var LB=0.45359237;
+function toKg(v){return Math.round(v*LB*10)/10}
+function toLb(v){return Math.round(v/LB)}
+function unitOf(it){var pe=it?(planExIn(cur.plan,it.bk)||planEx(it.bk)):null;return pe&&pe.u=='lb'?'lb':'kg'}
+function wTxt(k,u){if(!k)return '';if(u!='lb')return k+' kg';var t=kgList(k).map(function(x){var v=num(x);return v===null?x:fmt(toKg(v))});return k+' lb ('+t.join('→')+' kg)'}
+function dispW(st,u){if(!st)return '';if(u=='lb'){if(st.lb!=null&&st.lb!=='')return st.lb;if(st.kgs){var v=num(st.w);return v===null?st.w:String(toLb(v))}}return st.w||''}
 function kgList(k){return String(k||'').split(/→|->|>|\/|;/).map(function(x){return x.trim()}).filter(Boolean)}
 function kgAt(k,j,n){var t=kgList(k);if(!t.length)return '';if(t.length>=n)return t[Math.min(j,t.length-1)];var head=n-t.length+1;return j<head?t[0]:t[j-head+1]}
-function slotHtml(j,st,ls,pk,ad){
- var ok=ls&&!ls.skip,pw=ok&&ls.w?ls.w:(pk||'kg'),pr=ok&&ls.r?ls.r:'rep',dn=st.done!==undefined?!!st.done:!!(st.w||st.r),n=j+1;
+function slotHtml(j,st,ls,pk,ad,u){u=u||'kg';
+ var ok=ls&&!ls.skip,lw=ok?(u=='lb'?(ls.lb||(num(ls.w)!==null?String(toLb(num(ls.w))):'')):ls.w):'',pw=lw||(pk||u),pr=ok&&ls.r?ls.r:'rep',dn=st.done!==undefined?!!st.done:!!(st.w||st.r),n=j+1;
  return '<div class="slot'+(dn?' done':'')+(ad?' add':'')+'"><span class="sn" aria-hidden="true">'+n+'</span>'
-  +'<input inputmode="decimal" enterkeyhint="next" placeholder="'+esc(pw)+'" aria-label="Serie '+n+', chili" data-w="'+j+'" value="'+esc(st.w)+'">'
+  +'<input inputmode="decimal" enterkeyhint="next" placeholder="'+esc(pw)+'" aria-label="Serie '+n+', '+(u=='lb'?'libbre':'chili')+'" data-w="'+j+'" value="'+esc(st.kgs?dispW(st,u):st.w)+'">'
   +'<input inputmode="numeric" enterkeyhint="done" placeholder="'+esc(pr)+'" aria-label="Serie '+n+', ripetizioni" data-r="'+j+'" value="'+esc(st.r)+'">'
   +'<button class="ok" type="button" data-done="'+j+'" aria-label="Serie '+n+' fatta" aria-pressed="'+dn+'">✓</button>'
   +'<button class="del" type="button" data-del="1" aria-label="Togli la serie '+n+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13M10 11v6M14 11v6"/></svg></button></div>'}
-function addSlot(c,st){var box=c.querySelector('.slots'),j=box.children.length,i=+c.getAttribute('data-i');box.insertAdjacentHTML('beforeend',slotHtml(j,st||{w:'',r:''},(LASTV[i]||[])[j],ITEMS[i]?kgAt((planExIn(cur.plan,ITEMS[i].bk)||planEx(ITEMS[i].bk)||{}).kg,j,j+1):'',1))}
+function addSlot(c,st){var box=c.querySelector('.slots'),j=box.children.length,i=+c.getAttribute('data-i');box.insertAdjacentHTML('beforeend',slotHtml(j,st||{w:'',r:''},(LASTV[i]||[])[j],ITEMS[i]?kgAt((planExIn(cur.plan,ITEMS[i].bk)||planEx(ITEMS[i].bk)||{}).kg,j,j+1):'',1,unitOf(ITEMS[i])))}
 function applySlot(sl,st){sl.querySelector('[data-w]').value=st.w||'';sl.querySelector('[data-r]').value=st.r||'';var dn=!!(st.w||st.r);sl.classList.toggle('done',dn);sl.querySelector('.ok').setAttribute('aria-pressed',String(dn))}
 function collect(i){
  var c=document.querySelector('.exc[data-i="'+i+'"]'),raw=[],out=[],last=-1;if(!c)return out;
  [].forEach.call(c.querySelectorAll('.slot'),function(sl){raw.push({off:sl.classList.contains('off'),w:sl.querySelector('[data-w]').value.trim(),r:sl.querySelector('[data-r]').value.trim()})});
  raw.forEach(function(x,j){if(x.off||x.w||x.r)last=j});
- for(var j=0;j<=last;j++){var x=raw[j];out.push(x.off||(!x.w&&!x.r)?{w:'',r:'',skip:true}:{w:x.w,r:x.r})}
+ var un=unitOf(ITEMS[i]);for(var j=0;j<=last;j++){var x=raw[j],v=num(x.w);out.push(x.off||(!x.w&&!x.r)?{w:'',r:'',skip:true}:(un=='lb'&&v!==null?{w:String(toKg(v)),r:x.r,lb:x.w}:{w:x.w,r:x.r}))}
  return out;
 }
 function updSum(i){
@@ -1272,7 +1280,7 @@ function onFormClick(ev){
    if(nr===null){msg('Serie '+sn+': scrivi chili e ripetizioni, poi tocca ✓.');w.focus();return}
    if(nw!==null)w.value=w.placeholder;r.value=r.placeholder}
   else if(!r.value.trim()){msg('Serie '+sn+': mancano le ripetizioni.');r.focus();return}
-  var wv=num(w.value),rv=num(r.value);if(w.value.trim()&&!kgOk(wv)){msg('Serie '+sn+': peso non valido (da 0 a '+KGMAX+' kg).');w.focus();return}if(r.value.trim()&&!(repOk(rv)&&rv>0)){msg('Serie '+sn+': ripetizioni non valide (da 1 a '+REPMAX+').');r.focus();return}
+  var wv=num(w.value),rv=num(r.value);if(wv!==null&&unitOf(ITEMS[ii])=='lb')wv=toKg(wv);if(w.value.trim()&&!kgOk(wv)){msg('Serie '+sn+': peso non valido (fino a '+(unitOf(ITEMS[ii])=='lb'?toLb(KGMAX)+' lb':KGMAX+' kg')+').');w.focus();return}if(r.value.trim()&&!(repOk(rv)&&rv>0)){msg('Serie '+sn+': ripetizioni non valide (da 1 a '+REPMAX+').');r.focus();return}
   sl.classList.add('done');b.setAttribute('aria-pressed','true');dirty=true;msg('');updSum(ii);
   var nxs=ssNext(cc);if(nxs){stopRest();msg('Superserie: subito '+ITEMS[+nxs.getAttribute('data-i')].base+', recupero dopo l’ultimo esercizio del blocco.');nxs.open=true;setTimeout(function(){nxs.scrollIntoView({block:'start',behavior:'smooth'})},60);return}
   startRest(ii);var sf=ssFirst(cc);if(sf&&sf!==cc){cc.open=false;sf.open=true;msg('Recupero, poi di nuovo '+ITEMS[+sf.getAttribute('data-i')].base+'.');setTimeout(function(){sf.scrollIntoView({block:'start',behavior:'smooth'})},60);return}
@@ -1293,7 +1301,7 @@ function onFormClick(ev){
  if(b=t.closest('[data-rmcard]')){var c5=document.querySelector('.exc[data-i="'+b.getAttribute('data-rmcard')+'"]');if(c5)c5.parentNode.removeChild(c5);dirty=true;msg('');return}
  if(b=t.closest('[data-copy]')){var i=+b.getAttribute('data-copy'),sets=LASTV[i]||[];c=document.querySelector('.exc[data-i="'+i+'"]');
   while(c.querySelectorAll('.slot').length<sets.length)addSlot(c);
-  [].forEach.call(c.querySelectorAll('.slot'),function(s2,j){var st=sets[j]||{w:'',r:''};applySlot(s2,st.skip?{w:'',r:''}:st)});dirty=true;updSum(i);return}
+  [].forEach.call(c.querySelectorAll('.slot'),function(s2,j){var st=sets[j]||{w:'',r:''},u5=unitOf(ITEMS[i]);applySlot(s2,st.skip?{w:'',r:''}:{w:u5=='lb'?dispW({w:st.w,lb:st.lb,kgs:1},'lb'):st.w,r:st.r})});dirty=true;updSum(i);return}
  if(b=t.closest('[data-add]')){c=document.querySelector('.exc[data-i="'+b.getAttribute('data-add')+'"]');addSlot(c);dirty=true;updSum(+c.getAttribute('data-i'));var ins=c.querySelectorAll('.slot');ins[ins.length-1].querySelector('[data-w]').focus();return}
  if(b=t.closest('[data-rem]')){var i3=+b.getAttribute('data-rem');c=document.querySelector('.exc[data-i="'+i3+'"]');var ss=c.querySelectorAll('.slot'),lst=ss[ss.length-1];
   if(ss.length<=1){msg('Serve almeno una serie: per saltare l’esercizio lascialo vuoto.');return}
@@ -1326,14 +1334,14 @@ function curMu(it){if(it.vr)for(var i=0;i<it.vars.length;i++)if(it.vars[i].l==it
 function buildItems(){
  var s=sessionsOf(cur.plan)[cur.idx],items=[],saved=editId?SESS[editId]:null,seen={};
  if(saved)saved.ex.forEach(function(e){var base=e.b||e.name,bk=norm(base),pe=planEx(bk),vars=pe?(pe.vars||[]):catVars(base);var dp=!!seen[bk];seen[bk]=1;
-  items.push({base:base,bk:bk,sr:e.sr,vr:e.vr||'',vars:vars,mu:e.mu||(pe?pe.mu:guess(base)),sets:e.sets,dup:dp})});
+  items.push({base:base,bk:bk,sr:e.sr,vr:e.vr||'',vars:vars,mu:e.mu||(pe?pe.mu:guess(base)),sets:(e.sets||[]).map(function(t){return Object.assign({kgs:1},t)}),dup:dp})});
  var same=!saved||(s&&saved.plan==cur.plan&&saved.label==s.label);
  if(s&&same)s.ex.forEach(function(e){var bk=norm(e.name);if(!seen[bk]){seen[bk]=1;var vars=e.vars||[],lv=lastVar(bk);if(!vars.some(function(v){return v.l==lv}))lv='';
   items.push({base:e.name,bk:bk,sr:e.sr,vr:lv,vars:vars,mu:e.mu||guess(e.name),sets:[]})}});
  return items;
 }
 function updMu(i){var it=ITEMS[i],el=$('vsub'+i);if(!el)return;var pe=planExIn(cur.plan,it.bk)||planEx(it.bk)||{};
- el.textContent=it.sr+(pe.kg?' · '+pe.kg+' kg':'')+(pe.mod?' · '+pe.mod:'')+(it.vr?' · '+it.vr:'')+' · '+curMu(it)+' · rec. '+recTxt(restSecs(it))}
+ el.textContent=it.sr+(pe.kg?' · '+wTxt(pe.kg,pe.u):'')+(pe.mod?' · '+pe.mod:'')+(it.vr?' · '+it.vr:'')+' · '+curMu(it)+' · rec. '+recTxt(restSecs(it))}
 function setEditUI(on){
  $('gPlan').disabled=on;$('gDay').disabled=on;
  var s=on?SESS[editId]:null;
@@ -1348,7 +1356,7 @@ function cardHtml(i,open){
   +((it.vars.length||it.vr)?'<div class="vrow"><label>Variante <select data-vr="'+i+'">'+opts+'</select></label></div>':'')
   +'<div class="last">'+lh+'</div><div class="slots">';
  var pk=(planExIn(cur.plan,it.bk)||planEx(it.bk)||{}).kg||'';
- for(var j=0;j<n;j++)h+=slotHtml(j,it.sets[j]||{w:'',r:''},ls[j],kgAt(pk,j,n));
+ var un=unitOf(it);for(var j=0;j<n;j++)h+=slotHtml(j,it.sets[j]||{w:'',r:''},ls[j],kgAt(pk,j,n),0,un);
  h+='</div><div class="addrow"><button class="btns" type="button" data-add="'+i+'">+ Serie</button><button class="btns" type="button" data-rem="'+i+'">− Serie</button>'
   +(it.vars.length?'<button class="btns" type="button" data-addvar="'+i+'">+ Variante</button>':'')
   +(it.dup?'<button class="btns" type="button" data-rmcard="'+i+'">Togli variante</button>':'')
