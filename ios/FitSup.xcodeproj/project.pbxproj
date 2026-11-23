@@ -7,15 +7,47 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		62998F3CAE38450EE34F8B53 /* FitSupRest.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2F5761033999AC0868B2EA3C /* FitSupRest.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		8EDEFE19752BF836F84C1AD9 /* FitSupApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECBF3388F6B374994D904B11 /* FitSupApp.swift */; };
 		B2257B71EBFF7A4BFD95AA51 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 433C205B9D4025E3BAB67F92 /* Assets.xcassets */; };
+		B55AC93BA8187AB37073E194 /* RestAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90D11FC19AFC1F79DFFB9182 /* RestAttributes.swift */; };
+		B6D891A1F58DCCA865A09205 /* RestAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90D11FC19AFC1F79DFFB9182 /* RestAttributes.swift */; };
+		C6973AF78411F09846274B65 /* RestWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567EF64D071E50A54EBFE7F8 /* RestWidget.swift */; };
 		DF979AD9EE0CAB4AFB3A969E /* WebAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7F8A413349380F876B8505D /* WebAppView.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		FFCFA7240E15A95DEA484E41 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9E947466D9078E3D0C738818 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EA1C81850FCCCCBD8C67C5EB;
+			remoteInfo = FitSupRest;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		74ADF646131614067177FAD8 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				62998F3CAE38450EE34F8B53 /* FitSupRest.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		2F5761033999AC0868B2EA3C /* FitSupRest.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = FitSupRest.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		433C205B9D4025E3BAB67F92 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4BBB9421DD539ADE2EC861C5 /* FitSup.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = FitSup.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		567EF64D071E50A54EBFE7F8 /* RestWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestWidget.swift; sourceTree = "<group>"; };
+		90D11FC19AFC1F79DFFB9182 /* RestAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestAttributes.swift; sourceTree = "<group>"; };
 		B9A2A0BE617777E0F6ECA9C1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		E9F8E8CFA69D0CB6B0BEC4C5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		ECBF3388F6B374994D904B11 /* FitSupApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitSupApp.swift; sourceTree = "<group>"; };
 		F7F8A413349380F876B8505D /* WebAppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebAppView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -25,14 +57,34 @@
 			isa = PBXGroup;
 			children = (
 				F53A4E559D67268C476012DA /* FitSup */,
+				9B725836D5B92329732EA0BF /* FitSupRest */,
+				B125FAA52E6684F2C442BFB3 /* Shared */,
 				D56EF3715E2BA0CEB48A76A0 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		9B725836D5B92329732EA0BF /* FitSupRest */ = {
+			isa = PBXGroup;
+			children = (
+				E9F8E8CFA69D0CB6B0BEC4C5 /* Info.plist */,
+				567EF64D071E50A54EBFE7F8 /* RestWidget.swift */,
+			);
+			path = FitSupRest;
+			sourceTree = "<group>";
+		};
+		B125FAA52E6684F2C442BFB3 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				90D11FC19AFC1F79DFFB9182 /* RestAttributes.swift */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 		D56EF3715E2BA0CEB48A76A0 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				4BBB9421DD539ADE2EC861C5 /* FitSup.app */,
+				2F5761033999AC0868B2EA3C /* FitSupRest.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -57,10 +109,12 @@
 			buildPhases = (
 				766A5E2771A4F0C1C7A8F9A2 /* Sources */,
 				AEFF7EEC3D1B3C78BD02580F /* Resources */,
+				74ADF646131614067177FAD8 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				B6D561E5CD8798CDCB9A4147 /* PBXTargetDependency */,
 			);
 			name = FitSup;
 			packageProductDependencies = (
@@ -68,6 +122,23 @@
 			productName = FitSup;
 			productReference = 4BBB9421DD539ADE2EC861C5 /* FitSup.app */;
 			productType = "com.apple.product-type.application";
+		};
+		EA1C81850FCCCCBD8C67C5EB /* FitSupRest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A7B4869DE7AC099E769F1219 /* Build configuration list for PBXNativeTarget "FitSupRest" */;
+			buildPhases = (
+				BB54387AA4D6DAF5549D56DA /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FitSupRest;
+			packageProductDependencies = (
+			);
+			productName = FitSupRest;
+			productReference = 2F5761033999AC0868B2EA3C /* FitSupRest.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -79,7 +150,11 @@
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					62384294763C8A0C5BB15CC4 = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = 5BR937DR7G;
+						ProvisioningStyle = Automatic;
+					};
+					EA1C81850FCCCCBD8C67C5EB = {
+						DevelopmentTeam = 5BR937DR7G;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -99,6 +174,7 @@
 			projectRoot = "";
 			targets = (
 				62384294763C8A0C5BB15CC4 /* FitSup */,
+				EA1C81850FCCCCBD8C67C5EB /* FitSupRest */,
 			);
 		};
 /* End PBXProject section */
@@ -120,11 +196,29 @@
 			buildActionMask = 2147483647;
 			files = (
 				8EDEFE19752BF836F84C1AD9 /* FitSupApp.swift in Sources */,
+				B6D891A1F58DCCA865A09205 /* RestAttributes.swift in Sources */,
 				DF979AD9EE0CAB4AFB3A969E /* WebAppView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BB54387AA4D6DAF5549D56DA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B55AC93BA8187AB37073E194 /* RestAttributes.swift in Sources */,
+				C6973AF78411F09846274B65 /* RestWidget.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B6D561E5CD8798CDCB9A4147 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EA1C81850FCCCCBD8C67C5EB /* FitSupRest */;
+			targetProxy = FFCFA7240E15A95DEA484E41 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		11BE3EC424F7445206333FCA /* Release */ = {
@@ -137,11 +231,27 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.fitsup.ios;
+				PRODUCT_BUNDLE_IDENTIFIER = app.fitsuppliesios;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
+		};
+		1D962282A24E04B725A38A5A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INFOPLIST_FILE = FitSupRest/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.fitsuppliesios.rest;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
 		};
 		55C4860E6F6E401AED276449 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -180,7 +290,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 5BR937DR7G;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -240,7 +350,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 5BR937DR7G;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -280,15 +390,40 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.fitsup.ios;
+				PRODUCT_BUNDLE_IDENTIFIER = app.fitsuppliesios;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
+		D5BF6E3B4A98812D793996D6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INFOPLIST_FILE = FitSupRest/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.fitsuppliesios.rest;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		A7B4869DE7AC099E769F1219 /* Build configuration list for PBXNativeTarget "FitSupRest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1D962282A24E04B725A38A5A /* Debug */,
+				D5BF6E3B4A98812D793996D6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		D350024697BAB614052BAC68 /* Build configuration list for PBXNativeTarget "FitSup" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

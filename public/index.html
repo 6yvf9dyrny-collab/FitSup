@@ -1213,17 +1213,17 @@ function restRule(it,mu){
 }
 function fmtS(s){s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+':'+pad(s%60)}
 function restNotify(){var left=Math.round((REST.end-Date.now())/1000);
- try{if(window.webkit&&webkit.messageHandlers&&webkit.messageHandlers.fitsup)webkit.messageHandlers.fitsup.postMessage(left>0&&REST.t?{type:'rest',seconds:left,title:'Recupero finito',body:'Vai con la prossima serie.'}:{type:'restCancel'})}catch(e){}}
+ try{if(window.webkit&&webkit.messageHandlers&&webkit.messageHandlers.fitsup)webkit.messageHandlers.fitsup.postMessage(left>0&&REST.t?{type:'rest',seconds:left,title:'Recupero finito',body:'Vai con la prossima serie.',exercise:REST.name||''}:{type:'restCancel'})}catch(e){}}
 function beep(){try{var C=window.AudioContext||window.webkitAudioContext;if(!C)return;var a=beep.c||(beep.c=new C());[0,.25,.5].forEach(function(t){var o=a.createOscillator(),g=a.createGain();o.frequency.value=880;g.gain.value=.2;o.connect(g);g.connect(a.destination);o.start(a.currentTime+t);o.stop(a.currentTime+t+.15)})}catch(e){}}
 function stopRest(){if(REST.t)clearInterval(REST.t);REST.t=0;restNotify();var el=$('rest');if(el)el.className='rest'}
 function restTick(){
  var el=$('rest');if(!el)return;var left=(REST.end-Date.now())/1000;
- if(left<=0){if(REST.t)clearInterval(REST.t);REST.t=0;$('restT').textContent='0:00';$('restL').textContent='Recupero finito';el.className='rest show end';
+ if(left<=0){if(REST.t)clearInterval(REST.t);REST.t=0;if(!document.hidden)restNotify();$('restT').textContent='0:00';$('restL').textContent='Recupero finito';el.className='rest show end';
   try{if(navigator.vibrate)navigator.vibrate([200,100,200])}catch(e){}if(!document.hidden)beep();
   setTimeout(function(){if(!REST.t&&el.className.indexOf('end')>=0)el.className='rest'},6000);return}
  $('restT').textContent=fmtS(left);
 }
-function startRest(i){REST.end=Date.now()+restSecs(ITEMS[i])*1000;$('restL').textContent='Recupero';$('rest').className='rest show';if(REST.t)clearInterval(REST.t);REST.t=setInterval(restTick,250);restTick();restNotify();try{var C=window.AudioContext||window.webkitAudioContext;if(C&&!beep.c)beep.c=new C();if(beep.c&&beep.c.state=='suspended')beep.c.resume()}catch(e){}}
+function startRest(i){REST.name=ITEMS[i]?ITEMS[i].base:'';REST.end=Date.now()+restSecs(ITEMS[i])*1000;$('restL').textContent='Recupero';$('rest').className='rest show';if(REST.t)clearInterval(REST.t);REST.t=setInterval(restTick,250);restTick();restNotify();try{var C=window.AudioContext||window.webkitAudioContext;if(C&&!beep.c)beep.c=new C();if(beep.c&&beep.c.state=='suspended')beep.c.resume()}catch(e){}}
 function onRest(ev){var b=ev.target.closest('[data-rest]');if(!b)return;var d=+b.getAttribute('data-rest');
  if(!d){stopRest();return}
  if(!REST.t){REST.end=Math.max(REST.end,Date.now());REST.t=setInterval(restTick,250);$('rest').className='rest show'}

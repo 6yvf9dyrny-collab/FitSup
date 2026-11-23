@@ -1,6 +1,7 @@
 import SwiftUI
 import WebKit
 import UserNotifications
+import ActivityKit
 
 /// Il sito FitSup dentro una WKWebView, con i dati salvati sul telefono (localStorage persistente).
 struct WebAppView: UIViewRepresentable {
@@ -48,9 +49,12 @@ final class Bridge: NSObject, WKScriptMessageHandler, WKNavigationDelegate, WKUI
             let title = body["title"] as? String ?? "Recupero finito"
             let text = body["body"] as? String ?? "Vai con la prossima serie."
             Task { await scheduleRest(seconds: secs, title: title, body: text) }
+            let name = body["exercise"] as? String ?? ""
+            Task { await startRestActivity(seconds: secs, title: name.isEmpty ? "Prossima serie" : name) }
         }
         if type == "restCancel" {
             center.removePendingNotificationRequests(withIdentifiers: [restId])
+            Task { await endRestActivities() }
         }
     }
 
@@ -68,6 +72,24 @@ final class Bridge: NSObject, WKScriptMessageHandler, WKNavigationDelegate, WKUI
         content.interruptionLevel = .timeSensitive
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: max(1, seconds), repeats: false)
         try? await center.add(UNNotificationRequest(identifier: restId, content: content, trigger: trigger))
+    }
+
+    /// Live Activity: conto alla rovescia sulla schermata di blocco e nella Dynamic Island.
+    private func startRestActivity(seconds: Double, title: String) async {
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
+        let end = Date().addingTimeInterval(seconds)
+        let state = RestAttributes.ContentState(end: end, title: title)
+        let content = ActivityContent(state: state, staleDate: end.addingTimeInterval(60))
+        if let current = Activity<RestAttributes>.activities.first {
+            await current.update(content)
+            for other in Activity<RestAttributes>.activities.dropFirst() { await other.end(nil, dismissalPolicy: .immediate) }
+        } else {
+            _ = try? Activity.request(attributes: RestAttributes(name: "FitSup"), content: content)
+        }
+    }
+
+    private func endRestActivities() async {
+        for a in Activity<RestAttributes>.activities { await a.end(nil, dismissalPolicy: .immediate) }
     }
 
     /// Un promemoria settimanale per ogni giorno di allenamento con orario.
