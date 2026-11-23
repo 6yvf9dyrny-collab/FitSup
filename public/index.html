@@ -173,6 +173,9 @@ textarea.nt,#impT{width:100%;min-height:110px;padding:var(--s2)}
 .wkg>summary::before{content:"▸ ";color:var(--acc)}.wkg[open]>summary::before{content:"▾ "}.wkg[open]>summary{border-bottom:1px solid var(--line)}
 .dg{padding:var(--s2) var(--s3) var(--s1)}.dh{font-weight:700;margin:var(--s1) 0 var(--s2);color:var(--ink)}
 .wk{border:1px solid var(--line);border-radius:var(--r);padding:var(--s2);margin:0 0 var(--s2);background:var(--bg)}.wb{display:flex;gap:var(--s2)}
+.dcard{margin:var(--s5) 0;padding:var(--s3);border:2px solid var(--line);border-left:6px solid var(--acc);border-radius:var(--r-card);background:var(--head)}
+.dcard .shd{margin-top:var(--s1)}.dcard .exl,.dcard .exe{background:var(--card)}
+.dnum{margin:0;font-size:var(--t-s);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--acc)}
 .shd{display:flex;flex-wrap:wrap;gap:var(--s2);align-items:center;margin:var(--s4) 0 var(--s2);padding-bottom:var(--s2);border-bottom:1px solid var(--line)}
 .shd .nm{flex:1;min-width:140px;font-weight:700}
 .sh{font-size:var(--t-l);margin:var(--s2) 0}
@@ -934,20 +937,22 @@ function renderProg(){
  var p=EDITP?DRAFT:prog(ACT),h='';
  if(PROGS.length>1)h+='<div class="sub2 pn">'+PROGS.map(function(x){return '<button type="button" data-pgo="'+esc(x.id)+'"'+(x.id==ACT?' class="on"':'')+(EDITP&&x.id!=ACT?' disabled':'')+'>'+esc(x.name)+'</button>'}).join('')+(EDITP?'':'<button type="button" data-pnew="1" aria-label="Nuovo programma">＋</button>')+'</div>';
  if(!EDITP){
-  h+='<div class="ptool"><button class="btns" type="button" data-pedit="1">Modifica</button><button class="btns" type="button" data-pdup="1">Duplica</button><button class="btns" type="button" data-pnew="1">Nuovo programma</button></div>';
+  h+='<div class="ptool"><button class="btns" type="button" data-pedit="1">Modifica</button><button class="btns" type="button" data-pnew="1">Nuovo programma</button></div>';
  }else h+='<div class="ptool"><button class="btnp" type="button" data-psave="1">Salva modifiche</button><button class="btns" type="button" data-pcancel="1">Annulla</button></div><p class="tg">Scrivi le serie come 4x8, 3xMAX o 3x8 + MAX. Il muscolo serve ai riepiloghi.</p>';
  if(PMSG){h+='<div class="msg">'+esc(PMSG)+'</div>';PMSG=''}
  h+=EDITP?'<div class="fld"><label>Nome del programma<input data-pname="1" value="'+esc(p.name)+'"></label></div>':'<p class="pname">'+esc(p.name)+'</p>';
  if(!EDITP){var dl=daysLine(p);if(dl)h+='<p class="tg">'+esc(dl)+'</p>'}
  p.sessions.forEach(function(s,i){
   if(EDITP){
-   h+='<div class="shd" data-si="'+i+'"><input class="nm" data-sf="label" value="'+esc(s.label)+'" aria-label="Nome del giorno">'
+   /* in modifica ogni giorno è un riquadro separato, con il numero del giorno, per vedere dove finisce e dove inizia il successivo */
+   h+='<section class="dcard"><p class="dnum">Giorno '+(i+1)+' di '+p.sessions.length+'</p><div class="shd" data-si="'+i+'"><input class="nm" data-sf="label" value="'+esc(s.label)+'" aria-label="Nome del giorno">'
     +'<select data-sf="day" aria-label="Giorno consigliato"><option value="-1">Nessun giorno</option>'+GIORNI.map(function(g,k){return '<option value="'+k+'"'+(s.day==k?' selected':'')+'>'+g+'</option>'}).join('')+'</select>'
     +'<input type="time" data-sf="time" value="'+esc(s.time||'')+'" aria-label="Orario medio">'
     +'<select data-sf="mob" aria-label="Mobilità"><option value="UL"'+(s.mob?' selected':'')+'>Con mobilità</option><option value=""'+(s.mob?'':' selected')+'>Senza mobilità</option></select>'
     +'</div>';
   }else h+='<div class="dayh"><h2>'+esc(s.label)+'</h2><span class="tg">'+(s.day>=0?GIORNI[s.day]+(s.time?' '+esc(s.time):'')+' · ':'')+range(sessMin(s))+'</span></div>'+mobNote(s,i);
   h+=ptable(p,i);
+  if(EDITP)h+='</section>';
  });
  if(EDITP)h+='<button class="btns" type="button" data-sadd="1" style="margin-top:var(--s4)">Modifica programma · '+DRAFT.sessions.length+(DRAFT.sessions.length==1?' giorno':' giorni')+'</button>';
  if(EDITP)h+='<h2>Note del programma</h2><textarea class="nt" data-pnotes="1" placeholder="Una riga per paragrafo; le righe che iniziano con - diventano elenco">'+esc(p.notes)+'</textarea>'+dbHtml(p);
@@ -981,8 +986,7 @@ function onProgClick(ev){
  if(b=t.closest('[data-sugadd]')){var di=+b.getAttribute('data-sugadd'),pp=EDITP?DRAFT:prog(ACT);askAdd(DBX[di],bestSession(pp,grp(DBX[di][1])));return}
  if(t.closest('[data-req]')){reqOpen({n:DBF.q});return}
  if(b=t.closest('[data-dbadd]')){var dj=+b.getAttribute('data-dbadd'),tt=$('dbT');askAdd(DBX[dj],tt?+tt.value:0);return}
- if(b=t.closest('[data-pdup]')){var cp=clone(prog(ACT));cp.id=newId('p');cp.name=cp.name+' (copia)';PROGS.push(cp);ACT=cp.id;savePlans();PMSG='Programma duplicato.';afterPlanChange();return}
- if(b=t.closest('[data-pdel]')){armed(b,'Conferma eliminazione',function(){
+  if(b=t.closest('[data-pdel]')){armed(b,'Conferma eliminazione',function(){
    if(PROGS.length<=1){PMSG='Serve almeno un programma: creane un altro prima di eliminare questo.';renderProg();return}
    PROGS=PROGS.filter(function(x){return x.id!=ACT});ACT=f0();if(!prog(cur.plan))cur.plan=f0();savePlans();PMSG='Programma eliminato. Gli allenamenti già registrati restano in Progressi.';afterPlanChange()});return}
  if(b=t.closest('[data-pall]')){armed(b,'Conferma eliminazione',function(){resetPlans();loadProgs();ACT=f0();cur.plan=f0();PMSG='Programmi eliminati: puoi ricominciare.';afterPlanChange()});return}
