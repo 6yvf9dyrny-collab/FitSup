@@ -17,8 +17,22 @@
  */
 
 const SESSION_DAYS = 180;
+const MAX_SESSIONS = 10;          // accessi attivi per utente: oltre, si chiudono i più vecchi
 const MAX_DOCS = 500;            // documenti per richiesta di salvataggio
 const MAX_DOC_BYTES = 200_000;   // dimensione massima di un documento
+const MAX_BODY = 3_000_000;      // dimensione massima di una richiesta
+const QUOTA_DOCS = 20_000;       // documenti per utente (cancellati compresi)
+const QUOTA_BYTES = 20_000_000;  // spazio per utente (20 MB)
+const PULL_LIMIT = 2000;         // documenti per risposta di /sync: il resto arriva alla richiesta successiva
+/* Limiti contro gli abusi (DoS, password a raffica, riempimento del database).
+   Ogni regola: quante richieste, in quanti millisecondi. Contate in D1, tabella «limits». */
+const LIMITS = {
+  reg_ip:   [5, 3600e3],          // nuovi account per IP all'ora
+  reg_all:  [300, 3600e3],        // nuovi account in tutto all'ora (freno d'emergenza se gli IP cambiano)
+  auth_ip:  [30, 15 * 60e3],      // login e recupero password per IP ogni 15 minuti
+  push_u:   [20_000, 864e5],      // documenti salvati per utente al giorno
+  req_u:    [600, 3600e3],        // richieste di sincronizzazione per utente all'ora
+};
 const KINDS = new Set(['w', 'plan', 'mobx', 'pres', 'bk', 'qr']);  // bk = backup della scheda (max 2, nel documento), qr = report trimestrale
 const GOOGLE_ISS = new Set(['accounts.google.com', 'https://accounts.google.com']);
 
@@ -44,14 +58,17 @@ function json(body, status = 200, headers = {}) {
 async function route(req, env) {
   const url = new URL(req.url);
   const p = url.pathname.replace(/^\/api/, '').replace(/\/+$/, '') || '/';
+  if (p !== '/') { await ensureTables(env); await housekeeping(env); }
 
   if (p === '/' && req.method === 'GET') return json({ ok: true, app: 'fitsup' });
-  if (p === '/auth/register' && req.method === 'POST') return register(req, env);
-  if (p === '/auth/login' && req.method === 'POST') return login(req, env);
-  if (p === '/auth/reset' && req.method === 'POST') return resetPassword(req, env);
-  if (p === '/auth/google' && req.method === 'POST') return authGoogle(req, env);
+  const ip = req.headers.get('CF-Connecting-IP') || 'local';
+  if (p === '/auth/register' && req.method === 'POST') { await limit(env, 'reg_ip', ip); await limit(env, 'reg_all', 'all'); return register(req, env); }
+  if (p === '/auth/login' && req.method === 'POST') { await limit(env, 'auth_ip', ip); return login(req, env); }
+  if (p === '/auth/reset' && req.method === 'POST') { await limit(env, 'auth_ip', ip); return resetPassword(req, env); }
+  if (p === '/auth/google' && req.method === 'POST') { await limit(env, 'auth_ip', ip); return authGoogle(req, env); }
 
   const user = await requireUser(req, env);
+  await limit(env, 'req_u', user.id);
   if (p === '/me' && req.method === 'GET') return json({ user: publicUser(user) });
   if (p === '/sync' && req.method === 'GET') return pull(url, env, user);
   if (p === '/sync' && req.method === 'POST') return push(req, env, user);
@@ -63,6 +80,7 @@ async function route(req, env) {
     await env.DB.batch([
       env.DB.prepare('DELETE FROM docs WHERE user_id = ?').bind(user.id),
       env.DB.prepare('DELETE FROM sessions WHERE user_id = ?').bind(user.id),
+      env.DB.prepare('DELETE FROM limits WHERE k LIKE ?').bind('%:' + user.id),
       env.DB.prepare('DELETE FROM users WHERE id = ?').bind(user.id),
     ]);
     return json({ ok: true });
@@ -102,16 +120,20 @@ function recoveryCode() {
   let c = ''; for (let i = 0; i < 16; i++) { c += abc[r[i] % abc.length]; if (i % 4 === 3 && i < 15) c += '-'; }
   return c;
 }
+/* auth_fails: una riga per email con errori recenti. «until» è la fine della finestra di 15 minuti:
+   finché count < 8 conta gli errori, a 8 l'email resta bloccata fino a «until». Righe scadute: cancellate dalla pulizia. */
 async function guardFails(env, email) {
   const row = await env.DB.prepare('SELECT count, until FROM auth_fails WHERE email = ?').bind(email).first();
-  if (row && row.until > Date.now()) throw new HttpError(429, 'Troppi tentativi: riprova tra 15 minuti');
+  if (row && row.count >= MAX_FAILS && row.until > Date.now()) throw new HttpError(429, 'Troppi tentativi: riprova tra 15 minuti');
 }
 async function noteFail(env, email) {
   const now = Date.now();
-  const row = await env.DB.prepare('SELECT count FROM auth_fails WHERE email = ?').bind(email).first();
-  const n = (row ? row.count : 0) + 1;
-  await env.DB.prepare('INSERT INTO auth_fails (email, count, until) VALUES (?, ?, ?) ON CONFLICT(email) DO UPDATE SET count = excluded.count, until = excluded.until')
-    .bind(email, n >= MAX_FAILS ? 0 : n, n >= MAX_FAILS ? now + LOCK_MS : 0).run();
+  await env.DB.prepare(
+    `INSERT INTO auth_fails (email, count, until) VALUES (?1, 1, ?2)
+     ON CONFLICT(email) DO UPDATE SET
+       count = CASE WHEN auth_fails.until < ?3 THEN 1 ELSE auth_fails.count + 1 END,
+       until = CASE WHEN auth_fails.until < ?3 THEN ?2 ELSE auth_fails.until END`
+  ).bind(email, now + LOCK_MS, now).run();
 }
 async function newSession(env, user) {
   const now = Date.now(), token = randomToken();
@@ -119,6 +141,8 @@ async function newSession(env, user) {
     env.DB.prepare('INSERT INTO sessions (token_hash, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)')
       .bind(await sha256(token), user.id, now, now + SESSION_DAYS * 864e5),
     env.DB.prepare('DELETE FROM sessions WHERE user_id = ? AND expires_at < ?').bind(user.id, now),
+    env.DB.prepare(`DELETE FROM sessions WHERE user_id = ?1 AND token_hash NOT IN
+      (SELECT token_hash FROM sessions WHERE user_id = ?1 ORDER BY created_at DESC LIMIT ?2)`).bind(user.id, MAX_SESSIONS),
   ]);
   return token;
 }
@@ -200,10 +224,14 @@ async function pull(url, env, user) {
   const now = Date.now();
   const { results } = await env.DB.prepare(
     `SELECT kind, id, data, updated_at, deleted FROM docs
-     WHERE user_id = ? AND updated_at > ? ORDER BY updated_at LIMIT 5000`
-  ).bind(user.id, since).all();
+     WHERE user_id = ? AND updated_at > ? ORDER BY updated_at LIMIT ?`
+  ).bind(user.id, since, PULL_LIMIT).all();
+  /* risposta piena: il resto arriva alla richiesta successiva. Il cursore torna indietro di 1 ms perché
+     un salvataggio (max 500 documenti) ha un solo orario: qualche doppione, mai un documento perso. */
+  const more = results.length === PULL_LIMIT;
+  const next = more ? results[results.length - 1].updated_at - 1 : now;
   return json({
-    now,
+    now: next, more,
     docs: results.map(r => ({ kind: r.kind, id: r.id, updated_at: r.updated_at, deleted: !!r.deleted, data: r.deleted ? null : safeParse(r.data) })),
   });
 }
@@ -225,7 +253,14 @@ async function push(req, env, user) {
        ON CONFLICT(user_id, kind, id) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at, deleted = excluded.deleted`
     ).bind(user.id, d.kind, d.id, data, now, deleted));
   }
-  if (stmts.length) await env.DB.batch(stmts);
+  if (stmts.length) {
+    await limit(env, 'push_u', user.id, stmts.length);
+    const q = await env.DB.prepare('SELECT COUNT(*) AS n, COALESCE(SUM(LENGTH(data)), 0) AS b FROM docs WHERE user_id = ?').bind(user.id).first();
+    const add = docs.reduce((t, d) => t + (d.deleted ? 0 : JSON.stringify(d.data ?? null).length), 0);
+    if (q.n + docs.length > QUOTA_DOCS + MAX_DOCS || q.b + add > QUOTA_BYTES)
+      throw new HttpError(507, 'Spazio dell’account esaurito: elimina vecchi allenamenti o scrivi al supporto');
+    await env.DB.batch(stmts);
+  }
   return json({ now, saved: stmts.length });
 }
 
@@ -266,11 +301,47 @@ async function verifyGoogleIdToken(token, clientId) {
   return claims;
 }
 
+/* ---------- limiti e pulizia ---------- */
+
+let tablesReady = false;
+async function ensureTables(env) {
+  if (tablesReady) return;
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS limits (k TEXT PRIMARY KEY, n INTEGER NOT NULL, reset INTEGER NOT NULL)').run();
+  tablesReady = true;
+}
+/* Conta n azioni per la chiave «regola:soggetto» nella finestra della regola; oltre il tetto risponde 429. Una sola scrittura. */
+async function limit(env, rule, who, n = 1) {
+  const [max, win] = LIMITS[rule], now = Date.now();
+  const row = await env.DB.prepare(
+    `INSERT INTO limits (k, n, reset) VALUES (?1, ?2, ?3)
+     ON CONFLICT(k) DO UPDATE SET
+       n = CASE WHEN limits.reset < ?4 THEN ?2 ELSE limits.n + ?2 END,
+       reset = CASE WHEN limits.reset < ?4 THEN ?3 ELSE limits.reset END
+     RETURNING n, reset`
+  ).bind(rule + ':' + who, n, now + win, now).first();
+  if (row && row.n > max) {
+    const min = Math.max(1, Math.ceil((row.reset - now) / 60e3));
+    throw new HttpError(429, 'Troppe richieste: riprova tra ' + min + (min === 1 ? ' minuto' : ' minuti'));
+  }
+}
+/* Pulizia a campione (circa 1 richiesta su 200): righe scadute di limiti, tentativi sbagliati e sessioni. */
+async function housekeeping(env) {
+  if (Math.random() > 0.005) return;
+  const now = Date.now();
+  await env.DB.batch([
+    env.DB.prepare('DELETE FROM limits WHERE reset < ?').bind(now),
+    env.DB.prepare('DELETE FROM auth_fails WHERE until < ?').bind(now),
+    env.DB.prepare('DELETE FROM sessions WHERE expires_at < ?').bind(now),
+  ]);
+}
+
 /* ---------- utilità ---------- */
 
 async function readJson(req) {
+  const len = +(req.headers.get('Content-Length') || 0);
+  if (len > MAX_BODY) throw new HttpError(413, 'Richiesta troppo grande');
   const t = await req.text();
-  if (t.length > 3_000_000) throw new HttpError(413, 'Richiesta troppo grande');
+  if (t.length > MAX_BODY) throw new HttpError(413, 'Richiesta troppo grande');
   try { return JSON.parse(t || '{}'); } catch { throw new HttpError(400, 'JSON non valido'); }
 }
 function safeParse(s) { try { return JSON.parse(s); } catch { return null; } }

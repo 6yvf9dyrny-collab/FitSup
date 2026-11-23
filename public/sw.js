@@ -1,4 +1,4 @@
-const CACHE = "fitsup-v31";
+const CACHE = "fitsup-v32";
 const PREFIX = "fitsup-";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png"];
 self.addEventListener("install", e => {

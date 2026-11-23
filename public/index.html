@@ -1647,7 +1647,7 @@ function syPull(){
   if(mob){try{localStorage.setItem(MKEY,JSON.stringify(MOBX))}catch(e){}mobChanged()}
   if(pre){try{localStorage.setItem(PRKEY,JSON.stringify(PRES))}catch(e){}}
   if(reg||pre){renderReg();renderPres();if(!dirty&&!editId)buildForm()}
-  renderAcc()},function(e){SYMSG='Non sincronizzato: '+e.message;renderAcc()})}
+  renderAcc();if(j.more)return syPull()},function(e){SYMSG='Non sincronizzato: '+e.message;renderAcc()})}
 function syAll(){return syPull().then(syFlush)}
 /* primo accesso: tutto ciò che c'è sul dispositivo va in coda, poi si unisce con il server */
 function syFirst(){
