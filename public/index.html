@@ -902,6 +902,25 @@ function mobNote(s,si){
  var d=mobDay(s),n=d.length;
  return '<a class="mlink mrow" href="#pm" data-mobs="'+si+'"><span>Prima: mobilità · '+(n?n+' eserciz'+(n==1?'io':'i')+', circa '+mobMinN(n)+' min':'nessun esercizio scelto')+(n?'<small>'+esc(d.map(function(x){return x.n}).join(' · '))+'</small>':'')+'</span><span aria-hidden="true">›</span></a>';
 }
+/* ordine dei giorni: in modifica cambia la bozza (si salva con «Salva modifiche»), fuori dalla modifica si salva subito */
+var ORD=null;
+function ordHtml(){var p=EDITP?DRAFT:prog(ACT);return '<p class="tg">Sposta i giorni con le frecce. Esercizi, orari e mobilità restano con il loro giorno.</p><ol class="mlist">'+ORD.map(function(si,k){var s=p.sessions[si];
+  return '<li class="mi"><span class="mn" aria-hidden="true">'+(k+1)+'</span><div class="mt"><b>'+esc(s.label)+'</b><span class="tg">'+(s.day>=0?GIORNI[s.day]+(s.time?' '+esc(s.time):'')+' · ':'')+s.ex.length+' eserciz'+(s.ex.length==1?'io':'i')+'</span></div><span class="ma">'
+  +'<button class="btns" type="button" data-ordup="'+k+'" aria-label="Sposta su: '+esc(s.label)+'"'+(k?'':' disabled')+'>↑</button><button class="btns" type="button" data-orddn="'+k+'" aria-label="Sposta giù: '+esc(s.label)+'"'+(k<ORD.length-1?'':' disabled')+'>↓</button></span></li>'}).join('')+'</ol>'}
+function ordOpen(){
+ var p=EDITP?DRAFT:prog(ACT);if(!p||p.sessions.length<2)return;ORD=p.sessions.map(function(x,i){return i});
+ cfmOpen('Ordina giorni',ordHtml(),function(){
+  var q=EDITP?DRAFT:prog(ACT);if(!q||!ORD)return;var same=ORD.every(function(v,i){return v===i});if(same){ORD=null;return}
+  var curLab=(!EDITP&&cur.plan==q.id&&q.sessions[cur.idx])?q.sessions[cur.idx].label:null;
+  q.sessions=ORD.map(function(i){return q.sessions[i]});ORD=null;
+  if(EDITP){PMSG='Ordine dei giorni cambiato: premi «Salva modifiche» per tenerlo.';renderProg();return}
+  if(curLab!==null)q.sessions.forEach(function(x,i){if(x.label==curLab)cur.idx=i});
+  savePlans();PMSG='Ordine dei giorni salvato.';afterPlanChange()});
+ $('cfmOk').textContent='Salva ordine';
+}
+document.addEventListener('click',function(ev){var b=ev.target.closest&&ev.target.closest('[data-ordup],[data-orddn]');if(!b||!b.closest('#cfmBody')||!ORD)return;
+ var up=b.hasAttribute('data-ordup'),k=+b.getAttribute(up?'data-ordup':'data-orddn'),j=up?k-1:k+1;if(j<0||j>=ORD.length)return;
+ var x=ORD[k];ORD[k]=ORD[j];ORD[j]=x;$('cfmBody').innerHTML=ordHtml();var nb=document.querySelector('#cfmBody [data-'+(up?'ordup':'orddn')+'="'+j+'"]');if(nb&&!nb.disabled)nb.focus()});
 function mobCk(x,on){return '<label class="mck"><input type="checkbox" data-mid="'+esc(x.n)+'"'+(on?' checked':'')+'><span><b>'+esc(x.n)+'</b> <span class="tg">'+esc([x.d,x.a].filter(Boolean).join(' · '))+'</span>'+(x.h?'<small class="tg">'+esc(x.h)+'</small>':'')+mobQa(x.n)+'</span></label>'}
 function mobDayForm(si){
  var p=prog(ACT),s=p&&p.sessions[si];if(!s)return;
@@ -948,8 +967,8 @@ function renderProg(){
  var p=EDITP?DRAFT:prog(ACT),h='';
  if(PROGS.length>1)h+='<div class="sub2 pn">'+PROGS.map(function(x){return '<button type="button" data-pgo="'+esc(x.id)+'"'+(x.id==ACT?' class="on"':'')+(EDITP&&x.id!=ACT?' disabled':'')+'>'+esc(x.name)+'</button>'}).join('')+(EDITP?'':'<button type="button" data-pnew="1" aria-label="Nuovo programma">＋</button>')+'</div>';
  if(!EDITP){
-  h+='<div class="ptool"><button class="btns" type="button" data-pedit="1">Modifica</button><button class="btns" type="button" data-pnew="1">Nuovo programma</button></div>';
- }else h+='<div class="ptool"><button class="btnp" type="button" data-psave="1">Salva modifiche</button><button class="btns" type="button" data-pcancel="1">Annulla</button></div><p class="tg">Scrivi le serie come 4x8, 3xMAX o 3x8 + MAX. Il muscolo serve ai riepiloghi.</p>';
+  h+='<div class="ptool"><button class="btns" type="button" data-pedit="1">Modifica</button>'+(p.sessions.length>1?'<button class="btns" type="button" data-pord="1">Ordina giorni</button>':'')+'<button class="btns" type="button" data-pnew="1">Nuovo programma</button></div>';
+ }else h+='<div class="ptool"><button class="btnp" type="button" data-psave="1">Salva modifiche</button><button class="btns" type="button" data-pcancel="1">Annulla</button>'+(p.sessions.length>1?'<button class="btns" type="button" data-pord="1">Ordina giorni</button>':'')+'</div><p class="tg">Scrivi le serie come 4x8, 3xMAX o 3x8 + MAX. Il muscolo serve ai riepiloghi.</p>';
  if(PMSG){h+='<div class="msg">'+esc(PMSG)+'</div>';PMSG=''}
  h+=EDITP?'<div class="fld"><label>Nome del programma<input data-pname="1" value="'+esc(p.name)+'"></label></div>':'<p class="pname">'+esc(p.name)+'</p>';
  if(!EDITP){var dl=daysLine(p);if(dl)h+='<p class="tg">'+esc(dl)+'</p>'}
@@ -1001,6 +1020,7 @@ function onProgClick(ev){
    if(PROGS.length<=1){PMSG='Serve almeno un programma: creane un altro prima di eliminare questo.';renderProg();return}
    PROGS=PROGS.filter(function(x){return x.id!=ACT});ACT=f0();if(!prog(cur.plan))cur.plan=f0();savePlans();PMSG='Programma eliminato. Gli allenamenti già registrati restano in Progressi.';afterPlanChange()});return}
  if(b=t.closest('[data-pall]')){armed(b,'Conferma eliminazione',function(){resetPlans();loadProgs();ACT=f0();cur.plan=f0();PMSG='Programmi eliminati: puoi ricominciare.';afterPlanChange()});return}
+ if(t.closest('[data-pord]')){ordOpen();return}
  if(t.closest('[data-pedit]')){EDITP=true;DRAFT=clone(prog(ACT));renderProg();return}
  if(t.closest('[data-pcancel]')){EDITP=false;DRAFT=null;
   if(NEWP&&NEWP==ACT){PROGS=PROGS.filter(function(x){return x.id!=NEWP});ACT=f0()}NEWP='';renderProg();return}
