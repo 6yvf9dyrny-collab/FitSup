@@ -1532,8 +1532,9 @@ function monLines(x){
   g+='<text x="'+((xa+xb)/2).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle" font-size="11" fill="currentColor" fill-opacity=".75">'+monLab(mo.m)+'</text>'});
  return '<svg class="chartsvg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Pesi di '+esc(x.name)+' e retta di ogni mese">'+g+'</svg>'}
 function renderMon(){
- var host=$('monBox');if(!host)return;var D=monData();
- if(!D.list.length){host.innerHTML='<p class="tg">Qui comparirà il miglioramento medio di peso per allenamento, mese per mese, appena salvi qualche allenamento con i pesi.</p>';return}
+ var host=$('monBox');if(!host)return;var D=monData(),old=QR.list.some(function(r){return (r.exercises||[]).some(function(x){return !x.pts})});
+ var oldTxt=old?'<p class="tg">I report trimestrali creati prima del 23/11/2026 non conservano i pesi dei singoli allenamenti: quei mesi non compaiono qui, ma restano nel loro report.</p>':'';
+ if(!D.list.length){host.innerHTML='<p class="tg">Qui comparirà il miglioramento medio di peso per allenamento, mese per mese, appena salvi qualche allenamento con i pesi.</p>'+oldTxt;return}
  if(MON.ex&&!D.list.some(function(x){return x.k==MON.ex}))MON.ex='';
  var h='<div class="fld"><label>Mostra<select id="monEx"><option value="">Media di tutti gli esercizi</option>'+D.list.map(function(x){return '<option value="'+esc(x.k)+'"'+(x.k==MON.ex?' selected':'')+'>'+esc(x.name+(x.vr?' · '+x.vr:''))+'</option>'}).join('')+'</select></label></div>';
  if(!MON.ex){
@@ -1543,7 +1544,7 @@ function renderMon(){
  }else{var x=D.list.filter(function(y){return y.k==MON.ex})[0];
   h+=monLines(x)+'<p class="tg">I punti sono il carico massimo di ogni allenamento; la linea tratteggiata è la retta del mese: la sua pendenza è il miglioramento medio per allenamento. Con un solo allenamento nel mese il miglioramento non si calcola (—).</p>'
    +'<div class="tw"><table><thead><tr><th>Mese</th><th>Allen.</th><th>Peso</th><th>Per allen.</th></tr></thead><tbody>'+x.months.slice().reverse().map(function(mo){return '<tr><td class="nw">'+monLab(mo.m)+'</td><td>'+mo.n+'</td><td><span class="nw">'+fmt(mo.first)+(mo.n>1?' → '+fmt(mo.last):'')+' kg</span></td><td class="'+(mo.slope===null?'':(mo.slope>0.05?'up2':(mo.slope<-0.05?'dn':'')))+'">'+(mo.slope===null?'<span class="tg">—</span>':'<b class="nw">'+kgPer(mo.slope)+'</b>')+'</td></tr>'}).join('')+'</tbody></table></div>'}
- host.innerHTML=h;
+ host.innerHTML=h+oldTxt;
 }
 function viewE(list){
  var B={},h='';
