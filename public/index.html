@@ -316,7 +316,7 @@ html.locked main,html.locked .tabs,html.locked header.hd{display:none!important}
 .swrow input{width:24px;height:24px;flex:none}
 .filebtn{position:relative;display:inline-flex;align-items:center}.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
 #pasteT{width:100%;min-height:140px;font-family:inherit;font-size:16px;line-height:1.4;padding:var(--s2);border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--ink);margin:var(--s2) 0}
-.imph{margin:var(--s3) 0 var(--s1)}.imps{font-size:var(--t-s);color:var(--acc);font-weight:600}.imps.new{color:var(--mute)}.impk{margin-top:var(--s4)}
+.imph{margin:var(--s3) 0 var(--s1)}.imps{font-size:var(--t-s);color:var(--acc);font-weight:600}.imps small{color:var(--mute);font-weight:400}.impsel{display:flex;flex-direction:column;gap:var(--s1);margin-top:var(--s2);color:var(--ink,inherit);font-weight:600}.impsel select{font-weight:400}.imps.new{color:var(--mute)}.impk{margin-top:var(--s4)}
 
 .nw{white-space:nowrap}
 .trend{display:flex;align-items:center;gap:6px;color:var(--acc)}.trend small{color:var(--mute);font-size:var(--t-s)}
@@ -1826,27 +1826,39 @@ function impPreview(sess,name){
  sess.forEach(function(s,i){h+='<p class="imph"><b>'+esc(s.label)+'</b>'+(s.day>=0?' · '+GIORNI[s.day]:'')+(s.time?' '+esc(s.time):'')+' <span class="imps" id="imps'+i+'"></span></p><ul class="exl">'+s.ex.map(function(e){return '<li><div><b>'+esc(e.name)+'</b><div class="tg">'+esc(e.mu)+(e.note?' · '+esc(e.note):'')+'</div></div><span class="srb">'+esc(e.sr)+'</span></li>'}).join('')+'</ul>'});
  if(old){var few=sess.length<old.sessions.length;
   h+='<label class="swrow impk"><span><b>Mantieni gli altri giorni attivi</b><br><span class="tg">Cambia solo i giorni importati nella scheda «'+esc(old.name)+'» e lascia com’è il resto.</span></span><input type="checkbox" id="impKeep"'+(few?' checked':'')+'></label>'
-   +'<p class="tg" id="impHint">Un giorno viene sostituito solo se nel file ha <b>lo stesso nome</b> che ha nella Scheda. I giorni della scheda «'+esc(old.name)+'» sono: <b>'+old.sessions.map(function(x){return esc(x.label)}).join(', ')+'</b>. Un giorno con un nome diverso viene aggiunto come giorno nuovo.</p>'}
+   +'<p class="tg" id="impHint">Se un giorno nel file ha <b>lo stesso nome</b> che ha nella Scheda viene sostituito da solo; altrimenti scegli tu quale giorno sovrascrivere. I giorni della scheda «'+esc(old.name)+'» sono: <b>'+old.sessions.map(function(x){return esc(x.label)}).join(', ')+'</b>.</p>'}
  cfmOpen('Importa la scheda',h,function(){
   var keep=!!($('impKeep')&&$('impKeep').checked);
   var p={id:newId('p'),name:($('impName').value||IMP.name).trim(),notes:'',sessions:IMP.sessions.map(function(s){return {label:s.label,day:s.day==null?-1:s.day,mob:s.mob||'',time:s.time||'',ex:s.ex}})};
   normProg(p);var old=prog(ACT);if(!old){impApply(p,false);return}
-  IMP.ready=p;IMP.keep=keep;
-  if(keep){var m=impMatch(old,p.sessions),rep=m.filter(function(x){return x.i>=0}).map(function(x){return old.sessions[x.i].label}),add=m.filter(function(x){return x.i<0}).map(function(x){return x.s.label});
+  IMP.ready=p;IMP.keep=keep;IMP.map=keep?impPicks():null;
+  if(keep){var m=impMatch(old,p.sessions,IMP.map),rep=m.filter(function(x){return x.i>=0}).map(function(x){return old.sessions[x.i].label}),add=m.filter(function(x){return x.i<0}).map(function(x){return x.s.label});
    setTimeout(function(){cfmOpen('Cambiare '+(rep.length==1?'un giorno':'i giorni')+' della scheda?','<p>Nella scheda «'+esc(old.name)+'» '+(rep.length?'sostituisco <b>'+esc(rep.join(', '))+'</b>':'non sostituisco nessun giorno')+(add.length?' e aggiungo <b>'+esc(add.join(', '))+'</b>':'')+'. Gli altri giorni restano come sono.</p><p>Vuoi fare prima un backup?</p><p class="tg">Il backup salva <b>tutta la scheda, con tutti i giorni</b>, nel tuo account, con il nome «'+esc(impBkName(old,rep))+'». Puoi tenerne fino a 2.'+(BKS.list.length>=2?' Hai già 2 backup: il più vecchio verrà sostituito.':'')+'</p><div class="pqb"><button class="btnp" type="button" data-impc="bk">Fai il backup e importa</button><button class="btns" type="button" data-impc="no">Importa senza backup</button></div>',null)},320);return}
   setTimeout(function(){cfmOpen('Sostituire la scheda?','<p>Se importi una scheda, quella già salvata («'+esc(old.name)+'») verrà eliminata. Vuoi fare un backup?</p><p class="tg">Il backup si salva nel tuo account: puoi tenerne fino a 2 e ripristinarli da Impostazioni.'+(BKS.list.length>=2?' Hai già 2 backup: il più vecchio verrà sostituito.':'')+'</p><div class="pqb"><button class="btnp" type="button" data-impc="bk">Fai il backup e importa</button><button class="btns" type="button" data-impc="no">Importa senza backup</button></div>',null)},320)});
  $('cfmOk').textContent='Importa';
  if(old){var upd=function(){var k=$('impKeep').checked,m=impMatch(old,sess);
-   m.forEach(function(x,i){var el=$('imps'+i);if(el){el.textContent=k?(x.i>=0?'· sostituisce «'+old.sessions[x.i].label+'»':'· giorno nuovo, viene aggiunto'):'';el.className='imps'+(k&&x.i<0?' new':'')}});
+   m.forEach(function(x,i){var el=$('imps'+i);if(!el)return;el.className='imps';
+    if(!k){el.innerHTML='';return}
+    if(x.auto){el.innerHTML='· sostituisce «'+esc(old.sessions[x.i].label)+'» <small>(stesso nome)</small>';return}
+    el.innerHTML='<label class="cfl impsel">Quale giorno sovrascrivo?<select data-imppick="'+i+'" data-prev="'+x.i+'">'+old.sessions.map(function(o,j){return m.some(function(y){return y.auto&&y.i==j})?'':'<option value="'+j+'"'+(j==x.i?' selected':'')+'>'+esc(o.label)+'</option>'}).join('')+'<option value="-1"'+(x.i<0?' selected':'')+'>Nessuno: aggiungi come giorno nuovo</option></select></label>'});
    var nm=$('impName');nm.disabled=k;nm.value=k?old.name:IMP.name;$('impHint').hidden=!k};
-  $('impKeep').onchange=upd;upd()}
+  $('impKeep').onchange=upd;upd();
+  $('cfmBody').onchange=function(ev){var el=ev.target;if(!el.hasAttribute||!el.hasAttribute('data-imppick'))return;var v=el.value,pv=el.getAttribute('data-prev');
+   if(v!='-1')document.querySelectorAll('#cfmBody [data-imppick]').forEach(function(o){if(o!==el&&o.value==v){o.value=pv;o.setAttribute('data-prev',pv)}});
+   el.setAttribute('data-prev',v)}}
 }
 /* giorni importati → posizione del giorno con lo stesso nome nella scheda attuale (-1 = giorno nuovo) */
-function impMatch(old,ss){var used={};return ss.map(function(s){var i=-1;old.sessions.forEach(function(o,j){if(i<0&&!used[j]&&nk(o.label)==nk(s.label))i=j});if(i>=0)used[i]=1;return {s:s,i:i}})}
+function impMatch(old,ss,pick){var used={},r=ss.map(function(s){var i=-1;old.sessions.forEach(function(o,j){if(i<0&&!used[j]&&nk(o.label)==nk(s.label))i=j});if(i>=0)used[i]=1;return {s:s,i:i,auto:i>=0}});
+ r.forEach(function(x,k){if(x.auto)return;var c=pick&&pick[k]!=null?pick[k]:null;
+  if(c!=null&&(c<0||!used[c])){x.i=c}else{for(var j=0;j<old.sessions.length;j++)if(!used[j]){x.i=j;break}}
+  if(x.i>=0)used[x.i]=1});
+ return r}
+/* scelte fatte nei menu «Sovrascrive» dell'anteprima */
+function impPicks(){var o={};document.querySelectorAll('#cfmBody [data-imppick]').forEach(function(el){o[+el.getAttribute('data-imppick')]=+el.value});return o}
 function impBkName(old,rep){return old.name+(rep&&rep.length?' · prima di cambiare '+rep.join(', '):'')}
 function impMerge(p,backup){
  var old=prog(ACT);if(!old){impApply(p,backup);return}
- var m=impMatch(old,p.sessions),rep=m.filter(function(x){return x.i>=0}).map(function(x){return old.sessions[x.i].label});
+ var m=impMatch(old,p.sessions,IMP&&IMP.map),rep=m.filter(function(x){return x.i>=0}).map(function(x){return old.sessions[x.i].label});
  if(backup)bksAdd(old,impBkName(old,rep));
  var np=clone(old);
  m.forEach(function(x){var s=x.s;
