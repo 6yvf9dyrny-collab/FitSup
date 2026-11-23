@@ -133,7 +133,8 @@ textarea.nt,#impT{width:100%;min-height:110px;padding:var(--s2)}
 .exc.fin .exn{color:var(--mute)}
 .exnote{display:block;margin-top:4px;padding:4px 8px;border-left:3px solid var(--acc);background:var(--acc-soft);border-radius:4px;font-size:var(--t-s);color:var(--ink);white-space:normal}
 .exc.ssg{border-left:4px solid var(--acc)}.ssb{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--acc-ink);background:var(--acc);border-radius:4px;padding:1px 6px;margin-right:6px;vertical-align:2px}
-.sspk{display:flex;flex-direction:column;gap:6px;padding:var(--s2) var(--s3);border:1px dashed var(--acc);border-radius:var(--r);margin:var(--s2) 0}.ssck{display:flex;align-items:center;gap:8px;min-height:36px}.ssck input{width:20px;height:20px}
+.sspk{display:flex;flex-direction:column;gap:6px;padding:var(--s2) var(--s3);border:1px dashed var(--acc);border-radius:var(--r);margin:var(--s2) 0}.ssw{margin-top:6px;padding:8px;border-radius:var(--r);background:var(--acc-soft);font-size:var(--t-s)}.ssb2{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.ssck{display:flex;align-items:center;gap:8px;min-height:36px}.ssck input{width:20px;height:20px}
 .exl li.ssg{border-left:4px solid var(--acc);padding-left:8px}
 .slot.add .del{position:static;width:36px;height:36px;opacity:1;pointer-events:auto;background:transparent;color:var(--bad);border:1px solid var(--line)}.slot.add{grid-template-columns:28px 1fr 1fr var(--hit) 36px}
 body.kb .rest.show{position:fixed;left:8px;right:8px;top:calc(var(--kbtop,0px) + 8px);z-index:80}
@@ -1037,24 +1038,26 @@ function bookGo(k){var p=prog(ACT);if(!p||EDITP)return;var n=p.sessions.length;i
   if(ev.key=='ArrowRight')bookGo(BOOK.i+1);else if(ev.key=='ArrowLeft')bookGo(BOOK.i-1)})})();
 function ptable(p,i){
  var s=p.sessions[i];
- if(!EDITP)return '<ul class="exl">'+s.ex.map(function(e){var nv=(e.vars||[]).length;return '<li'+(e.ss?' class="ssg"':'')+'><div>'+(e.ss?'<span class="ssb">Superserie '+esc(e.ss)+'</span>':'')+'<b>'+esc(e.name)+'</b><div class="tg">'+esc(e.mu||'')+(nv?' · '+nv+(nv==1?' variante':' varianti'):'')+(e.mod?' · '+esc(e.mod):'')+(e.rir?' · RIR '+esc(e.rir):'')+' · recupero '+recTxt(recOf(e))+'</div>'+(e.note?'<div class="tg">'+esc(e.note)+'</div>':'')+'</div>'+(function(){var lw=e.kg?null:lastW(e.name);return '<span class="srw">'+(e.kg?'<span class="wtb" title="Peso previsto dalla scheda">'+esc(e.kg)+' kg</span>':(lw?'<span class="wtb wlast" title="Nessun peso nella scheda: peso usato l’ultima volta, '+dL(lw.date)+'">'+esc(lw.w)+' kg</span>':''))+'<span class="srb">'+esc(e.sr)+'</span></span>'})()+'</li>'}).join('')+'</ul>';
+ if(!EDITP)return '<ul class="exl">'+s.ex.map(function(e){var nv=(e.vars||[]).length;return '<li'+(e.ss?' class="ssg"':'')+'><div>'+(e.ss?'<span class="ssb">Superserie '+esc(e.ss)+'</span>':'')+'<b>'+esc(e.name)+'</b><div class="tg">'+esc(e.mu||'')+(nv?' · '+nv+(nv==1?' variante':' varianti'):'')+(e.mod?' · '+esc(e.mod):'')+' · recupero '+recTxt(recOf(e))+'</div>'+(e.note?'<div class="tg">'+esc(e.note)+'</div>':'')+'</div>'+(function(){var lw=e.kg?null:lastW(e.name);return '<span class="srw">'+(e.kg?'<span class="wtb" title="Peso previsto dalla scheda">'+esc(e.kg)+' kg</span>':(lw?'<span class="wtb wlast" title="Nessun peso nella scheda: peso usato l’ultima volta, '+dL(lw.date)+'">'+esc(lw.w)+' kg</span>':''))+'<span class="srb">'+esc(e.sr)+'</span></span>'})()+'</li>'}).join('')+'</ul>';
  return '<div class="exed">'+s.ex.map(function(e,j){
   return '<details class="exe" data-i="'+i+'" data-j="'+j+'"'+(e._open?' open':'')+'><summary><span class="exs"><b>'+esc(e.name||'Nuovo esercizio')+'</b><span class="tg">'+esc(e.mu||'')+'</span></span><span class="srw">'+(e.kg?'<span class="wtb">'+esc(e.kg)+' kg</span>':'')+'<span class="srb">'+esc(e.sr||'–')+'</span></span></summary>'
    +'<div class="exf"><label class="fw">Esercizio<input data-f="name" value="'+esc(e.name)+'" placeholder="Scrivi o scegli: es. femorali" autocomplete="off"></label><button class="btns exdb" type="button" data-exdb="1">Scegli dal database esercizi</button><div class="exsug" hidden></div>'
    +'<div class="row2"><label>Serie<input data-f="sr" value="'+esc(e.sr)+'" placeholder="4x8"></label><label>Muscolo'+muSel(e.mu,'data-f="mu"')+'</label></div>'
    +'<div class="row2"><label>Peso (kg)<input data-f="kg" inputmode="decimal" value="'+esc(e.kg||'')+'" placeholder="es. 60"></label><label>Recupero'+recSel(e)+'</label></div>'
-   +'<div class="row2"><label>Modalità<select data-f="mod">'+MODS.map(function(m){return '<option value="'+(m=='Normale'?'':m)+'"'+(modOf(e)==m?' selected':'')+'>'+m+'</option>'}).join('')+'</select></label><label>RIR<select data-f="rir"><option value="">–</option>'+['0','1','2','3','4'].map(function(r){return '<option value="'+r+'"'+(e.rir===r?' selected':'')+'>RIR '+r+'</option>'}).join('')+'</select></label></div>'
+   +'<label class="fw">Modalità<select data-f="mod">'+MODS.map(function(m){return '<option value="'+(m=='Normale'?'':m)+'"'+(modOf(e)==m?' selected':'')+'>'+m+'</option>'}).join('')+'</select></label>'
    +(modOf(e)=='Superserie'?ssPick(s,j):'')
-   +'<label class="fw">Note<input data-f="note" value="'+esc(e.note)+'" placeholder="facoltativo"></label>'
+   +'<label class="fw">Note<input data-f="note" value="'+esc(e.note)+'" placeholder="es. RIR 1, ultima serie a cedimento"></label>'
    +'<details class="vdet"><summary>Varianti</summary><label class="fw"><span class="tg">Nome=muscolo, separate da punto e virgola</span><input data-f="vars" value="'+esc(e._vt!==undefined?e._vt:varsToText(e.vars))+'" placeholder="Piedi alti=Glutei; Piedi bassi=Quadricipiti"></label></details>'
    +'<div class="rc"><button type="button" data-mv="-1" aria-label="Sposta su">↑</button><button type="button" data-mv="1" aria-label="Sposta giù">↓</button><button type="button" data-rm="1" aria-label="Togli esercizio">Togli</button></div></div></details>'}).join('')
   +'</div><button class="btns" type="button" data-addex="'+i+'">+ Aggiungi esercizio</button>';
 }
-var MODS=['Normale','Superserie','Drop set','Rest-pause','Piramide','Negative','Cedimento'];
+var MODS=['Normale','Superserie','Drop set','Rest-pause','Piramide','Negative'];
 function modOf(e){return e.ss?'Superserie':(e.mod||'Normale')}
 function ssPick(s,j){var e=s.ex[j],h='<div class="sspk"><span class="tg">In superserie con (esercizi di questo giorno):</span>';
- s.ex.forEach(function(x,q){if(q==j||!x.name)return;h+='<label class="ssck"><input type="checkbox" data-ssx="'+q+'"'+(x.ss&&x.ss==e.ss?' checked':'')+'> '+esc(x.name)+'</label>'});
+ s.ex.forEach(function(x,q){if(q==j||!x.name)return;var oth=x.ss&&x.ss!=e.ss;h+='<label class="ssck"><input type="checkbox" data-ssx="'+q+'"'+(x.ss&&x.ss==e.ss?' checked':'')+'> '+esc(x.name)+(oth?' <span class="tg">(già in superserie '+esc(x.ss)+')</span>':'')+'</label>'});
+ if(e._ssq!=null&&s.ex[e._ssq]){var o=s.ex[e._ssq];h+='<div class="ssw" role="alert"><b>'+esc(o.name)+'</b> si trova già nella superserie '+esc(o.ss)+'. Vuoi unire le due superserie o tenerle separate?<div class="ssb2"><button class="btns" type="button" data-ssm="1">Unisci in una sola</button><button class="btns" type="button" data-ssm="0">Tienile separate</button></div></div>'}
  return h+'</div>'}
+function ssJoin(S,me,q){var ot=S.ex[q];ot.ss=me.ss;delete ot.mod;var it=S.ex.splice(q,1)[0],at=S.ex.indexOf(me),en=at;while(en+1<S.ex.length&&S.ex[en+1].ss==me.ss)en++;S.ex.splice(en+1,0,it)}
 function ssFree(s){var used={};s.ex.forEach(function(x){if(x.ss)used[x.ss]=1});for(var c=65;c<91;c++){var l=String.fromCharCode(c);if(!used[l])return l}return 'Z'}
 function ssClean(s){var n={};s.ex.forEach(function(x){if(x.ss)n[x.ss]=(n[x.ss]||0)+1});s.ex.forEach(function(x){if(x.ss&&n[x.ss]<2&&!x._ssown){delete x.ss}})}
 function recTxt(sec){sec=+sec;return sec%60?Math.floor(sec/60)+':'+pad(sec%60):(sec/60)+' min'}
@@ -1066,6 +1069,9 @@ function armed(b,txt,fn){
 }
 function onProgClick(ev){
  var t=ev.target,b;
+ if(EDITP&&(b=t.closest('[data-ssm]'))){var tr=b.closest('.exe'),S=DRAFT.sessions[+tr.getAttribute('data-i')],me=S.ex[+tr.getAttribute('data-j')],q=me._ssq,ot=S.ex[q];delete me._ssq;
+  if(b.getAttribute('data-ssm')=='1'&&ot){var g=ot.ss,mates=S.ex.filter(function(x){return x.ss==g});mates.forEach(function(x){ssJoin(S,me,S.ex.indexOf(x))})}
+  me._open=true;renderProg();return}
  if(b=t.closest('[data-mobs]')){ev.preventDefault();if(!EDITP)mobDayForm(+b.getAttribute('data-mobs'));return}
  if(b=t.closest('[data-pgo]')){if(EDITP)return;ACT=b.getAttribute('data-pgo');renderProg();renderMobSug();return}
  if(b=t.closest('[data-pnew]')){NEWSEL=true;renderProg();return}
@@ -1086,7 +1092,7 @@ function onProgClick(ev){
   if(NEWP&&NEWP==ACT){PROGS=PROGS.filter(function(x){return x.id!=NEWP});ACT=f0()}NEWP='';renderProg();return}
  if(t.closest('[data-psave]')){
   DRAFT.name=(DRAFT.name||'').trim()||'Programma';
-  DRAFT.sessions.forEach(function(s,i){s.label=(s.label||'').trim()||'Giorno '+(i+1);s.ex=s.ex.filter(function(e){return e.name.trim()});ssClean(s);s.ex.forEach(function(e){e.name=e.name.trim();e.sr=(e.sr||'').trim()||'3x10';e.note=(e.note||'').trim();if(!e.ss)delete e.ss;if(!e.mod)delete e.mod;if(!e.rir)delete e.rir;delete e._ssown;if(!e.mu)e.mu=guess(e.name);if(e._vt!==undefined)e.vars=parseVars(e._vt,e);delete e._vt;delete e._vcustom;delete e.auto;delete e._open;if(!e.vars)e.vars=[]})});
+  DRAFT.sessions.forEach(function(s,i){s.label=(s.label||'').trim()||'Giorno '+(i+1);s.ex=s.ex.filter(function(e){return e.name.trim()});ssClean(s);s.ex.forEach(function(e){e.name=e.name.trim();e.sr=(e.sr||'').trim()||'3x10';e.note=(e.note||'').trim();delete e._ssq;if(!e.ss)delete e.ss;if(!e.mod)delete e.mod;if(!e.rir)delete e.rir;delete e._ssown;if(!e.mu)e.mu=guess(e.name);if(e._vt!==undefined)e.vars=parseVars(e._vt,e);delete e._vt;delete e._vcustom;delete e.auto;delete e._open;if(!e.vars)e.vars=[]})});
   for(var k=0;k<PROGS.length;k++)if(PROGS[k].id==DRAFT.id)PROGS[k]=clone(DRAFT);
   EDITP=false;DRAFT=null;NEWP='';savePlans();PMSG='Programma salvato.';afterPlanChange();return}
  if(!EDITP)return;
@@ -1114,13 +1120,15 @@ function onProgInput(ev){
  var tr=el.closest('.exe');
  if(tr&&el.hasAttribute('data-ssx')){if(ev.type!='change')return;var si=+tr.getAttribute('data-i'),sj=+tr.getAttribute('data-j'),S=DRAFT.sessions[si],me=S.ex[sj],q=+el.getAttribute('data-ssx'),ot=S.ex[q];
   if(!me.ss)me.ss=ssFree(S);
-  if(el.checked){ot.ss=me.ss;delete ot.mod;var it=S.ex.splice(q,1)[0],at=S.ex.indexOf(me),en=at;while(en+1<S.ex.length&&S.ex[en+1].ss==me.ss)en++;S.ex.splice(en+1,0,it)}
+  delete me._ssq;
+  if(el.checked&&ot.ss&&ot.ss!=me.ss){me._ssq=q;me._open=true;renderProg();return}
+  if(el.checked)ssJoin(S,me,q);
   else{delete ot.ss}
   me._ssown=1;ssClean(S);delete me._ssown;if(!me.ss)me.ss=ssFree(S);me._open=true;renderProg();return}
  if(tr&&el.getAttribute('data-f')=='mod'){if(ev.type!='change')return;var S2=DRAFT.sessions[+tr.getAttribute('data-i')],e2=S2.ex[+tr.getAttribute('data-j')],v=el.value;
   if(v=='Superserie'){delete e2.mod;if(!e2.ss)e2.ss=ssFree(S2)}else{var g=e2.ss;delete e2.ss;if(v)e2.mod=v;else delete e2.mod;if(g){S2.ex.forEach(function(x){if(x.ss==g)x._g=1});var cnt=S2.ex.filter(function(x){return x.ss==g}).length;if(cnt<2)S2.ex.forEach(function(x){if(x.ss==g)delete x.ss});S2.ex.forEach(function(x){delete x._g})}}
   e2._open=true;renderProg();return}
- if(tr&&el.hasAttribute('data-f')){var e=DRAFT.sessions[+tr.getAttribute('data-i')].ex[+tr.getAttribute('data-j')],ff=el.getAttribute('data-f');e[ff]=el.value;if(ff=='rir'&&!el.value)delete e.rir;
+ if(tr&&el.hasAttribute('data-f')){var e=DRAFT.sessions[+tr.getAttribute('data-i')].ex[+tr.getAttribute('data-j')],ff=el.getAttribute('data-f');e[ff]=el.value;
   if(ff=='name'){exSug(tr,el.value);var mm=muExact(el.value);if(mm){e.mu=mm;e.auto=1;var s0=tr.querySelector('select[data-f=mu]');if(s0)s0.value=mm}}
   if(ff=='name'&&!muExact(el.value)){var g=guess(el.value),sel=tr.querySelector('select[data-f=mu]');if(sel&&(e.mu=='Altro'||e.auto)){e.mu=g;e.auto=1;sel.value=g}}
   if(ff=='vars'){e._vt=el.value;e._vcustom=1}
@@ -1316,7 +1324,7 @@ function buildItems(){
  return items;
 }
 function updMu(i){var it=ITEMS[i],el=$('vsub'+i);if(!el)return;var pe=planExIn(cur.plan,it.bk)||planEx(it.bk)||{};
- el.textContent=it.sr+(pe.kg?' · '+pe.kg+' kg':'')+(pe.mod?' · '+pe.mod:'')+(pe.rir?' · RIR '+pe.rir:'')+(it.vr?' · '+it.vr:'')+' · '+curMu(it)+' · rec. '+recTxt(restSecs(it))}
+ el.textContent=it.sr+(pe.kg?' · '+pe.kg+' kg':'')+(pe.mod?' · '+pe.mod:'')+(it.vr?' · '+it.vr:'')+' · '+curMu(it)+' · rec. '+recTxt(restSecs(it))}
 function setEditUI(on){
  $('gPlan').disabled=on;$('gDay').disabled=on;
  var s=on?SESS[editId]:null;
