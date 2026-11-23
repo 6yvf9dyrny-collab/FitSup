@@ -1273,7 +1273,7 @@ function onFormClick(ev){
   var wv=num(w.value),rv=num(r.value);if(w.value.trim()&&!kgOk(wv)){msg('Serie '+sn+': peso non valido (da 0 a '+KGMAX+' kg).');w.focus();return}if(r.value.trim()&&!(repOk(rv)&&rv>0)){msg('Serie '+sn+': ripetizioni non valide (da 1 a '+REPMAX+').');r.focus();return}
   sl.classList.add('done');b.setAttribute('aria-pressed','true');dirty=true;msg('');updSum(ii);
   var nxs=ssNext(cc);if(nxs){stopRest();msg('Superserie: subito '+ITEMS[+nxs.getAttribute('data-i')].base+', recupero dopo l’ultimo esercizio del blocco.');nxs.open=true;setTimeout(function(){nxs.scrollIntoView({block:'start',behavior:'smooth'})},60);return}
-  startRest(ii);
+  startRest(ii);var sf=ssFirst(cc);if(sf&&sf!==cc){cc.open=false;sf.open=true;msg('Recupero, poi di nuovo '+ITEMS[+sf.getAttribute('data-i')].base+'.');setTimeout(function(){sf.scrollIntoView({block:'start',behavior:'smooth'})},60);return}
   if(cc.classList.contains('fin')){cc.open=false;var nx=cc.nextElementSibling;while(nx&&nx.classList.contains('fin'))nx=nx.nextElementSibling;
    if(nx){nx.open=true;setTimeout(function(){nx.scrollIntoView({block:'start',behavior:'smooth'})},60)}}
   return}
@@ -1316,8 +1316,10 @@ function lastW(name){
 /* superserie: esercizi consecutivi della scheda con la stessa lettera (e.ss) */
 function ssOf(it){var pe=planExIn(cur.plan,it.bk)||planEx(it.bk);return pe&&pe.ss?pe.ss:''}
 function ssNext(c){var it=ITEMS[+c.getAttribute('data-i')],g=ssOf(it);if(!g)return null;var nx=c.nextElementSibling;
- if(nx&&nx.classList.contains('exc')&&ssOf(ITEMS[+nx.getAttribute('data-i')])==g)return nx;
- var pv=c.previousElementSibling;while(pv&&pv.classList.contains('exc')&&ssOf(ITEMS[+pv.getAttribute('data-i')])==g){if(!pv.classList.contains('fin'))return pv;pv=pv.previousElementSibling}return null}
+ while(nx&&nx.classList.contains('exc')&&ssOf(ITEMS[+nx.getAttribute('data-i')])==g){if(!nx.classList.contains('fin'))return nx;nx=nx.nextElementSibling}return null}
+/* primo esercizio del blocco ancora da finire: dopo il recupero si ricomincia il giro da lì */
+function ssFirst(c){var it=ITEMS[+c.getAttribute('data-i')],g=ssOf(it);if(!g)return null;var f=c,pv=c.previousElementSibling;while(pv&&pv.classList.contains('exc')&&ssOf(ITEMS[+pv.getAttribute('data-i')])==g){f=pv;pv=pv.previousElementSibling}
+ while(f&&f.classList.contains('exc')&&ssOf(ITEMS[+f.getAttribute('data-i')])==g){if(!f.classList.contains('fin'))return f;f=f.nextElementSibling}return null}
 function curMu(it){if(it.vr)for(var i=0;i<it.vars.length;i++)if(it.vars[i].l==it.vr)return it.vars[i].mu;return it.mu}
 function buildItems(){
  var s=sessionsOf(cur.plan)[cur.idx],items=[],saved=editId?SESS[editId]:null,seen={};
@@ -1399,7 +1401,7 @@ function save(){
  else if(curStart()){var S0=curStart();o.start=S0.t;o.end=Date.now();if(!PRES.d[o.date]||PRES.d[o.date].st!='si'){PRES.d[o.date]={st:'si',time:hhmm(S0.t)};presSave()}START=null;stStore()}
  putSession(o).then(function(ok){
   if(upd){editId=null;dirty=false}else{awReset();var ss=sessionsOf(cur.plan);if(ss.length>1){var k=-1;ss.forEach(function(x,q){if(x.label==label)k=q});cur.idx=((k<0?cur.idx:k)+1)%ss.length;$('gDay').value=cur.idx;NEXTMSG=ss[cur.idx].label}}buildForm();renderReg();
-  msg((ok?(upd?'Allenamento aggiornato: ':'Salvato come allenamento a sé: '):'Account non disponibile, salvato su questo dispositivo: ')+label+', '+dL(o.date)+'.');
+  msg((ok?(upd?'Allenamento aggiornato: ':'Allenamento salvato: '):'Account non disponibile, salvato su questo dispositivo: ')+label+', '+dL(o.date)+'.');
  });
 }
 function startEdit(id){
@@ -1608,7 +1610,7 @@ function monLines(x){
  return '<svg class="chartsvg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Pesi di '+esc(x.name)+' e retta di ogni mese">'+g+'</svg>'}
 function renderMon(){
  var host=$('monBox');if(!host)return;var D=monData(),old=QR.list.some(function(r){return (r.exercises||[]).some(function(x){return !x.pts})});
- var oldTxt=old?'<p class="tg">I report trimestrali creati prima del 23/11/2026 non conservano i pesi dei singoli allenamenti: quei mesi non compaiono qui, ma restano nel loro report.</p>':'';
+ var oldTxt=false?'<p class="tg">I report trimestrali creati prima del 23/11/2026 non conservano i pesi dei singoli allenamenti: quei mesi non compaiono qui, ma restano nel loro report.</p>':'';
  if(!D.list.length){host.innerHTML='<p class="tg">Qui comparirà il miglioramento medio di peso per allenamento, mese per mese, appena salvi qualche allenamento con i pesi.</p>'+oldTxt;return}
  if(MON.ex&&!D.list.some(function(x){return x.k==MON.ex}))MON.ex='';
  var h='<div class="fld"><label>Mostra<select id="monEx"><option value="">Media di tutti gli esercizi</option>'+D.list.map(function(x){return '<option value="'+esc(x.k)+'"'+(x.k==MON.ex?' selected':'')+'>'+esc(x.name+(x.vr?' · '+x.vr:''))+'</option>'}).join('')+'</select></label></div>';
@@ -1649,7 +1651,7 @@ function fillSel(id,vals,cur0,all){
  el.innerHTML=h;el.value=ok?cur0:'';return el.value;
 }
 function buildReg(){
- $('prBody').innerHTML='<h2 class="ch">Presenze</h2><div class="cal" id="calBox"></div><h2>Report trimestrali</h2><div id="qrBox"></div><h2>Andamento mensile</h2><div id="monBox"></div><h2>Esercizi</h2><div class="seg"><button type="button" data-v="e">Per esercizio</button><button type="button" data-v="w">Per data</button></div>'
+ $('prBody').innerHTML='<h2 class="ch">Presenze</h2><div class="cal" id="calBox"></div><h2>Andamento mensile</h2><div id="monBox"></div><h2>Esercizi</h2><div class="seg"><button type="button" data-v="e">Per esercizio</button><button type="button" data-v="w">Per data</button></div>'
   +'<details class="dbx fbox" id="fBox"><summary>Filtri <span class="tg" id="fCnt"></span></summary><div class="fld"><label>Programma<select id="fPr"></select></label><label>Seduta<select id="fSed"></select></label><label>Esercizio<select id="fEx"></select></label><label id="fVrL" style="display:none">Variante<select id="fVr"></select></label><label>Dal<input type="date" id="fFrom"></label><label>Al<input type="date" id="fTo"></label>'
   +'<label>Ordine<select id="fOrd"><option value="plan">Ordine di allenamento (scheda)</option><option value="new">Più recenti prima</option><option value="old">Meno recenti prima</option></select></label><label id="fMetL">Grafico degli esercizi<select id="fMet"><option value="e1">Forza stimata (1RM)</option><option value="top">Carico massimo</option><option value="vol">Volume (kg × ripetizioni)</option><option value="comp">Completamento della scheda</option></select></label></div>'
   +'<button class="btns" type="button" id="fReset">Azzera filtri</button></details><div id="rgList"></div>';
@@ -1777,7 +1779,7 @@ function qrRun(due){
  return n<0?{err:'Report salvato, ma il registro non si è potuto pulire: riprovo al prossimo avvio',rep:r}:{rep:r,n:n};
 }
 /* allo scadere del trimestre chiede una conferma, poi crea il report e pulisce */
-function qrCheck(){
+function qrCheck(){return; /* report trimestrale tolto il 23/11/2026: il registro non si svuota più */
  var fixed=0;QR.list.forEach(function(r){var n=qrPurge(r);if(n>0)fixed+=n});if(fixed){renderReg();if(FORMLIVE)refreshLast()}
  if(QRASK||locked())return;var due=qrDue();if(!due)return;QRASK=1;
  var n=due.list.length;
@@ -2122,7 +2124,7 @@ function renderSettings(){
   +'<div id="pasteBox" hidden><textarea id="pasteT" rows="7" placeholder="Upper A&#10;Panca piana 4x8&#10;Lat machine 3x10&#10;&#10;Lower A&#10;Squat 4x6"></textarea><button class="btnp btnw" type="button" data-set="pasteok">Analizza il testo</button></div>'
   +'<p class="msg" id="impM"></p>'
   +'<h2>Backup della scheda</h2>'+bksHtml()+'<p class="msg" id="bkM2"></p>'
-  +'<h2>Backup completo</h2><p class="tg">Un file .json con allenamenti, programmi, mobilità, presenze e report trimestrali. Per ripristinarlo usa «Scegli un file» qui sopra e scegli questo file.'+(bkHint()?' '+bkHint():'')+'</p><div class="ptool"><button class="btns" type="button" data-qrbk="1">Scarica backup completo</button></div>'
+  +'<h2>Backup completo</h2><p class="tg">Un file .json con allenamenti, programmi, mobilità e presenze. Per ripristinarlo usa «Scegli un file» qui sopra e scegli questo file.'+(bkHint()?' '+bkHint():'')+'</p><div class="ptool"><button class="btns" type="button" data-qrbk="1">Scarica backup completo</button></div>'
   +(WA_NUM?'<h2>Esercizio mancante</h2><p class="tg">Non trovi un esercizio nel database? Descrivilo: si apre WhatsApp con il messaggio già scritto.</p><div class="ptool"><button class="btns" type="button" data-req="1">Chiedi un esercizio su WhatsApp</button></div>':'')
   +'<h2>Notifiche</h2>'
   +'<label class="swrow"><span><b>Promemoria degli allenamenti</b><br><span class="tg">'+(items.length?'Avviso all’orario di '+items.length+(items.length==1?' allenamento':' allenamenti')+' a settimana.':'Imposta giorno e orario degli allenamenti in Scheda → Modifica.')+'</span></span><input type="checkbox" id="ntOn"'+(NOTIF.on?' checked':'')+(items.length?'':' disabled')+'></label>'
