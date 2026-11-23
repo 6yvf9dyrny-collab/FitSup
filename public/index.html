@@ -799,9 +799,9 @@ function mobHave(){var h={};['U','L'].forEach(function(g){MOBX[g].forEach(functi
 function mobDaysHtml(){
  var p=prog(ACT);if(!p||!p.sessions.length)return '';var h='';
  p.sessions.forEach(function(s,i){var d=mobDay(s);
-  h+='<li class="mi"><div class="mt"><b>'+esc(s.label)+'</b><span class="tg">'+(!s.mob?'Senza mobilità (si cambia in Scheda → Modifica)':(d.length?esc(d.map(function(x){return x.n}).join(' · '))+' · circa '+mobMinN(d.length)+' min':'Nessun esercizio scelto'))+(s.mob&&!Array.isArray(s.mobi)?' <i>(consigliati in automatico)</i>':'')+'</span></div>'
-   +(s.mob?'<span class="ma"><button class="btns" type="button" data-mobs="'+i+'">Scegli</button></span>':'')+'</li>'});
- return '<h2>Mobilità di ogni giorno</h2><p class="tg">Per ogni giorno della scheda «'+esc(p.name)+'» l’app consiglia '+MOBTOP+' esercizi in base ai muscoli che alleni quel giorno: tu scegli quali fare.</p><ol class="mlist">'+h+'</ol><h2>I tuoi esercizi di mobilità</h2><p class="tg">Qui aggiungi esercizi tuoi e cambi dosi e note: l’app li usa nei consigli di ogni giorno.</p>';
+  h+='<li class="mi"><div class="mt"><b>'+esc(s.label)+'</b><span class="tg">'+(!s.mob?'Senza mobilità':(d.length?esc(d.map(function(x){return x.n}).join(' · '))+' · circa '+mobMinN(d.length)+' min':'Nessun esercizio scelto'))+(s.mob&&!Array.isArray(s.mobi)?' <i>(consigliati in automatico)</i>':'')+'</span></div>'
+   +'<span class="ma"><button class="btns" type="button" data-mobs="'+i+'">'+(s.mob?'Scegli esercizi':'Aggiungi mobilità')+'</button></span></li>'});
+ return '<h2>Mobilità di ogni giorno</h2><p class="tg">Per ogni giorno della scheda «'+esc(p.name)+'» l’app consiglia '+MOBTOP+' esercizi in base ai muscoli che alleni quel giorno: tu scegli quali fare con «Scegli esercizi». Un giorno senza mobilità la attiva con «Aggiungi mobilità».</p><ol class="mlist">'+h+'</ol><h2>I tuoi esercizi di mobilità</h2><p class="tg">Qui aggiungi esercizi tuoi e cambi dosi e note: l’app li usa nei consigli di ogni giorno.</p>';
 }
 function renderMob(){
  var host=$('mobBody');if(!host)return;var g=MOBG,a=MOBX[g],h=mobDaysHtml();
@@ -905,7 +905,7 @@ function mobNote(s,si){
 function mobCk(x,on){return '<label class="mck"><input type="checkbox" data-mid="'+esc(x.n)+'"'+(on?' checked':'')+'><span><b>'+esc(x.n)+'</b> <span class="tg">'+esc([x.d,x.a].filter(Boolean).join(' · '))+'</span>'+(x.h?'<small class="tg">'+esc(x.h)+'</small>':'')+mobQa(x.n)+'</span></label>'}
 function mobDayForm(si){
  var p=prog(ACT),s=p&&p.sessions[si];if(!s)return;
- var rk=mobRank(s),sel={};mobDay(s).forEach(function(x){sel[nk(x.n)]=1});
+ var rk=mobRank(s),sel={};(s.mob?mobDay(s):rk.top.slice(0,MOBAUTO)).forEach(function(x){sel[nk(x.n)]=1});
  var extra=Array.isArray(s.mobi)?s.mobi.filter(function(n){return !rk.top.concat(rk.rest).some(function(x){return nk(x.n)==nk(n)})}):[];
  var restSel=rk.rest.filter(function(x){return sel[nk(x.n)]}).length+extra.length;
  var h='<p class="tg">'+(rk.areas.length?'Muscoli di questo giorno → aree da mobilizzare: <b>'+esc(rk.areas.slice(0,3).join(', '))+'</b>.':'Questo giorno non ha ancora esercizi: ecco alcuni esercizi generali.')+' Scegline 2 o 3, oppure quanti vuoi.</p>'
@@ -916,6 +916,7 @@ function mobDayForm(si){
  cfmOpen('Mobilità di «'+s.label+'»',h,function(){
   var q=prog(ACT),t=q&&q.sessions[si];if(!t)return;
   if(MOBAUTOSET){delete t.mobi}else{var ch=[];document.querySelectorAll('#cfmBody [data-mid]').forEach(function(c){if(c.checked)ch.push(c.getAttribute('data-mid'))});t.mobi=ch}
+  if(!t.mob&&(MOBAUTOSET||t.mobi.length))t.mob='UL';
   delete t.moff;MOBAUTOSET=0;
   var n=mobDay(t).length;PMSG='Mobilità di «'+t.label+'»: '+(n?n+' eserciz'+(n==1?'io':'i'):'nessun esercizio')+'.';savePlans();afterPlanChange();renderMob()});
  MOBAUTOSET=0;$('cfmOk').textContent='Salva';mobCount();
