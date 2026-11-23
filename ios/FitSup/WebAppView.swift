@@ -44,6 +44,30 @@ final class Bridge: NSObject, WKScriptMessageHandler, WKNavigationDelegate, WKUI
             let items = body["items"] as? [[String: Any]] ?? []
             Task { await schedule(enabled: enabled, items: items) }
         }
+        if type == "rest", let secs = body["seconds"] as? Double, secs > 0 {
+            let title = body["title"] as? String ?? "Recupero finito"
+            let text = body["body"] as? String ?? "Vai con la prossima serie."
+            Task { await scheduleRest(seconds: secs, title: title, body: text) }
+        }
+        if type == "restCancel" {
+            center.removePendingNotificationRequests(withIdentifiers: [restId])
+        }
+    }
+
+    private let restId = "fitsup.rest"
+
+    /// Fine del recupero: una notifica con suono all'ora esatta, anche con l'app chiusa o lo schermo bloccato.
+    private func scheduleRest(seconds: Double, title: String, body: String) async {
+        center.removePendingNotificationRequests(withIdentifiers: [restId])
+        let granted = (try? await center.requestAuthorization(options: [.alert, .sound])) ?? false
+        guard granted else { return }
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+        content.interruptionLevel = .timeSensitive
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: max(1, seconds), repeats: false)
+        try? await center.add(UNNotificationRequest(identifier: restId, content: content, trigger: trigger))
     }
 
     /// Un promemoria settimanale per ogni giorno di allenamento con orario.
