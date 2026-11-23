@@ -250,6 +250,7 @@ input[type=file]{min-height:var(--hit);font-size:var(--t-in);max-width:100%}
 .exl{list-style:none;margin:0;padding:0;background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);overflow:hidden}
 .exl li{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);padding:var(--s3);border-top:1px solid var(--line)}.exl li:first-child{border-top:0}
 .book{margin:var(--s4) 0}
+.pdet{margin:var(--s4) 0}.pdet>summary{min-height:64px;padding:var(--s3) var(--s4);font-size:var(--t-m);display:flex;align-items:center}.pdet[open]>summary{border-bottom:1px solid var(--line);margin-bottom:var(--s3)}
 .bnav{display:flex;align-items:center;gap:var(--s2);position:sticky;top:0;z-index:3;background:var(--bg);padding:var(--s2) 0}
 .bar{flex:none;width:56px;height:56px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--acc);font-size:34px;line-height:1;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 0 4px;cursor:pointer}
 .bar:disabled{opacity:.3;cursor:default}
@@ -394,7 +395,7 @@ if(ms){var mdt=ms.textContent.replace(/^\n/,'');document.getElementById('mdout')
  [].forEach.call(document.querySelectorAll('.sub2 button'),function(x){x.className=''});b.className='on';
  [].forEach.call(document.querySelectorAll('.spn'),function(s){s.className='spn'+(s.id==b.getAttribute('data-s')?' on':'')})}});
 /* tab: la durata stimata compare sotto la Scheda */
-var tb=document.querySelectorAll('#tabs a'),GROUP={ps:['ps','pt']};
+var tb=document.querySelectorAll('#tabs a'),GROUP={ps:['ps']};
 var ptS=document.getElementById('pt'),psS=document.getElementById('ps');if(ptS&&psS)psS.parentNode.insertBefore(ptS,psS.nextSibling);
 function showTab(id,push){var show=GROUP[id]||[id];window.scrollTo(0,0);
  [].forEach.call(tb,function(x){var on=x.getAttribute('data-p')==id;x.className=on?'on':'';if(on)x.setAttribute('aria-current','page');else x.removeAttribute('aria-current')});
@@ -901,7 +902,7 @@ function sessMin(s){
  s.ex.forEach(function(e){
   var n=slots(e.sr),fm=String(e.sr).match(/x\s*(\d+)/i),first=fm?parseInt(fm[1],10):10,nm=e.name.toLowerCase(),mu=e.mu||'',
    big=/deadlift|stacco|hack|squat|leg press/.test(nm),uni=/singolo|single|serratus/.test(nm),
-   rest=big?3:((mu=='Petto'||mu=='Schiena'||first<=6)?2:(/Addome|Avambracci|Polpacci|Dentato|Adduttori/.test(mu)?1:1.25));
+   rest=recOf(e)/60;
   t+=uni?n*2*(.7+rest/2.5):n*(.75+rest);
  });
  return t;
@@ -1004,12 +1005,13 @@ function renderProg(){
  if(!EDITP)h+=bookHtml(p);
  if(EDITP)h+='<button class="btns" type="button" data-sadd="1" style="margin-top:var(--s4)">Modifica programma · '+DRAFT.sessions.length+(DRAFT.sessions.length==1?' giorno':' giorni')+'</button>';
  if(EDITP)h+='<h2>Note del programma</h2><textarea class="nt" data-pnotes="1" placeholder="Una riga per paragrafo; le righe che iniziano con - diventano elenco">'+esc(p.notes)+'</textarea>'+dbHtml(p);
- else{h+=weeklyHtml(p)+sugHtml(p)+dbHtml(p);if(p.notes.trim())h+='<h2>Note</h2><div class="notes">'+notesHtml(p.notes)+'</div>';
+ else{h+='<details class="dbx pdet"'+(PDET?' open':'')+'><summary><span><b>Dettagli e azioni generali della scheda</b><br><span class="tg">Serie settimanali, durata stimata, esercizi consigliati'+(p.notes.trim()?', note':'')+'</span></span></summary>'
+   +weeklyHtml(p)+'<h2>Durata stimata delle sedute</h2><div id="tempiSlot"></div>'+sugHtml(p)+(p.notes.trim()?'<h2>Note</h2><div class="notes">'+notesHtml(p.notes)+'</div>':'')+'</details>'+dbHtml(p);
   h+='<h2>Elimina</h2><p class="tg">Gli allenamenti già registrati restano in Progressi.</p><div class="ptool"><button class="btns dang" type="button" data-pdel="1">Elimina questo programma</button><button class="btns dang" type="button" data-pall="1">Elimina tutti i programmi</button></div>'}
- host.innerHTML=h;
+ host.innerHTML=h;if(!EDITP)renderTempi();
 }
 /* Scheda «a libro»: un giorno per pagina; si cambia con le frecce grandi, scorrendo col dito o con ← → */
-var BOOK={pid:'',i:-1,dir:0};
+var BOOK={pid:'',i:-1,dir:0},PDET=false;
 function bookStart(p){var wd=new Date().getDay();for(var i=0;i<p.sessions.length;i++)if(p.sessions[i].day==wd)return i;return 0}
 function bookHtml(p){
  var n=p.sessions.length;if(!n)return '';
@@ -1106,17 +1108,21 @@ function onProgInput(ev){
 
 /* ---------- Tempi: durata stimata ---------- */
 function renderTempi(){
+ var sl=$('tempiSlot'),pa=prog(ACT);if(sl&&pa)sl.innerHTML=tempiHtml([pa],true);
  var host=$('tempiBody');if(!host)return;
- if(!PROGS.length){host.innerHTML='<p>Nessun programma ancora: crea il tuo primo programma nella sezione Scheda e qui comparirà la durata stimata di ogni seduta.</p>';return}var h='';
- PROGS.forEach(function(p){
+ if(!PROGS.length){host.innerHTML='<p>Nessun programma ancora: crea il tuo primo programma nella sezione Scheda e qui comparirà la durata stimata di ogni seduta.</p>';return}
+ host.innerHTML=tempiHtml(PROGS,false);
+}
+function tempiHtml(list,one){var h='';
+ list.forEach(function(p){
   var tot=0;
-  h+='<h2>'+esc(p.name)+'</h2><div class="tw"><table><thead><tr><th>Seduta</th><th>Esercizi</th><th>Serie</th><th>Durata stimata</th></tr></thead><tbody>';
+  h+=(one?'':'<h2>'+esc(p.name)+'</h2>')+'<div class="tw"><table><thead><tr><th>Seduta</th><th>Esercizi</th><th>Serie</th><th>Durata stimata</th></tr></thead><tbody>';
   p.sessions.forEach(function(s){var m=sessMin(s),n=0;s.ex.forEach(function(e){n+=slots(e.sr)});tot+=m;
    h+='<tr><td>'+esc(s.label)+(s.mob?' <small class="tg">+ mobilità</small>':'')+'</td><td>'+s.ex.length+'</td><td>'+n+'</td><td>'+range(m)+'</td></tr>'});
   h+='<tr><td><b>Totale settimana</b></td><td></td><td></td><td><b>'+Math.round(tot/60*10)/10+' ore circa</b></td></tr></tbody></table></div>';
  });
  h+='<p class="tg">Stima calcolata dalle serie della scheda: circa 45 secondi di lavoro per serie, più il recupero (3 minuti per hack squat e stacchi, 2 minuti per i multiarticolari e le serie fino a 6 ripetizioni, 1-1,25 minuti per gli isolamenti), più la mobilità quando prevista (circa 1,3 minuti per esercizio della tua routine). Gli esercizi a braccio singolo contano entrambe le braccia.</p>';
- host.innerHTML=h;
+ return h;
 }
 
 /* ---------- Workout: modulo di inserimento ---------- */
@@ -2274,7 +2280,7 @@ $('progBody').addEventListener('focusin',function(ev){var el=ev.target;if(EDITP&
 $('progBody').addEventListener('focusout',function(ev){var el=ev.target;if(el.matches&&el.matches('.exe input[data-f=name]'))setTimeout(function(){var b=el.closest('.exe');b=b&&b.querySelector('.exsug');if(b&&!b.dataset.keep){b.hidden=true}},250)});
 $('progBody').addEventListener('change',onProgInput);
 $('progBody').addEventListener('input',onDbf);$('progBody').addEventListener('change',onDbf);
-$('progBody').addEventListener('toggle',function(ev){if(!ev.target.classList)return;if(ev.target.classList.contains('exe')&&EDITP){var ee=DRAFT.sessions[+ev.target.getAttribute('data-i')].ex[+ev.target.getAttribute('data-j')];if(ee)ee._open=ev.target.open;return}if(ev.target.classList.contains('sugd'))SUG.open=ev.target.open;else if(ev.target.classList.contains('dbx'))DBF.open=ev.target.open},true);
+$('progBody').addEventListener('toggle',function(ev){if(!ev.target.classList)return;if(ev.target.classList.contains('exe')&&EDITP){var ee=DRAFT.sessions[+ev.target.getAttribute('data-i')].ex[+ev.target.getAttribute('data-j')];if(ee)ee._open=ev.target.open;return}if(ev.target.classList.contains('pdet')){PDET=ev.target.open;return}if(ev.target.classList.contains('sugd'))SUG.open=ev.target.open;else if(ev.target.classList.contains('dbx'))DBF.open=ev.target.open},true);
 /* barra «Allenamento in corso · Riprendi» visibile nelle altre sezioni */
 (function(){var m=document.querySelector('main');if(!m)return;var d=document.createElement('div');d.className='awbar';d.id='awBar';d.setAttribute('role','status');
  d.innerHTML='<span><b>Allenamento in corso</b><br><span id="awTxt"></span></span><button type="button" id="awGo">Riprendi</button>';m.insertBefore(d,m.firstChild);$('awGo').onclick=awResume})();
