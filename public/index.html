@@ -36,6 +36,12 @@ input,select,textarea,button{font:inherit;color:inherit}
 input[type=range],input[type=checkbox]{accent-color:var(--acc)}
 select{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%238b9a9e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")!important;background-repeat:no-repeat!important;background-position:right 12px center!important;padding-right:34px!important;min-height:var(--hit)}
 input[type=time],input[type=date]{min-height:var(--hit)}
+/* iOS dà a data e ora una larghezza minima propria: senza questo escono dal riquadro */
+.cfl input[type=date],.cfl input[type=time]{-webkit-appearance:none;appearance:none;display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;text-align:left;line-height:normal}
+.cfl input::-webkit-date-and-time-value{text-align:left}
+.tmw{position:relative;display:inline-flex}.tmw.empty::before{content:'Orario';position:absolute;left:var(--s2);top:50%;transform:translateY(-50%);color:var(--mute);pointer-events:none;font-size:var(--t-in)}
+.tmw.empty input{color:transparent}.tmw.empty input:focus{color:inherit}.tmw.empty:focus-within::before{display:none}
+.shd input[type=time]{min-width:104px}
 .tw,table,.slot input,.sum,.cinfo{font-variant-numeric:tabular-nums}
 
 /* ---------- struttura ---------- */
@@ -947,7 +953,7 @@ function renderProg(){
    /* in modifica ogni giorno è un riquadro separato, con il numero del giorno, per vedere dove finisce e dove inizia il successivo */
    h+='<section class="dcard"><p class="dnum">Giorno '+(i+1)+' di '+p.sessions.length+'</p><div class="shd" data-si="'+i+'"><input class="nm" data-sf="label" value="'+esc(s.label)+'" aria-label="Nome del giorno">'
     +'<select data-sf="day" aria-label="Giorno consigliato"><option value="-1">Nessun giorno</option>'+GIORNI.map(function(g,k){return '<option value="'+k+'"'+(s.day==k?' selected':'')+'>'+g+'</option>'}).join('')+'</select>'
-    +'<input type="time" data-sf="time" value="'+esc(s.time||'')+'" aria-label="Orario medio">'
+    +'<span class="tmw'+(s.time?'':' empty')+'"><input type="time" data-sf="time" value="'+esc(s.time||'')+'" aria-label="Orario medio"></span>'
     +'<select data-sf="mob" aria-label="Mobilità"><option value="UL"'+(s.mob?' selected':'')+'>Con mobilità</option><option value=""'+(s.mob?'':' selected')+'>Senza mobilità</option></select>'
     +'</div>';
   }else h+='<div class="dayh"><h2>'+esc(s.label)+'</h2><span class="tg">'+(s.day>=0?GIORNI[s.day]+(s.time?' '+esc(s.time):'')+' · ':'')+range(sessMin(s))+'</span></div>'+mobNote(s,i);
@@ -1015,6 +1021,7 @@ function onProgClick(ev){
 }
 function onProgInput(ev){
  if(!EDITP)return;var el=ev.target;
+ if(el.getAttribute&&el.getAttribute('data-sf')=='time'&&el.parentNode&&el.parentNode.classList)el.parentNode.classList.toggle('empty',!el.value);
  if(el.hasAttribute('data-pname')){DRAFT.name=el.value;return}
  if(el.hasAttribute('data-pnotes')){DRAFT.notes=el.value;return}
  var sh=el.closest('.shd');
