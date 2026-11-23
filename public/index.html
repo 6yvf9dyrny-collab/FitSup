@@ -1781,16 +1781,16 @@ function qrRun(due){
  return n<0?{err:'Report salvato, ma il registro non si è potuto pulire: riprovo al prossimo avvio',rep:r}:{rep:r,n:n};
 }
 /* allo scadere del trimestre chiede una conferma, poi crea il report e pulisce */
-function qrCheck(){return; /* report trimestrale tolto il 23/11/2026: il registro non si svuota più */
+function qrCheck(){ /* il report trimestrale si crea ancora (serve all'andamento mensile) ma non si mostra */
  var fixed=0;QR.list.forEach(function(r){var n=qrPurge(r);if(n>0)fixed+=n});if(fixed){renderReg();if(FORMLIVE)refreshLast()}
  if(QRASK||locked())return;var due=qrDue();if(!due)return;QRASK=1;
  var n=due.list.length;
- cfmOpen('Trimestre concluso','<p>Il periodo <b>'+dL(due.from)+' – '+dL(due.to)+'</b> è finito.</p><p>Creo il report con l’andamento generale, per muscolo e per esercizio, poi tolgo dal registro '+(n==1?'l’allenamento':'i '+n+' allenamenti')+' di quel periodo. Il report resta in Progressi, «Ultima volta» continua a mostrare i tuoi ultimi pesi e i grafici ripartono dal nuovo trimestre.</p><p><button class="linkb" type="button" data-qrbk="1">Scarica prima un backup completo</button></p>',function(){
+ cfmOpen('Trimestre concluso','<p>Il periodo <b>'+dL(due.from)+' – '+dL(due.to)+'</b> è finito.</p><p>Archivio i pesi del trimestre, poi tolgo dal registro '+(n==1?'l’allenamento':'i '+n+' allenamenti')+' di quel periodo. L’andamento mensile resta completo e «Ultima volta» continua a mostrare i tuoi ultimi pesi.</p><p><button class="linkb" type="button" data-qrbk="1">Scarica prima un backup completo</button></p>',function(){
   var res=qrRun(due);QRASK=0;
   renderReg();if(FORMLIVE)refreshLast();
-  if(res.err&&!res.rep){setTimeout(function(){cfmOpen('Report non creato','<p>'+esc(res.err)+'. Non è stato cancellato nulla: riprovo al prossimo avvio.</p>',null)},320);QRASK=1;return}
-  setTimeout(function(){cfmOpen('Report creato','<p>'+esc(res.err||('Report del trimestre '+dL(due.from)+' – '+dL(due.to)+' salvato. '+res.n+' allenament'+(res.n==1?'o tolto':'i tolti')+' dal registro.'))+'</p><p class="tg">Lo trovi in Progressi → Report trimestrali.</p>',function(){if(window.showTab)window.showTab('pr');var b=$('qrBox');if(b)b.scrollIntoView({block:'start'})});$('cfmOk').textContent='Apri il report';setTimeout(qrCheck,600)},320)});
- $('cfmOk').textContent='Crea il report';$('cfmNo').textContent='Più tardi';
+  if(res.err&&!res.rep){setTimeout(function(){cfmOpen('Archivio non riuscito','<p>'+esc(res.err)+'. Non è stato cancellato nulla: riprovo al prossimo avvio.</p>',null)},320);QRASK=1;return}
+  setTimeout(function(){cfmOpen('Trimestre archiviato','<p>'+esc(res.err||('Trimestre '+dL(due.from)+' – '+dL(due.to)+' archiviato. '+res.n+' allenament'+(res.n==1?'o tolto':'i tolti')+' dal registro.'))+'</p><p class="tg">I pesi restano in Progressi → Andamento mensile.</p>',function(){if(window.showTab)window.showTab('pr');var b=$('monBox');if(b)b.scrollIntoView({block:'start'})});$('cfmOk').textContent='Vedi l’andamento';setTimeout(qrCheck,600)},320)});
+ $('cfmOk').textContent='Archivia';$('cfmNo').textContent='Più tardi';
 }
 document.addEventListener('click',function(ev){if(ev.target.closest&&ev.target.closest('[data-qrbk]'))bkDownload()});
 /* dopo la pulizia: i dati degli allenamenti tolti restano nei report */
@@ -2126,7 +2126,7 @@ function renderSettings(){
   +'<div id="pasteBox" hidden><textarea id="pasteT" rows="7" placeholder="Upper A&#10;Panca piana 4x8&#10;Lat machine 3x10&#10;&#10;Lower A&#10;Squat 4x6"></textarea><button class="btnp btnw" type="button" data-set="pasteok">Analizza il testo</button></div>'
   +'<p class="msg" id="impM"></p>'
   +'<h2>Backup della scheda</h2>'+bksHtml()+'<p class="msg" id="bkM2"></p>'
-  +'<h2>Backup completo</h2><p class="tg">Un file .json con allenamenti, programmi, mobilità e presenze. Per ripristinarlo usa «Scegli un file» qui sopra e scegli questo file.'+(bkHint()?' '+bkHint():'')+'</p><div class="ptool"><button class="btns" type="button" data-qrbk="1">Scarica backup completo</button></div>'
+  +'<h2>Backup completo</h2><p class="tg">Un file .json con allenamenti, programmi, mobilità, presenze e archivio dei trimestri. Per ripristinarlo usa «Scegli un file» qui sopra e scegli questo file.'+(bkHint()?' '+bkHint():'')+'</p><div class="ptool"><button class="btns" type="button" data-qrbk="1">Scarica backup completo</button></div>'
   +(WA_NUM?'<h2>Esercizio mancante</h2><p class="tg">Non trovi un esercizio nel database? Descrivilo: si apre WhatsApp con il messaggio già scritto.</p><div class="ptool"><button class="btns" type="button" data-req="1">Chiedi un esercizio su WhatsApp</button></div>':'')
   +'<h2>Notifiche</h2>'
   +'<label class="swrow"><span><b>Promemoria degli allenamenti</b><br><span class="tg">'+(items.length?'Avviso all’orario di '+items.length+(items.length==1?' allenamento':' allenamenti')+' a settimana.':'Imposta giorno e orario degli allenamenti in Scheda → Modifica.')+'</span></span><input type="checkbox" id="ntOn"'+(NOTIF.on?' checked':'')+(items.length?'':' disabled')+'></label>'
