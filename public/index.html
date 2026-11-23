@@ -251,6 +251,7 @@ input[type=file]{min-height:var(--hit);font-size:var(--t-in);max-width:100%}
 .mck{display:flex;gap:var(--s3);align-items:center;min-height:var(--hit);padding:var(--s2) 0;border-bottom:1px solid var(--line)}.mck input{width:22px;height:22px;flex:none;accent-color:var(--acc)}
 .mck small{display:block}.mrow small{display:block;font-weight:400;color:var(--mute);font-size:var(--t-s)}.mrow{padding-top:var(--s2);padding-bottom:var(--s2)}
 .mox summary{cursor:pointer;min-height:var(--hit);display:flex;align-items:center;font-weight:700;color:var(--acc)}
+.mq{display:inline-block;margin-top:var(--s1);font-size:var(--t-s);font-weight:600;color:var(--acc);text-decoration:underline;padding:2px 0}
 .mdh{display:flex;gap:var(--s2);align-items:center;flex-wrap:wrap;margin:var(--s3) 0 var(--s1)}
 .mrow{display:flex;justify-content:space-between;align-items:center;min-height:var(--hit);padding:0 var(--s3);margin:0 0 var(--s2);background:var(--acc-soft);border-radius:var(--r);text-decoration:none;font-weight:600;font-size:var(--t-s)}
 .exed{display:flex;flex-direction:column;gap:var(--s3);margin:0 0 var(--s3)}
@@ -766,6 +767,9 @@ function mobNorm(o){
  var r={v:2,U:[],L:[]};if(o.t)r.t=o.t;
  ['U','L'].forEach(function(g){r[g]=o[g].filter(function(x){return x&&x.n}).map(function(x){return {id:x.id||newId('m'),n:String(x.n).slice(0,80),a:String(x.a||'').slice(0,40),d:String(x.d||'').slice(0,40),h:String(x.h||'').slice(0,160)}})});
  return r}
+/* niente foto: per vedere come si fa un esercizio di mobilità si apre la ricerca immagini con il suo nome */
+function mobQ(n){return 'https://www.google.com/search?tbm=isch&q='+encodeURIComponent(n+' esercizio mobilità')}
+function mobQa(n){return '<a class="mq" href="'+mobQ(n)+'" target="_blank" rel="noopener" aria-label="Cerca come si fa: '+esc(n)+'">Come si fa ↗</a>'}
 function mobMinN(n){return n?Math.max(3,Math.round(n*1.3)):0}
 function mobMin(g){return mobMinN(g=='UL'?MOBX.U.length+MOBX.L.length:(MOBX[g]||[]).length)}
 /* mobilità del giorno: l'app consiglia gli esercizi in base ai muscoli allenati quel giorno,
@@ -805,7 +809,7 @@ function renderMob(){
  h+='<div class="mhead"><span class="tg">'+(g=='U'?'Per le sedute di parte alta':'Per le sedute di gambe')+' · '+a.length+' eserciz'+(a.length==1?'io':'i')+'</span></div>';
  if(MMSG){h+='<div class="msg" role="status">'+esc(MMSG)+'</div>';MMSG=''}
  if(!a.length)h+='<p class="tg">Nessun esercizio in questa routine: aggiungine uno qui sotto.</p>';
- h+='<ol class="mlist">'+a.map(function(x,i){return '<li class="mi"><span class="mn" aria-hidden="true">'+(i+1)+'</span><div class="mt"><b>'+esc(x.n)+'</b><span class="tg">'+esc([x.d,x.a].filter(Boolean).join(' · '))+'</span>'+(x.h?'<div class="tg">'+esc(x.h)+'</div>':'')+'</div><span class="ma">'
+ h+='<ol class="mlist">'+a.map(function(x,i){return '<li class="mi"><span class="mn" aria-hidden="true">'+(i+1)+'</span><div class="mt"><b>'+esc(x.n)+'</b><span class="tg">'+esc([x.d,x.a].filter(Boolean).join(' · '))+'</span>'+(x.h?'<div class="tg">'+esc(x.h)+'</div>':'')+mobQa(x.n)+'</div><span class="ma">'
   +'<button class="btns" type="button" data-mup="'+i+'" aria-label="Sposta su: '+esc(x.n)+'"'+(i?'':' disabled')+'>↑</button><button class="btns" type="button" data-mdn="'+i+'" aria-label="Sposta giù: '+esc(x.n)+'"'+(i<a.length-1?'':' disabled')+'>↓</button>'
   +'<button class="btns" type="button" data-med="'+i+'">Modifica</button><button class="btns" type="button" data-mrm="'+i+'">Togli</button></span></li>'}).join('')+'</ol>';
  h+='<div class="mfoot"><button class="btnp" type="button" data-mnew="1">＋ Aggiungi esercizio</button>'+(MOBX.t?'<button class="btns" type="button" data-mres="1">Ripristina la routine di base</button>':'')+'</div>';
@@ -841,7 +845,7 @@ function renderMobSug(){
  if(MOBA=='auto')h+='<p class="tg">'+(auto.length?'Aree più sollecitate dalla scheda «'+esc(p.name)+'»: '+esc(auto.join(', '))+'.':'Non hai ancora un programma: ecco esercizi per tutte le aree.')+'</p>';
  if(!list.length)h+='<p class="tg">Nessun altro esercizio da suggerire per questa scelta: hai già tutto in routine.</p>';
  list.forEach(function(m){var i=MOBDB.indexOf(m);
-  h+='<div class="dbi"><div><b>'+esc(m[0])+'</b> <small class="tg">'+esc(m[1])+' · '+esc(m[3])+'</small><div class="tg">'+esc(m[4])+'</div></div><span class="mb">'
+  h+='<div class="dbi"><div><b>'+esc(m[0])+'</b> <small class="tg">'+esc(m[1])+' · '+esc(m[3])+'</small><div class="tg">'+esc(m[4])+'</div>'+mobQa(m[0])+'</div><span class="mb">'
    +(m[2].indexOf('U')>=0?'<button class="btns" type="button" data-mxadd="U:'+i+'">＋ Upper</button>':'')
    +(m[2].indexOf('L')>=0?'<button class="btns" type="button" data-mxadd="L:'+i+'">＋ Lower</button>':'')+'</span></div>'});
  host.innerHTML='<details class="dbx msug"'+(MSG2.open?' open':'')+'><summary><b>Esercizi di mobilità consigliati</b> <span class="tg">· '+list.length+' suggerimenti</span></summary>'+h+'<p class="tg">Gli esercizi aggiunti vanno in fondo alla routine scelta: poi puoi spostarli e modificarli.</p></details>';
@@ -898,7 +902,7 @@ function mobNote(s,si){
  var d=mobDay(s),n=d.length;
  return '<a class="mlink mrow" href="#pm" data-mobs="'+si+'"><span>Prima: mobilità · '+(n?n+' eserciz'+(n==1?'io':'i')+', circa '+mobMinN(n)+' min':'nessun esercizio scelto')+(n?'<small>'+esc(d.map(function(x){return x.n}).join(' · '))+'</small>':'')+'</span><span aria-hidden="true">›</span></a>';
 }
-function mobCk(x,on){return '<label class="mck"><input type="checkbox" data-mid="'+esc(x.n)+'"'+(on?' checked':'')+'><span><b>'+esc(x.n)+'</b> <span class="tg">'+esc([x.d,x.a].filter(Boolean).join(' · '))+'</span>'+(x.h?'<small class="tg">'+esc(x.h)+'</small>':'')+'</span></label>'}
+function mobCk(x,on){return '<label class="mck"><input type="checkbox" data-mid="'+esc(x.n)+'"'+(on?' checked':'')+'><span><b>'+esc(x.n)+'</b> <span class="tg">'+esc([x.d,x.a].filter(Boolean).join(' · '))+'</span>'+(x.h?'<small class="tg">'+esc(x.h)+'</small>':'')+mobQa(x.n)+'</span></label>'}
 function mobDayForm(si){
  var p=prog(ACT),s=p&&p.sessions[si];if(!s)return;
  var rk=mobRank(s),sel={};mobDay(s).forEach(function(x){sel[nk(x.n)]=1});
