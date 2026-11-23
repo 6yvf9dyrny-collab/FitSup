@@ -1159,7 +1159,9 @@ function tempiHtml(list,one){var h='';
 }
 
 /* ---------- Workout: modulo di inserimento ---------- */
-function suggest(){var x=PRES.x[cur.date],sx=sessionsOf(cur.plan);if(x)for(var q=0;q<sx.length;q++)if(sx[q].label==x.label){cur.idx=q;return}
+/* se oggi la seduta proposta è già stata fatta, si propone la successiva */
+function suggest(){suggest0();var d=cur.date==today()?doneToday():null,ss=sessionsOf(cur.plan);if(d&&!AW&&ss.length>1&&ss[cur.idx]&&ss[cur.idx].label==d.label){cur.idx=(cur.idx+1)%ss.length;NEXTMSG=ss[cur.idx].label}}
+function suggest0(){var x=PRES.x[cur.date],sx=sessionsOf(cur.plan);if(x)for(var q=0;q<sx.length;q++)if(sx[q].label==x.label){cur.idx=q;return}
  var p=cur.date.split('-'),wd=new Date(+p[0],+p[1]-1,+p[2]).getDay(),ss=sessionsOf(cur.plan);for(var i=0;i<ss.length;i++)if(ss[i].day==wd){cur.idx=i;return}}
 function fillProgs(){var pl=$('gPlanL');if(pl)pl.style.display=PROGS.length>1?'':'none';$('gPlan').innerHTML=PROGS.map(function(p){return '<option value="'+esc(p.id)+'">'+esc(p.name)+'</option>'}).join('');$('gPlan').value=cur.plan}
 function fillDays(){$('gDay').innerHTML=sessionsOf(cur.plan).map(function(s,i){return '<option value="'+i+'">'+esc(s.label)+'</option>'}).join('')}
