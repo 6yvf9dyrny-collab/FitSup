@@ -133,11 +133,11 @@ textarea.nt,#impT{width:100%;min-height:110px;padding:var(--s2)}
 .exc.fin .exn{color:var(--mute)}
 .exnote{display:block;margin-top:4px;padding:4px 8px;border-left:3px solid var(--acc);background:var(--acc-soft);border-radius:4px;font-size:var(--t-s);color:var(--ink);white-space:normal}
 .exc.ssg{border-left:4px solid var(--acc)}.ssb{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--acc-ink);background:var(--acc);border-radius:4px;padding:1px 6px;margin-right:6px;vertical-align:2px}
-.wun{display:flex;gap:6px}.wun input{flex:1;min-width:0}.wun select{width:76px;flex:none}
+.wun{display:flex;gap:6px}.wun .wto{flex:none;width:44px;padding:0;font-size:18px}.wun input{flex:1;min-width:0}.wun select{width:76px;flex:none}
 .sspk{display:flex;flex-direction:column;gap:6px;padding:var(--s2) var(--s3);border:1px dashed var(--acc);border-radius:var(--r);margin:var(--s2) 0}.ssw{margin-top:6px;padding:8px;border-radius:var(--r);background:var(--acc-soft);font-size:var(--t-s)}.ssb2{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
 .sspk .ssck{display:flex!important;flex-direction:row!important;align-items:center;justify-content:flex-start;gap:12px;min-height:48px;margin:0;padding:8px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--ink);font-weight:600;text-align:left;cursor:pointer}.sspk .ssck:has(input:checked){border-color:var(--acc);background:var(--acc-soft)}.sspk .ssck input{flex:none;width:22px!important;height:22px!important;min-height:0!important;margin:0;padding:0;accent-color:var(--acc)}.sspk .ssck .tg{font-weight:400}
 .exl li.ssg{border-left:4px solid var(--acc);padding-left:8px}
-.slot.add .del{position:static;width:36px;height:36px;opacity:1;pointer-events:auto;background:transparent;color:var(--bad);border:1px solid var(--line)}.slot.add{grid-template-columns:28px 1fr 1fr var(--hit) 36px}
+.slot.add .del,.slot.add .del:hover{position:static;width:36px;height:36px;opacity:1;pointer-events:auto;background:var(--bad);color:#fff;border:0}.slot.add{grid-template-columns:28px 1fr 1fr var(--hit) 36px}
 body.kb .rest.show{position:fixed;left:8px;right:8px;top:calc(var(--kbtop,0px) + 8px);z-index:80}
 .exb{padding:0 var(--s3) var(--s3)}
 .vrow{margin:0 0 var(--s2);display:flex;gap:var(--s2);align-items:center;flex-wrap:wrap}
@@ -148,7 +148,7 @@ body.kb .rest.show{position:fixed;left:8px;right:8px;top:calc(var(--kbtop,0px) +
 .slot{display:grid;grid-template-columns:28px 1fr 1fr var(--hit);gap:var(--s2);align-items:center}
 .slot .sn{text-align:center;font-weight:700;color:var(--mute)}
 .slot input{width:100%;min-width:0;height:var(--hit);font-size:var(--t-in);text-align:center;border:1px solid var(--line);border-radius:var(--r);background:var(--bg);color:var(--ink)}
-.slot input::placeholder{color:var(--mute);opacity:.75}
+.slot input::placeholder{color:var(--ink);opacity:.55}
 .slot .ok{width:var(--hit);height:var(--hit);border-radius:50%;border:2px solid var(--line);background:var(--card);color:var(--mute);font-size:20px;line-height:1;cursor:pointer;padding:0}
 .slot.done .ok{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
 .slot.done input{background:var(--acc-soft);border-color:transparent}
@@ -1045,7 +1045,7 @@ function ptable(p,i){
   return '<details class="exe" data-i="'+i+'" data-j="'+j+'"'+(e._open?' open':'')+'><summary><span class="exs"><b>'+esc(e.name||'Nuovo esercizio')+'</b><span class="tg">'+esc(e.mu||'')+'</span></span><span class="srw">'+(e.kg?'<span class="wtb">'+esc(wTxt(e.kg,e.u))+'</span>':'')+'<span class="srb">'+esc(e.sr||'–')+'</span></span></summary>'
    +'<div class="exf"><label class="fw">Esercizio<input data-f="name" value="'+esc(e.name)+'" placeholder="Scrivi o scegli: es. femorali" autocomplete="off"></label><button class="btns exdb" type="button" data-exdb="1">Scegli dal database esercizi</button><div class="exsug" hidden></div>'
    +'<div class="row2"><label>Serie<input data-f="sr" value="'+esc(e.sr)+'" placeholder="4x8"></label><label>Muscolo'+muSel(e.mu,'data-f="mu"')+'</label></div>'
-   +'<div class="row2"><label>Peso<span class="wun"><input data-f="kg" inputmode="decimal" value="'+esc(e.kg||'')+'" placeholder="es. 60 oppure 45→40"><select data-f="u" aria-label="Unità"><option value="">kg</option><option value="lb"'+(e.u=='lb'?' selected':'')+'>lb</option></select></span></label><label>Recupero'+recSel(e)+'</label></div>'
+   +'<div class="row2"><label>Peso<span class="wun"><input data-f="kg" inputmode="text" autocomplete="off" value="'+esc(e.kg||'')+'" placeholder="es. 60 oppure 45-40"><button class="btns wto" type="button" data-wto="1" aria-label="Aggiungi freccia">→</button><select data-f="u" aria-label="Unità"><option value="">kg</option><option value="lb"'+(e.u=='lb'?' selected':'')+'>lb</option></select></span></label><label>Recupero'+recSel(e)+'</label></div>'
    +'<label class="fw">Modalità<select data-f="mod">'+MODS.map(function(m){return '<option value="'+(m=='Normale'?'':m)+'"'+(modOf(e)==m?' selected':'')+'>'+m+'</option>'}).join('')+'</select></label>'
    +(modOf(e)=='Superserie'?ssPick(s,j):'')
    +'<label class="fw">Note<input data-f="note" value="'+esc(e.note)+'" placeholder="es. RIR 1, ultima serie a cedimento"></label>'
@@ -1071,6 +1071,7 @@ function armed(b,txt,fn){
 }
 function onProgClick(ev){
  var t=ev.target,b;
+ if(EDITP&&(b=t.closest('[data-wto]'))){var inp=b.parentNode.querySelector('input[data-f=kg]');if(inp){var v=inp.value.replace(/\s+$/,'');if(v&&!/→$/.test(v)){inp.value=v+'→';inp.dispatchEvent(new Event('input',{bubbles:true}))}inp.focus();try{inp.setSelectionRange(inp.value.length,inp.value.length)}catch(e){}}return}
  if(EDITP&&(b=t.closest('[data-ssm]'))){var tr=b.closest('.exe'),S=DRAFT.sessions[+tr.getAttribute('data-i')],me=S.ex[+tr.getAttribute('data-j')],q=me._ssq,ot=S.ex[q];delete me._ssq;
   if(b.getAttribute('data-ssm')=='1'&&ot){var g=ot.ss,mates=S.ex.filter(function(x){return x.ss==g});mates.forEach(function(x){ssJoin(S,me,S.ex.indexOf(x))})}
   me._open=true;renderProg();return}
@@ -1169,7 +1170,7 @@ function fillDays(){$('gDay').innerHTML=sessionsOf(cur.plan).map(function(s,i){r
 function refreshPlanUse(){if(!$('gDay'))return;if(!prog(cur.plan))cur.plan=f0();fillProgs();fillDays();if(cur.idx>=sessionsOf(cur.plan).length)cur.idx=0;$('gDay').value=cur.idx}
 function lastFor(k,exId,date){
  var best=null;
- Object.keys(SESS).forEach(function(id){var s=SESS[id];if(id==exId||s.date>=date)return;
+ Object.keys(SESS).forEach(function(id){var s=SESS[id];if(id==exId||s.date>date)return;
   s.ex.forEach(function(e){if(e.k==k&&(!best||s.date>best.date||(s.date==best.date&&(s.ts||0)>(best.ts||0))))best={date:s.date,ts:s.ts,sets:e.sets}})});
  return best||qrLast(k,date);
 }
@@ -1208,7 +1209,7 @@ function toLb(v){return Math.round(v/LB)}
 function unitOf(it){var pe=it?(planExIn(cur.plan,it.bk)||planEx(it.bk)):null;return pe&&pe.u=='lb'?'lb':'kg'}
 function wTxt(k,u){if(!k)return '';if(u!='lb')return k+' kg';var t=kgList(k).map(function(x){var v=num(x);return v===null?x:fmt(toKg(v))});return k+' lb ('+t.join('→')+' kg)'}
 function dispW(st,u){if(!st)return '';if(u=='lb'){if(st.lb!=null&&st.lb!=='')return st.lb;if(st.kgs){var v=num(st.w);return v===null?st.w:String(toLb(v))}}return st.w||''}
-function kgList(k){return String(k||'').split(/→|->|>|\/|;/).map(function(x){return x.trim()}).filter(Boolean)}
+function kgList(k){return String(k||'').split(/→|->|>|\/|;|-/).map(function(x){return x.trim()}).filter(Boolean)}
 function kgAt(k,j,n){var t=kgList(k);if(!t.length)return '';if(t.length>=n)return t[Math.min(j,t.length-1)];var head=n-t.length+1;return j<head?t[0]:t[j-head+1]}
 function slotHtml(j,st,ls,pk,ad,u){u=u||'kg';
  var ok=ls&&!ls.skip,lw=ok?(u=='lb'?(ls.lb||(num(ls.w)!==null?String(toLb(num(ls.w))):'')):ls.w):'',pw=lw||(pk||u),pr=ok&&ls.r?ls.r:'rep',dn=st.done!==undefined?!!st.done:!!(st.w||st.r),n=j+1;
