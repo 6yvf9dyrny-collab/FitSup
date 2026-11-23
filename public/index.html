@@ -703,7 +703,7 @@ function dbResHtml(){
  DBX.forEach(function(d,i){if(DBF.mu&&grp(d[1])!=DBF.mu)return;if(DBF.eq&&d[2]!=DBF.eq)return;if(q&&nk(d[0]+' '+d[1]+' '+d[2]+' '+d[4]).indexOf(q)<0)return;out.push(i)});
  var ask=WA_NUM?'<div class="req"><span>'+(out.length?'Non trovi quello che cerchi?':'Nessun esercizio trovato'+(DBF.q?' per «'+esc(DBF.q)+'»':'')+'.')+'</span><button class="btns" type="button" data-req="1">Chiedi di aggiungerlo</button></div>':(out.length?'':'<p class="tg">Nessun esercizio trovato.</p>');
  if(!out.length)return ask;
- return out.slice(0,40).map(function(i){var d=DBX[i];return dbItem(d,i,'<button class="btns" type="button" data-dbadd="'+i+'">＋ Aggiungi</button>',have[norm(d[0])])}).join('')+(out.length>40?'<p class="tg">Altri '+(out.length-40)+' risultati: affina la ricerca.</p>':'')+ask;
+ return ask+out.slice(0,40).map(function(i){var d=DBX[i];return dbItem(d,i,'<button class="btns" type="button" data-dbadd="'+i+'">＋ Aggiungi</button>',have[norm(d[0])])}).join('')+(out.length>40?'<p class="tg">Altri '+(out.length-40)+' risultati: affina la ricerca.</p>':'');
 }
 function dbHtml(p){
  var mus=[],eqs=[];DBX.forEach(function(d){var g=grp(d[1]);if(mus.indexOf(g)<0)mus.push(g);if(eqs.indexOf(d[2])<0)eqs.push(d[2])});
@@ -1778,6 +1778,8 @@ function renderSettings(){
   +'<div id="pasteBox" hidden><textarea id="pasteT" rows="7" placeholder="Upper A&#10;Panca piana 4x8&#10;Lat machine 3x10&#10;&#10;Lower A&#10;Squat 4x6"></textarea><button class="btnp btnw" type="button" data-set="pasteok">Analizza il testo</button></div>'
   +'<p class="msg" id="impM"></p>'
   +'<h2>Backup della scheda</h2>'+bksHtml()+'<p class="msg" id="bkM2"></p>'
+  +'<h2>Backup completo</h2><p class="tg">Un file .json con allenamenti, programmi, mobilità, presenze e report trimestrali. Per recuperarlo usa «Scegli un file» qui sopra.'+(bkHint()?' '+bkHint():'')+'</p><div class="ptool"><button class="btns" type="button" data-qrbk="1">Scarica backup completo</button></div>'
+  +(WA_NUM?'<h2>Esercizio mancante</h2><p class="tg">Non trovi un esercizio nel database? Descrivilo: si apre WhatsApp con il messaggio già scritto.</p><div class="ptool"><button class="btns" type="button" data-req="1">Chiedi un esercizio su WhatsApp</button></div>':'')
   +'<h2>Notifiche</h2>'
   +'<label class="swrow"><span><b>Promemoria degli allenamenti</b><br><span class="tg">'+(items.length?'Avviso all’orario di '+items.length+(items.length==1?' allenamento':' allenamenti')+' a settimana.':'Imposta giorno e orario degli allenamenti in Scheda → Modifica.')+'</span></span><input type="checkbox" id="ntOn"'+(NOTIF.on?' checked':'')+(items.length?'':' disabled')+'></label>'
   +'<p class="tg">'+(isNative()?'Sei nell’app per iPhone: i promemoria arrivano anche con l’app chiusa.':'Nel browser i promemoria arrivano solo con l’app aperta. Per riceverli sempre usa il calendario del telefono o l’app per iPhone.')+'</p>'
@@ -1787,7 +1789,7 @@ function renderSettings(){
  var f=$('impFileIn');if(f)f.onchange=function(){impFile(this.files&&this.files[0]);this.value=''};
  var n=$('ntOn');if(n)n.onchange=function(){ntToggle(this.checked)};
 }
-function onSettings(ev){var k=ev.target.closest('[data-bk]');if(k){onBk(k);return}var b=ev.target.closest('[data-set],[data-ics]');if(!b)return;
+function onSettings(ev){var k=ev.target.closest('[data-bk]');if(k){onBk(k);return}if(ev.target.closest('[data-req]')){reqOpen({});return}if(ev.target.closest('[data-qrbk]')){setTimeout(renderSettings,50);return}var b=ev.target.closest('[data-set],[data-ics]');if(!b)return;
  if(b.hasAttribute('data-ics')){icsDownload();return}
  var a=b.getAttribute('data-set'),p=prog(($('expSel')||{}).value)||prog(ACT);
  if(a=='csv'&&p)exportCsv(p);else if(a=='json'&&p)exportJson(p);
