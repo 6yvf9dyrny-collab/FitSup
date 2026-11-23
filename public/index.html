@@ -1044,7 +1044,7 @@ function ptable(p,i){
   return '<details class="exe" data-i="'+i+'" data-j="'+j+'"'+(e._open?' open':'')+'><summary><span class="exs"><b>'+esc(e.name||'Nuovo esercizio')+'</b><span class="tg">'+esc(e.mu||'')+'</span></span><span class="srw">'+(e.kg?'<span class="wtb">'+esc(e.kg)+' kg</span>':'')+'<span class="srb">'+esc(e.sr||'–')+'</span></span></summary>'
    +'<div class="exf"><label class="fw">Esercizio<input data-f="name" value="'+esc(e.name)+'" placeholder="Scrivi o scegli: es. femorali" autocomplete="off"></label><button class="btns exdb" type="button" data-exdb="1">Scegli dal database esercizi</button><div class="exsug" hidden></div>'
    +'<div class="row2"><label>Serie<input data-f="sr" value="'+esc(e.sr)+'" placeholder="4x8"></label><label>Muscolo'+muSel(e.mu,'data-f="mu"')+'</label></div>'
-   +'<div class="row2"><label>Peso (kg)<input data-f="kg" inputmode="decimal" value="'+esc(e.kg||'')+'" placeholder="es. 60"></label><label>Recupero'+recSel(e)+'</label></div>'
+   +'<div class="row2"><label>Peso (kg)<input data-f="kg" inputmode="decimal" value="'+esc(e.kg||'')+'" placeholder="es. 60 oppure 45→40"></label><label>Recupero'+recSel(e)+'</label></div>'
    +'<label class="fw">Modalità<select data-f="mod">'+MODS.map(function(m){return '<option value="'+(m=='Normale'?'':m)+'"'+(modOf(e)==m?' selected':'')+'>'+m+'</option>'}).join('')+'</select></label>'
    +(modOf(e)=='Superserie'?ssPick(s,j):'')
    +'<label class="fw">Note<input data-f="note" value="'+esc(e.note)+'" placeholder="es. RIR 1, ultima serie a cedimento"></label>'
@@ -1093,7 +1093,7 @@ function onProgClick(ev){
   if(NEWP&&NEWP==ACT){PROGS=PROGS.filter(function(x){return x.id!=NEWP});ACT=f0()}NEWP='';renderProg();return}
  if(t.closest('[data-psave]')){
   DRAFT.name=(DRAFT.name||'').trim()||'Programma';
-  DRAFT.sessions.forEach(function(s,i){s.label=(s.label||'').trim()||'Giorno '+(i+1);s.ex=s.ex.filter(function(e){return e.name.trim()});ssClean(s);s.ex.forEach(function(e){e.name=e.name.trim();e.sr=(e.sr||'').trim()||'3x10';e.note=(e.note||'').trim();delete e._ssq;if(!e.ss)delete e.ss;if(!e.mod)delete e.mod;if(!e.rir)delete e.rir;delete e._ssown;if(!e.mu)e.mu=guess(e.name);if(e._vt!==undefined)e.vars=parseVars(e._vt,e);delete e._vt;delete e._vcustom;delete e.auto;delete e._open;if(!e.vars)e.vars=[]})});
+  DRAFT.sessions.forEach(function(s,i){s.label=(s.label||'').trim()||'Giorno '+(i+1);s.ex=s.ex.filter(function(e){return e.name.trim()});ssClean(s);s.ex.forEach(function(e){e.name=e.name.trim();e.sr=(e.sr||'').trim()||'3x10';e.note=(e.note||'').trim();if(e.kg)e.kg=kgList(e.kg).join('→');delete e._ssq;if(!e.ss)delete e.ss;if(!e.mod)delete e.mod;if(!e.rir)delete e.rir;delete e._ssown;if(!e.mu)e.mu=guess(e.name);if(e._vt!==undefined)e.vars=parseVars(e._vt,e);delete e._vt;delete e._vcustom;delete e.auto;delete e._open;if(!e.vars)e.vars=[]})});
   for(var k=0;k<PROGS.length;k++)if(PROGS[k].id==DRAFT.id)PROGS[k]=clone(DRAFT);
   EDITP=false;DRAFT=null;NEWP='';savePlans();PMSG='Programma salvato.';afterPlanChange();return}
  if(!EDITP)return;
@@ -1197,6 +1197,9 @@ function buildUI(){
   it.vr=nv;dirty=true;msg('');updMu(i);var l=document.querySelector('.exc[data-i="'+i+'"] .last');if(l)l.innerHTML=lastHtml(i)});
 }
 /* una riga per serie: numero · chili · ripetizioni · fatta. Le caselle vuote mostrano i valori della volta scorsa */
+/* peso della scheda per serie: «45» tutte a 45; «45→40» le prime a 45 e l'ultima a 40; «50→45→40» una per serie in fondo */
+function kgList(k){return String(k||'').split(/→|->|>|\/|;/).map(function(x){return x.trim()}).filter(Boolean)}
+function kgAt(k,j,n){var t=kgList(k);if(!t.length)return '';if(t.length>=n)return t[Math.min(j,t.length-1)];var head=n-t.length+1;return j<head?t[0]:t[j-head+1]}
 function slotHtml(j,st,ls,pk,ad){
  var ok=ls&&!ls.skip,pw=ok&&ls.w?ls.w:(pk||'kg'),pr=ok&&ls.r?ls.r:'rep',dn=st.done!==undefined?!!st.done:!!(st.w||st.r),n=j+1;
  return '<div class="slot'+(dn?' done':'')+(ad?' add':'')+'"><span class="sn" aria-hidden="true">'+n+'</span>'
@@ -1204,7 +1207,7 @@ function slotHtml(j,st,ls,pk,ad){
   +'<input inputmode="numeric" enterkeyhint="done" placeholder="'+esc(pr)+'" aria-label="Serie '+n+', ripetizioni" data-r="'+j+'" value="'+esc(st.r)+'">'
   +'<button class="ok" type="button" data-done="'+j+'" aria-label="Serie '+n+' fatta" aria-pressed="'+dn+'">✓</button>'
   +'<button class="del" type="button" data-del="1" aria-label="Togli la serie '+n+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13M10 11v6M14 11v6"/></svg></button></div>'}
-function addSlot(c,st){var box=c.querySelector('.slots'),j=box.children.length,i=+c.getAttribute('data-i');box.insertAdjacentHTML('beforeend',slotHtml(j,st||{w:'',r:''},(LASTV[i]||[])[j],ITEMS[i]?((planExIn(cur.plan,ITEMS[i].bk)||planEx(ITEMS[i].bk)||{}).kg||''):'',1))}
+function addSlot(c,st){var box=c.querySelector('.slots'),j=box.children.length,i=+c.getAttribute('data-i');box.insertAdjacentHTML('beforeend',slotHtml(j,st||{w:'',r:''},(LASTV[i]||[])[j],ITEMS[i]?kgAt((planExIn(cur.plan,ITEMS[i].bk)||planEx(ITEMS[i].bk)||{}).kg,j,j+1):'',1))}
 function applySlot(sl,st){sl.querySelector('[data-w]').value=st.w||'';sl.querySelector('[data-r]').value=st.r||'';var dn=!!(st.w||st.r);sl.classList.toggle('done',dn);sl.querySelector('.ok').setAttribute('aria-pressed',String(dn))}
 function collect(i){
  var c=document.querySelector('.exc[data-i="'+i+'"]'),raw=[],out=[],last=-1;if(!c)return out;
@@ -1341,7 +1344,7 @@ function cardHtml(i,open){
   +((it.vars.length||it.vr)?'<div class="vrow"><label>Variante <select data-vr="'+i+'">'+opts+'</select></label></div>':'')
   +'<div class="last">'+lh+'</div><div class="slots">';
  var pk=(planExIn(cur.plan,it.bk)||planEx(it.bk)||{}).kg||'';
- for(var j=0;j<n;j++)h+=slotHtml(j,it.sets[j]||{w:'',r:''},ls[j],pk);
+ for(var j=0;j<n;j++)h+=slotHtml(j,it.sets[j]||{w:'',r:''},ls[j],kgAt(pk,j,n));
  h+='</div><div class="addrow"><button class="btns" type="button" data-add="'+i+'">+ Serie</button><button class="btns" type="button" data-rem="'+i+'">− Serie</button>'
   +(it.vars.length?'<button class="btns" type="button" data-addvar="'+i+'">+ Variante</button>':'')
   +(it.dup?'<button class="btns" type="button" data-rmcard="'+i+'">Togli variante</button>':'')
