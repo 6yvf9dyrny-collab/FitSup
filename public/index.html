@@ -1306,6 +1306,7 @@ function cardHtml(i,open){
  return h;
 }
 function buildForm(){
+ if(!editId){var gm=$('gMsg');if(gm&&/in pausa/.test(gm.textContent))gm.textContent=''}
  if(FORMLIVE)awSave();
  if(editId&&!SESS[editId])editId=null;
  var fromAw=!editId&&!!AW;
@@ -1328,9 +1329,11 @@ var AVKEY='nu_avvio_v1',START=null;
 function stLoad(){try{var o=JSON.parse(localStorage.getItem(AVKEY)||'null');START=o&&o.t?o:null}catch(e){START=null}}
 function stStore(){try{if(START)localStorage.setItem(AVKEY,JSON.stringify(START));else localStorage.removeItem(AVKEY)}catch(e){}}
 function durTxt(ms){var m=Math.max(0,Math.round(ms/60000));return m<60?m+' min':Math.floor(m/60)+' h '+pad(m%60)+' min'}
+function curStart(){return START||(AW&&AW.started&&awAny(AW)?{t:AW.started,date:AW.date,auto:1}:null)}
 function renderStart(){var h=$('startB');if(!h)return;if(editId){h.innerHTML='';return}
- if(!START){h.innerHTML='<button class="btnp btnw" type="button" data-start="1">▶ Avvia allenamento</button><p class="tg stg">Segna data e ora di inizio: finiscono nel registro quando salvi l’allenamento.</p>';return}
- h.innerHTML='<div class="runb"><span><b>Allenamento in corso dalle '+hhmm(START.t)+'</b><br><span class="tg">'+(START.date==today()?'oggi':dL(START.date))+' · '+durTxt(Date.now()-START.t)+'</span></span><button class="linkb" type="button" data-stop="1">Annulla avvio</button></div>'}
+ var st=curStart();
+ if(!st){h.innerHTML='<button class="btnp btnw" type="button" data-start="1">▶ Avvia allenamento</button><p class="tg stg">Segna data e ora di inizio: finiscono nel registro quando salvi l’allenamento.</p>';return}
+ h.innerHTML='<div class="runb"><span><b>✓ Allenamento avviato alle '+hhmm(st.t)+'</b><br><span class="tg">'+(st.date==today()?'oggi':dL(st.date))+' · in corso da '+durTxt(Date.now()-st.t)+'</span></span>'+(st.auto?'':'<button class="linkb" type="button" data-stop="1">Annulla avvio</button>')+'</div>'}
 function onStart(ev){var b=ev.target.closest('[data-start],[data-stop]');if(!b)return;
  if(b.hasAttribute('data-start')){START={t:Date.now(),date:today()};stStore();if(!editId&&cur.date!=START.date){cur.date=START.date;$('gDate').value=cur.date;refreshLast()}renderStart();msg('Allenamento avviato alle '+hhmm(START.t)+'.');return}
  armed(b,'Conferma: annulla l’avvio',function(){START=null;stStore();renderStart();msg('Avvio annullato.')})}
@@ -1342,7 +1345,7 @@ function save(){
  if(!any){msg('Inserisci almeno una serie (peso e ripetizioni).');return}
  var id=editId||newId('w'),o={id:id,date:cur.date,plan:plan,pn:pn,label:label,ts:old?(old.ts||Date.now()):Date.now(),ex:ex},upd=!!old;
  if(old){if(old.start)o.start=old.start;if(old.end)o.end=old.end}
- else if(START){o.start=START.t;o.end=Date.now();if(!PRES.d[o.date]||PRES.d[o.date].st!='si'){PRES.d[o.date]={st:'si',time:hhmm(START.t)};presSave()}START=null;stStore()}
+ else if(curStart()){var S0=curStart();o.start=S0.t;o.end=Date.now();if(!PRES.d[o.date]||PRES.d[o.date].st!='si'){PRES.d[o.date]={st:'si',time:hhmm(S0.t)};presSave()}START=null;stStore()}
  putSession(o).then(function(ok){
   if(upd){editId=null;dirty=false}else awReset();buildForm();renderReg();
   msg((ok?(upd?'Allenamento aggiornato: ':'Salvato come allenamento a sé: '):'Account non disponibile, salvato su questo dispositivo: ')+label+', '+dL(o.date)+'.');
@@ -1387,7 +1390,7 @@ function awGuard(fn,what){
  cfmOpen('Allenamento in corso','<p>Hai un allenamento non ancora salvato: <b>'+esc(AW.label||'seduta')+'</b>, '+(c.d==1?'1 serie fatta':c.d+' serie fatte')+' su '+c.n+'.</p><p>'+esc(what)+' cancella quello che hai inserito. Per non perderlo, chiudi questa finestra e premi «Salva allenamento».</p>',function(){awReset();fn()});
  $('cfmOk').textContent='Cancella e continua';
 }
-function awBar(){
+function awBar(){if(typeof renderStart=='function')renderStart();
  var el=$('awBar');if(!el)return;
  var show=!!AW&&(TABNOW!='pg'||!!editId);
  el.className='awbar'+(show?' show':'');if(!show)return;
