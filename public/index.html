@@ -2139,7 +2139,7 @@ function renderSettings(){
   +(WA_NUM?'<h2>Esercizio mancante</h2><p class="tg">Non trovi un esercizio nel database? Descrivilo: si apre WhatsApp con il messaggio già scritto.</p><div class="ptool"><button class="btns" type="button" data-req="1">Chiedi un esercizio su WhatsApp</button></div>':'')
   +'<h2>Notifiche</h2>'
   +'<label class="swrow"><span><b>Promemoria degli allenamenti</b><br><span class="tg">'+(items.length?'Avviso all’orario di '+items.length+(items.length==1?' allenamento':' allenamenti')+' a settimana.':'Imposta giorno e orario degli allenamenti in Scheda → Modifica.')+'</span></span><input type="checkbox" id="ntOn"'+(NOTIF.on?' checked':'')+(items.length?'':' disabled')+'></label>'
-  +'<p class="tg">'+(isNative()?'Sei nell’app per iPhone: i promemoria arrivano anche con l’app chiusa.':'Nel browser i promemoria arrivano solo con l’app aperta. Per riceverli sempre usa il calendario del telefono o l’app per iPhone.')+'</p>'
+  +'<p class="tg">'+(isNative()?'Sei nell’app FitSup: i promemoria arrivano anche con l’app chiusa.':'Nel browser i promemoria arrivano solo con l’app aperta. Per riceverli sempre usa il calendario del telefono o l’app FitSup per iPhone o Android.')+'</p>'
   +'<p class="msg" id="ntM"></p>'
   +(isNative()?'':'<p><button class="btns btnw" type="button" data-ics="1">Aggiungi i promemoria al calendario del telefono</button></p><p class="msg" id="icsM"></p>')
   +'<h2>Account</h2>';
