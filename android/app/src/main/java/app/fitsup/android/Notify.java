@@ -17,7 +17,7 @@ import java.util.Calendar;
 
 /** Notifiche di FitSup: timer di recupero, fine recupero e promemoria settimanali. */
 final class Notify {
-    static final String CH_LIVE = "rest_live", CH_END = "rest_end", CH_REM = "reminders";
+    static final String CH_LIVE = "rest_timer", CH_END = "rest_end", CH_REM = "reminders";
     static final int ID_LIVE = 1, ID_END = 2, ID_REM = 100;
     static final String ACT_END = "app.fitsup.android.REST_END", ACT_REM = "app.fitsup.android.REMINDER";
     private static final String PREFS = "fitsup";
@@ -26,9 +26,14 @@ final class Notify {
 
     static void channels(Context c) {
         NotificationManager nm = c.getSystemService(NotificationManager.class);
-        NotificationChannel live = new NotificationChannel(CH_LIVE, "Recupero in corso", NotificationManager.IMPORTANCE_LOW);
-        live.setDescription("Il conto alla rovescia del recupero, fisso tra le notifiche.");
+        // Importanza normale ma muta: con «bassa» Android la nasconde tra le silenziose e non la mostra sul blocco schermo.
+        nm.deleteNotificationChannel("rest_live");
+        NotificationChannel live = new NotificationChannel(CH_LIVE, "Recupero in corso", NotificationManager.IMPORTANCE_DEFAULT);
+        live.setDescription("Il conto alla rovescia del recupero, fisso tra le notifiche e sul blocco schermo.");
+        live.setSound(null, null);
+        live.enableVibration(false);
         live.setShowBadge(false);
+        live.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
         NotificationChannel end = new NotificationChannel(CH_END, "Fine recupero", NotificationManager.IMPORTANCE_HIGH);
         end.setDescription("Suona quando il recupero è finito.");
         end.enableVibration(true);
@@ -63,9 +68,15 @@ final class Notify {
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setCategory(Notification.CATEGORY_STOPWATCH)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setColor(0xFF2BB673)
             .setTimeoutAfter(ms)
             .setContentIntent(openApp(c));
         if (Build.VERSION.SDK_INT >= 24) b.setChronometerCountDown(true);
+        // Android 16: «Live Update», il timer compare come pillola nella barra di stato (come la Live Activity).
+        android.os.Bundle ex = new android.os.Bundle();
+        ex.putBoolean("android.requestPromotedOngoing", true);
+        b.addExtras(ex);
         try { nm.notify(ID_LIVE, b.build()); } catch (SecurityException ignored) { }
 
         AlarmManager am = c.getSystemService(AlarmManager.class);

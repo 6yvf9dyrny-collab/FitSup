@@ -117,6 +117,7 @@ public class MainActivity extends Activity {
         setContentView(web);
 
         if (saved != null) web.restoreState(saved); else web.loadUrl(SITE);
+        askNotifications(); // subito all'apertura: se lo chiediamo al primo recupero, quel timer si perde
     }
 
     @Override protected void onSaveInstanceState(Bundle out) { super.onSaveInstanceState(out); web.saveState(out); }
