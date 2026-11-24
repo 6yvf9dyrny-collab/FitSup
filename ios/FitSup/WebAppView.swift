@@ -25,6 +25,8 @@ struct WebAppView: UIViewRepresentable {
         #if DEBUG
         if #available(iOS 16.4, *) { web.isInspectable = true } // ispezionabile da Safari sul Mac
         #endif
+        WatchLink.shared.web = web
+        WatchLink.shared.start()
         web.load(URLRequest(url: url))
         return web
     }
@@ -52,6 +54,11 @@ final class Bridge: NSObject, WKScriptMessageHandler, WKNavigationDelegate, WKUI
             let name = body["exercise"] as? String ?? ""
             Task { await startRestActivity(seconds: secs, title: name.isEmpty ? "Prossima serie" : name) }
         }
+        if type == "watch", let state = body["state"],
+           let data = try? JSONSerialization.data(withJSONObject: state),
+           let json = String(data: data, encoding: .utf8) {
+            WatchLink.shared.send(stateJSON: json)
+        }
         if type == "restCancel" {
             center.removePendingNotificationRequests(withIdentifiers: [restId])
             Task { await endRestActivities() }
@@ -63,6 +70,8 @@ final class Bridge: NSObject, WKScriptMessageHandler, WKNavigationDelegate, WKUI
     /// Fine del recupero: una notifica con suono all'ora esatta, anche con l'app chiusa o lo schermo bloccato.
     private func scheduleRest(seconds: Double, title: String, body: String) async {
         center.removePendingNotificationRequests(withIdentifiers: [restId])
+        // Con l'app dell'orologio aperta vibra già il polso: niente seconda notifica.
+        if WatchLink.shared.watchIsActive { return }
         let granted = (try? await center.requestAuthorization(options: [.alert, .sound])) ?? false
         guard granted else { return }
         let content = UNMutableNotificationContent()

@@ -3,6 +3,7 @@ options:
   bundleIdPrefix: app.fitsup
   deploymentTarget:
     iOS: "17.0"
+    watchOS: "10.0"
 settings:
   base:
     MARKETING_VERSION: "1.0"
@@ -18,6 +19,7 @@ targets:
     sources: [FitSup, Shared]
     dependencies:
       - target: FitSupRest
+      - target: FitSupWatch
     info:
       path: FitSup/Info.plist
       properties:
@@ -46,4 +48,19 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.fitsuppliesios.rest
         TARGETED_DEVICE_FAMILY: "1"
+        SKIP_INSTALL: YES
+  FitSupWatch:
+    type: application
+    platform: watchOS
+    sources: [FitSupWatch]
+    info:
+      path: FitSupWatch/Info.plist
+      properties:
+        CFBundleDisplayName: FitSup
+        WKApplication: true
+        WKCompanionAppBundleIdentifier: app.fitsuppliesios
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.fitsuppliesios.watchkitapp
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         SKIP_INSTALL: YES

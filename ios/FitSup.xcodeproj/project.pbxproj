@@ -7,16 +7,29 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0384FF768E8799427EC9577C /* FitSupWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = A39F345BE44EDD2B16F0F7A7 /* FitSupWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		62998F3CAE38450EE34F8B53 /* FitSupRest.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2F5761033999AC0868B2EA3C /* FitSupRest.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		8EDEFE19752BF836F84C1AD9 /* FitSupApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECBF3388F6B374994D904B11 /* FitSupApp.swift */; };
+		9D783A66849991D250654064 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ED95DAEDDAA376AAA0990400 /* Assets.xcassets */; };
+		AEE696D86B28D59ECF094011 /* WatchModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB0670DEDF8F42C809715823 /* WatchModel.swift */; };
+		AFE4EA681114B9E3A4E7D7D4 /* FitSupWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C04F034BEF8CBE68DDA94E5 /* FitSupWatchApp.swift */; };
 		B2257B71EBFF7A4BFD95AA51 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 433C205B9D4025E3BAB67F92 /* Assets.xcassets */; };
 		B55AC93BA8187AB37073E194 /* RestAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90D11FC19AFC1F79DFFB9182 /* RestAttributes.swift */; };
 		B6D891A1F58DCCA865A09205 /* RestAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90D11FC19AFC1F79DFFB9182 /* RestAttributes.swift */; };
 		C6973AF78411F09846274B65 /* RestWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567EF64D071E50A54EBFE7F8 /* RestWidget.swift */; };
 		DF979AD9EE0CAB4AFB3A969E /* WebAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7F8A413349380F876B8505D /* WebAppView.swift */; };
+		ECEED51379A136F47F08BE05 /* WatchLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EFF49AFB23BDCA05BDFD9D4 /* WatchLink.swift */; };
+		F34B3E30155315AD2C7FD9FD /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AF876E05C8A6FB0475ED58E /* ContentView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		7E6161EAB06E774DC9C5BA2D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9E947466D9078E3D0C738818 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 508E1DE2D2CF78F50380E970;
+			remoteInfo = FitSupWatch;
+		};
 		FFCFA7240E15A95DEA484E41 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 9E947466D9078E3D0C738818 /* Project object */;
@@ -27,6 +40,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		4195C6F5B7810257739D1BD2 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				0384FF768E8799427EC9577C /* FitSupWatch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		74ADF646131614067177FAD8 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -41,23 +65,43 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0C04F034BEF8CBE68DDA94E5 /* FitSupWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitSupWatchApp.swift; sourceTree = "<group>"; };
 		2F5761033999AC0868B2EA3C /* FitSupRest.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = FitSupRest.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		433C205B9D4025E3BAB67F92 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4BBB9421DD539ADE2EC861C5 /* FitSup.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = FitSup.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		567EF64D071E50A54EBFE7F8 /* RestWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestWidget.swift; sourceTree = "<group>"; };
+		5AF876E05C8A6FB0475ED58E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		90D11FC19AFC1F79DFFB9182 /* RestAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestAttributes.swift; sourceTree = "<group>"; };
+		91AEF5EE450CA24415C97FAE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		9EFF49AFB23BDCA05BDFD9D4 /* WatchLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLink.swift; sourceTree = "<group>"; };
+		A39F345BE44EDD2B16F0F7A7 /* FitSupWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FitSupWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B9A2A0BE617777E0F6ECA9C1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		E9F8E8CFA69D0CB6B0BEC4C5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		EB0670DEDF8F42C809715823 /* WatchModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchModel.swift; sourceTree = "<group>"; };
 		ECBF3388F6B374994D904B11 /* FitSupApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitSupApp.swift; sourceTree = "<group>"; };
+		ED95DAEDDAA376AAA0990400 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F7F8A413349380F876B8505D /* WebAppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebAppView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		3D02E864780E9F0693168DA0 /* FitSupWatch */ = {
+			isa = PBXGroup;
+			children = (
+				ED95DAEDDAA376AAA0990400 /* Assets.xcassets */,
+				5AF876E05C8A6FB0475ED58E /* ContentView.swift */,
+				0C04F034BEF8CBE68DDA94E5 /* FitSupWatchApp.swift */,
+				91AEF5EE450CA24415C97FAE /* Info.plist */,
+				EB0670DEDF8F42C809715823 /* WatchModel.swift */,
+			);
+			path = FitSupWatch;
+			sourceTree = "<group>";
+		};
 		4E5D365A13F22A6E24440681 = {
 			isa = PBXGroup;
 			children = (
 				F53A4E559D67268C476012DA /* FitSup */,
 				9B725836D5B92329732EA0BF /* FitSupRest */,
+				3D02E864780E9F0693168DA0 /* FitSupWatch */,
 				B125FAA52E6684F2C442BFB3 /* Shared */,
 				D56EF3715E2BA0CEB48A76A0 /* Products */,
 			);
@@ -85,6 +129,7 @@
 			children = (
 				4BBB9421DD539ADE2EC861C5 /* FitSup.app */,
 				2F5761033999AC0868B2EA3C /* FitSupRest.appex */,
+				A39F345BE44EDD2B16F0F7A7 /* FitSupWatch.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -95,6 +140,7 @@
 				433C205B9D4025E3BAB67F92 /* Assets.xcassets */,
 				ECBF3388F6B374994D904B11 /* FitSupApp.swift */,
 				B9A2A0BE617777E0F6ECA9C1 /* Info.plist */,
+				9EFF49AFB23BDCA05BDFD9D4 /* WatchLink.swift */,
 				F7F8A413349380F876B8505D /* WebAppView.swift */,
 			);
 			path = FitSup;
@@ -103,6 +149,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		508E1DE2D2CF78F50380E970 /* FitSupWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 39F4699FAE4EA0C414C23FE6 /* Build configuration list for PBXNativeTarget "FitSupWatch" */;
+			buildPhases = (
+				CC0E5D1D60CC743C06D80C28 /* Sources */,
+				F16D1058EB6C9D1778F21683 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FitSupWatch;
+			packageProductDependencies = (
+			);
+			productName = FitSupWatch;
+			productReference = A39F345BE44EDD2B16F0F7A7 /* FitSupWatch.app */;
+			productType = "com.apple.product-type.application";
+		};
 		62384294763C8A0C5BB15CC4 /* FitSup */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = D350024697BAB614052BAC68 /* Build configuration list for PBXNativeTarget "FitSup" */;
@@ -110,11 +174,13 @@
 				766A5E2771A4F0C1C7A8F9A2 /* Sources */,
 				AEFF7EEC3D1B3C78BD02580F /* Resources */,
 				74ADF646131614067177FAD8 /* Embed Foundation Extensions */,
+				4195C6F5B7810257739D1BD2 /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				B6D561E5CD8798CDCB9A4147 /* PBXTargetDependency */,
+				8DF65184224F19F7CBC575BD /* PBXTargetDependency */,
 			);
 			name = FitSup;
 			packageProductDependencies = (
@@ -149,6 +215,10 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
+					508E1DE2D2CF78F50380E970 = {
+						DevelopmentTeam = 5BR937DR7G;
+						ProvisioningStyle = Automatic;
+					};
 					62384294763C8A0C5BB15CC4 = {
 						DevelopmentTeam = 5BR937DR7G;
 						ProvisioningStyle = Automatic;
@@ -175,6 +245,7 @@
 			targets = (
 				62384294763C8A0C5BB15CC4 /* FitSup */,
 				EA1C81850FCCCCBD8C67C5EB /* FitSupRest */,
+				508E1DE2D2CF78F50380E970 /* FitSupWatch */,
 			);
 		};
 /* End PBXProject section */
@@ -188,6 +259,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F16D1058EB6C9D1778F21683 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9D783A66849991D250654064 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -197,6 +276,7 @@
 			files = (
 				8EDEFE19752BF836F84C1AD9 /* FitSupApp.swift in Sources */,
 				B6D891A1F58DCCA865A09205 /* RestAttributes.swift in Sources */,
+				ECEED51379A136F47F08BE05 /* WatchLink.swift in Sources */,
 				DF979AD9EE0CAB4AFB3A969E /* WebAppView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -210,9 +290,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CC0E5D1D60CC743C06D80C28 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F34B3E30155315AD2C7FD9FD /* ContentView.swift in Sources */,
+				AFE4EA681114B9E3A4E7D7D4 /* FitSupWatchApp.swift in Sources */,
+				AEE696D86B28D59ECF094011 /* WatchModel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		8DF65184224F19F7CBC575BD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 508E1DE2D2CF78F50380E970 /* FitSupWatch */;
+			targetProxy = 7E6161EAB06E774DC9C5BA2D /* PBXContainerItemProxy */;
+		};
 		B6D561E5CD8798CDCB9A4147 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = EA1C81850FCCCCBD8C67C5EB /* FitSupRest */;
@@ -252,6 +347,30 @@
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
+		};
+		236C9D37EBA3B1A94C117A75 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = FitSupWatch/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = app.fitsuppliesios.watchkitapp;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+			};
+			name = Debug;
+		};
+		53B385B729F98C5C68CA7D31 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = FitSupWatch/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = app.fitsuppliesios.watchkitapp;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+			};
+			name = Release;
 		};
 		55C4860E6F6E401AED276449 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -306,10 +425,10 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
 			};
 			name = Release;
 		};
@@ -373,10 +492,10 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
 			};
 			name = Debug;
 		};
@@ -415,6 +534,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		39F4699FAE4EA0C414C23FE6 /* Build configuration list for PBXNativeTarget "FitSupWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				236C9D37EBA3B1A94C117A75 /* Debug */,
+				53B385B729F98C5C68CA7D31 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		A7B4869DE7AC099E769F1219 /* Build configuration list for PBXNativeTarget "FitSupRest" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
