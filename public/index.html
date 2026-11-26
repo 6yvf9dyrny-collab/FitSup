@@ -148,7 +148,7 @@ body.kb .rest.show{position:fixed;left:8px;right:8px;top:calc(var(--kbtop,0px) +
 .slot{display:grid;grid-template-columns:28px 1fr 1fr var(--hit);gap:var(--s2);align-items:center}
 .slot .sn{text-align:center;font-weight:700;color:var(--mute)}
 .slot input{width:100%;min-width:0;height:var(--hit);font-size:var(--t-in);text-align:center;border:1px solid var(--line);border-radius:var(--r);background:var(--bg);color:var(--ink)}
-.slot.cp input{color:var(--mute);font-style:italic}.cpall{margin:0 0 var(--s3)}.runb.old{border-color:var(--warn)}
+.slot.cp input{color:var(--mute);font-style:italic}.cpall{margin:0 0 var(--s3)}.ordman{margin:0 0 var(--s3)}.runb.old{border-color:var(--warn)}
 .accf .otp{font-size:28px;letter-spacing:.4em;text-align:center;font-variant-numeric:tabular-nums}
 .slot input::placeholder{color:var(--ink);opacity:.55}
 .slot .ok{width:var(--hit);height:var(--hit);border-radius:50%;border:2px solid var(--line);background:var(--card);color:var(--mute);font-size:20px;line-height:1;cursor:pointer;padding:0}
@@ -688,7 +688,7 @@ function putSession(o){SESS[o.id]=o;lsSet();syMark('w',o.id);return Promise.reso
 function delSession(id){delete SESS[id];lsSet();syMark('w',id)}
 function savePlans(){OVR=clone(PROGS);lsPlanSet();syMark('plan','all');if(window.renderSettings){renderSettings();ntApply()}}
 function resetPlans(){OVR=null;lsPlanSet();syMark('plan','all')}
-function afterPlanChange(){if(typeof renderSettings=='function')renderSettings();renderProg();renderTempi();refreshPlanUse();if(!dirty&&!editId)buildForm();renderReg();renderMobSug();renderMob()}
+function afterPlanChange(){if(typeof renderSettings=='function')renderSettings();renderProg();renderTempi();refreshPlanUse();if(!editId)buildForm();renderReg();renderMobSug();renderMob()}
 /* ---------- consigli: database esercizi e mobilità ---------- */
 function bestSession(p,g){
  var low=!!LOWER[g],best=0,bs=1e9;
@@ -1321,6 +1321,7 @@ function onFormClick(ev){
   document.querySelector('.exc[data-i="'+idx+'"]').scrollIntoView({block:'nearest',behavior:'smooth'});return}
  if(b=t.closest('[data-rmcard]')){var c5=document.querySelector('.exc[data-i="'+b.getAttribute('data-rmcard')+'"]');if(c5)c5.parentNode.removeChild(c5);dirty=true;msg('');return}
  if(b=t.closest('[data-copy]')){var i=+b.getAttribute('data-copy');copyLast(i);dirty=true;msg('Valori dell’ultima volta copiati: tocca ✓ a ogni serie fatta.');return}
+ if(t.closest('[data-ordreset]')){awSave();MANORD=false;if(AW){AW.man=0;awStore()}buildForm();msg('Ordine della scheda ripristinato.');return}
  if(t.closest('[data-copyall]')){var nc=0;[].forEach.call($('gForm').querySelectorAll('.exc'),function(c7){if(copyLast(+c7.getAttribute('data-i')))nc++});dirty=true;msg(nc?'Copiati i valori dell’ultima volta in '+nc+(nc==1?' esercizio':' esercizi')+': tocca ✓ a ogni serie fatta.':'Nessun esercizio ha dati della volta scorsa.');return}
  if(b=t.closest('[data-add]')){c=document.querySelector('.exc[data-i="'+b.getAttribute('data-add')+'"]');addSlot(c);dirty=true;updSum(+c.getAttribute('data-i'));var ins=c.querySelectorAll('.slot');ins[ins.length-1].querySelector('[data-w]').focus();return}
  if(b=t.closest('[data-rem]')){var i3=+b.getAttribute('data-rem');c=document.querySelector('.exc[data-i="'+i3+'"]');var ss=c.querySelectorAll('.slot'),lst=ss[ss.length-1];
@@ -1329,7 +1330,7 @@ function onFormClick(ev){
   lst.parentNode.removeChild(lst);msg('');dirty=true;updSum(i3);return}
  if(b=t.closest('[data-up]')||t.closest('[data-dn]')){c=b.closest('.exc');var up=!!t.closest('[data-up]');
   if(up){var pv=c.previousElementSibling;if(pv)c.parentNode.insertBefore(c,pv)}else{var nx2=c.nextElementSibling;if(nx2)c.parentNode.insertBefore(nx2,c)}
-  dirty=true;c.scrollIntoView({block:'nearest',behavior:'smooth'})}
+  dirty=true;MANORD=true;awSoon();c.scrollIntoView({block:'nearest',behavior:'smooth'})}
 }
 function planExIn(pid,bk){var p=prog(pid);if(!p)return null;for(var j=0;j<p.sessions.length;j++){var ex=p.sessions[j].ex;for(var q=0;q<ex.length;q++)if(norm(ex[q].name)==bk)return ex[q]}return null}
 function planEx(bk){for(var i=0;i<PROGS.length;i++)for(var j=0;j<PROGS[i].sessions.length;j++){var ex=PROGS[i].sessions[j].ex;for(var q=0;q<ex.length;q++)if(norm(ex[q].name)==bk)return ex[q]}return null}
@@ -1389,12 +1390,13 @@ function buildForm(){
  if(FORMLIVE)awSave();
  if(editId&&!SESS[editId])editId=null;
  var fromAw=!editId&&!!AW;
- if(fromAw){if(prog(AW.plan)){cur.plan=AW.plan;fillProgs();fillDays();var ss=sessionsOf(cur.plan);cur.idx=AW.idx<ss.length&&ss[AW.idx].label==AW.label?AW.idx:0;ss.forEach(function(x,q){if(x.label==AW.label)cur.idx=q});$('gDay').value=cur.idx}
+ if(fromAw){awAlign();MANORD=!!AW.man;if(prog(AW.plan)){cur.plan=AW.plan;fillProgs();fillDays();var ss=sessionsOf(cur.plan);cur.idx=AW.idx<ss.length&&ss[AW.idx].label==AW.label?AW.idx:0;ss.forEach(function(x,q){if(x.label==AW.label)cur.idx=q});$('gDay').value=cur.idx}
   if(AW.date){cur.date=AW.date;$('gDate').value=cur.date}
   LIVE={plan:AW.plan,label:AW.label,pn:AW.pn};ITEMS=awItems();dirty=true}
  else{ITEMS=buildItems();if(!editId){var s0=sessionsOf(cur.plan)[cur.idx],p0=prog(cur.plan);LIVE={plan:cur.plan,label:s0?s0.label:'',pn:p0?p0.name:''}}}
  FORMLIVE=!editId;LASTV=[];var h='';
  ITEMS.forEach(function(it,i){h+=cardHtml(i,fromAw?it.open:(!!editId||i==0))});
+ if(h&&fromAw&&MANORD)h='<div class="ordman tg">Hai cambiato a mano l’ordine degli esercizi. <button class="linkb" type="button" data-ordreset="1">Rimetti l’ordine della scheda</button></div>'+h;
  if(h&&!editId&&LASTV.some(function(x){return x&&x.length}))h='<div class="cpall"><button class="btns" type="button" data-copyall="1">Ricopia l’ultima volta in tutti gli esercizi</button></div>'+h;
  $('gForm').innerHTML=h||(PROGS.length?'<p class="tg">Nessun esercizio in questa seduta: aggiungili dalla sezione Scheda.</p>':'<p>Per iniziare crea il tuo primo programma nella sezione <b>Scheda</b>: qui troverai gli esercizi già pronti da compilare.</p>');
  ITEMS.forEach(function(it,i){updSum(i);updMu(i)});
@@ -1451,7 +1453,7 @@ function startEdit(id){
      items:[{base, bk, sr, vr, vars, mu, dup, open, slots:[{w, r, done}]}]}
    Si aggiorna a ogni serie e resta finché non premi «Salva allenamento» o «Svuota il modulo».
    Se cambi sezione, modifichi un vecchio allenamento, chiudi l'app o si spegne il telefono, rimane congelata e riparte da dove eri. */
-var AWKEY='nu_attivo_v1',AW=null,FORMLIVE=false,LIVE=null,AWT=0,TABNOW='';
+var MANORD=false,AWKEY='nu_attivo_v1',AW=null,FORMLIVE=false,LIVE=null,AWT=0,TABNOW='';
 function awLoad(){try{var o=JSON.parse(localStorage.getItem(AWKEY)||'null');AW=o&&o.v==1&&Array.isArray(o.items)?o:null}catch(e){AW=null}}
 function awStore(){try{if(AW)localStorage.setItem(AWKEY,JSON.stringify(AW));else localStorage.removeItem(AWKEY)}catch(e){}}
 function awCount(a){var d=0,n=0;a.items.forEach(function(it){it.slots.forEach(function(s){n++;if(s.done)d++})});return {d:d,n:n}}
@@ -1462,12 +1464,26 @@ function awSnap(){
   var sl=[];[].forEach.call(c.querySelectorAll('.slot'),function(x){var cp=x.classList.contains('cp')&&!x.classList.contains('done');sl.push({w:cp?'':x.querySelector('[data-w]').value.trim(),r:cp?'':x.querySelector('[data-r]').value.trim(),done:x.classList.contains('done')})});
   items.push({base:it.base,bk:it.bk,sr:it.sr,vr:it.vr,vars:it.vars,mu:it.mu,dup:!!it.dup,open:!!c.open,slots:sl})});
  var L0=LIVE||{};
- return {v:1,plan:L0.plan||cur.plan,idx:cur.idx,label:L0.label||'',pn:L0.pn||'',date:cur.date,started:AW&&AW.started||Date.now(),upd:Date.now(),rest:REST.t?REST.end:0,items:items};
+ return {v:1,man:MANORD?1:0,plan:L0.plan||cur.plan,idx:cur.idx,label:L0.label||'',pn:L0.pn||'',date:cur.date,started:AW&&AW.started||Date.now(),upd:Date.now(),rest:REST.t?REST.end:0,items:items};
 }
 /* salva subito la fotografia del modulo, solo se sullo schermo c'è l'allenamento in corso (non una modifica) */
 function awSave(){clearTimeout(AWT);AWT=0;if(!FORMLIVE||!$('gForm'))return;var a=awSnap();AW=awAny(a)?a:null;awStore();awBar()}
 function awSoon(){if(!FORMLIVE)return;clearTimeout(AWT);AWT=setTimeout(awSave,300)}
-function awReset(){clearTimeout(AWT);AWT=0;AW=null;awStore();FORMLIVE=false;dirty=false;stopRest();awBar()}
+function awReset(){clearTimeout(AWT);AWT=0;AW=null;MANORD=false;awStore();FORMLIVE=false;dirty=false;stopRest();awBar()}
+/* ordine certosino: la bozza segue sempre l'ordine del giorno in Scheda.
+   Esercizi aggiunti in Scheda entrano vuoti al loro posto; quelli tolti restano in fondo solo se hanno serie.
+   Le varianti aggiunte in Oggi stanno subito dopo il loro esercizio. Se hai spostato gli esercizi a mano (↑ ↓ in Oggi) si rispetta la tua scelta. */
+function awAlign(){if(!AW||AW.man)return false;var p=prog(AW.plan);if(!p)return false;var s=null;
+ p.sessions.forEach(function(x){if(!s&&x.label==AW.label)s=x});if(!s&&p.sessions[AW.idx]){s=p.sessions[AW.idx];AW.label=s.label}if(!s)return false;
+ var left=AW.items.slice(),out=[],seen={},before=AW.items.map(function(x){return x.bk+'|'+x.vr}).join(',');
+ s.ex.forEach(function(e){var bk=norm(e.name);if(!bk||seen[bk])return;seen[bk]=1;
+  var mine=left.filter(function(x){return x.bk==bk});left=left.filter(function(x){return x.bk!=bk});
+  mine.sort(function(a,b){return (a.dup?1:0)-(b.dup?1:0)});
+  if(!mine.length){var n=slots(e.sr),sl=[];for(var q=0;q<n;q++)sl.push({w:'',r:'',done:false});mine=[{base:e.name,bk:bk,sr:e.sr,vr:'',vars:e.vars||[],mu:e.mu||guess(e.name),dup:false,open:false,slots:sl}]}
+  else mine.forEach(function(x){x.sr=e.sr;x.vars=e.vars||[];if(!x.dup)x.base=e.name});
+  out=out.concat(mine)});
+ left.forEach(function(x){if(x.slots.some(function(t){return t.done||t.w||t.r}))out.push(x)});
+ AW.items=out;awStore();return out.map(function(x){return x.bk+'|'+x.vr}).join(',')!=before}
 function awItems(){return AW.items.map(function(x){return {base:x.base,bk:x.bk,sr:x.sr,vr:x.vr||'',vars:x.vars||[],mu:x.mu,dup:!!x.dup,open:!!x.open,ns:x.slots.length,sets:x.slots.map(function(s){return {w:s.w,r:s.r,done:!!s.done}})}})}
 /* chiede conferma prima di un'azione che cancellerebbe l'allenamento in corso */
 function awGuard(fn,what){
