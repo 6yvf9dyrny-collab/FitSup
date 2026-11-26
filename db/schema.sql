@@ -2,9 +2,18 @@
 
 -- Utenti. Accesso con email e password (password mai salvata in chiaro: PBKDF2 con sale),
 -- in futuro anche con Google (google_sub).
+-- Email protette (quando EMAIL_PEPPER ed EMAIL_KEY sono impostati nell'ambiente):
+--   email      = 'h:' + impronta (mai l'email in chiaro)
+--   email_hash = HMAC-SHA256(EMAIL_PEPPER, email in minuscolo), per cercare l'utente
+--   email_enc  = AES-256-GCM(EMAIL_KEY, email), decifrata solo per mandare un codice o mostrarla all'utente
+--   verified   = 0 finché l'email non è confermata col codice (account esistenti: 1)
+-- Le colonne nuove e la conversione degli account esistenti le fa l'API da sola (migrateEmails).
 CREATE TABLE IF NOT EXISTS users (
   id         TEXT PRIMARY KEY,
   email      TEXT NOT NULL UNIQUE,
+  email_hash TEXT,
+  email_enc  TEXT,
+  verified   INTEGER NOT NULL DEFAULT 1,
   name       TEXT,
   pass_hash  TEXT,
   pass_salt  TEXT,
@@ -55,3 +64,16 @@ CREATE TABLE IF NOT EXISTS docs (
   PRIMARY KEY (user_id, kind, id)
 );
 CREATE INDEX IF NOT EXISTS docs_sync ON docs(user_id, updated_at);
+CREATE UNIQUE INDEX IF NOT EXISTS users_email_hash ON users(email_hash);
+
+-- Codici a 6 cifre mandati per email: purpose = 'verify' (conferma account) | 'reset' (nuova password).
+-- Si salva solo l'impronta (HMAC), scadenza 15 minuti, al massimo 5 tentativi, nuovo invio dopo 60 secondi.
+CREATE TABLE IF NOT EXISTS codes (
+  email_hash TEXT NOT NULL,
+  purpose    TEXT NOT NULL,
+  code_hash  TEXT NOT NULL,
+  expires_at INTEGER NOT NULL,
+  tries      INTEGER NOT NULL DEFAULT 0,
+  sent_at    INTEGER NOT NULL,
+  PRIMARY KEY (email_hash, purpose)
+);

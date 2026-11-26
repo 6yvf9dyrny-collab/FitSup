@@ -149,6 +149,7 @@ body.kb .rest.show{position:fixed;left:8px;right:8px;top:calc(var(--kbtop,0px) +
 .slot .sn{text-align:center;font-weight:700;color:var(--mute)}
 .slot input{width:100%;min-width:0;height:var(--hit);font-size:var(--t-in);text-align:center;border:1px solid var(--line);border-radius:var(--r);background:var(--bg);color:var(--ink)}
 .slot.cp input{color:var(--mute);font-style:italic}.cpall{margin:0 0 var(--s3)}.runb.old{border-color:var(--warn)}
+.accf .otp{font-size:28px;letter-spacing:.4em;text-align:center;font-variant-numeric:tabular-nums}
 .slot input::placeholder{color:var(--ink);opacity:.55}
 .slot .ok{width:var(--hit);height:var(--hit);border-radius:50%;border:2px solid var(--line);background:var(--card);color:var(--mute);font-size:20px;line-height:1;cursor:pointer;padding:0}
 .slot.done .ok{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
@@ -299,6 +300,9 @@ input[type=file]{min-height:var(--hit);font-size:var(--t-in);max-width:100%}
 .exe label{display:flex;flex-direction:column;gap:var(--s1);font-size:var(--t-s);color:var(--mute);min-width:0}
 .exe input,.exe select{min-height:var(--hit);font-size:var(--t-in);padding:0 var(--s2);border:1px solid var(--line);border-radius:var(--r);background:var(--card);color:var(--ink);width:100%;min-width:0}
 .exe .row2{display:grid;grid-template-columns:1fr 1.4fr;gap:var(--s2)}
+/* il Peso ha accanto unità e tasto →: su telefono va su una riga intera, altrimenti il numero non si vede */
+.exe .row2{grid-template-columns:1fr}@media (min-width:700px){.exe .row2{grid-template-columns:1.4fr 1fr}}
+.exe .wun{display:flex;gap:6px;align-items:stretch}.exe .wun input{flex:1 1 auto;width:auto;min-width:90px;font-variant-numeric:tabular-nums;padding-left:10px;padding-right:10px}.exe .wun select{flex:0 0 76px;width:76px!important;min-width:0}.exe .wun .wto{flex:0 0 44px}
 .vdet>summary{cursor:pointer;color:var(--acc);font-size:var(--t-s);font-weight:600;min-height:32px;display:flex;align-items:center}
 .exe .rc{display:flex;gap:var(--s2)}.exe .rc button{flex:1;margin:0}
 .dang{color:var(--bad);border-color:var(--bad)}
@@ -1885,7 +1889,7 @@ function syDoc(key){var k=key.split(':')[0],id=key.slice(k.length+1);
  return null}
 function api(path,opt){opt=opt||{};var h={'Content-Type':'application/json'};if(AUTH&&AUTH.token)h.Authorization='Bearer '+AUTH.token;
  return fetch(API+path,{method:opt.method||'GET',headers:h,body:opt.body?JSON.stringify(opt.body):undefined}).then(function(r){
-  return r.json().catch(function(){return {}}).then(function(j){if(r.status==401&&AUTH&&path.indexOf('/auth/')!==0){AUTH=null;authSave();SYMSG='Sessione scaduta: accedi di nuovo.';renderAcc()}if(!r.ok)throw new Error(j.error||('Errore '+r.status));return j})})}
+  return r.json().catch(function(){return {}}).then(function(j){if(r.status==401&&AUTH&&path.indexOf('/auth/')!==0){AUTH=null;authSave();SYMSG='Sessione scaduta: accedi di nuovo.';renderAcc()}if(!r.ok){var er=new Error(j.error||('Errore '+r.status));er.data=j;er.status=r.status;throw er}return j})})}
 function syFlush(){
  if(!AUTH||SYBUSY||!navigator.onLine)return Promise.resolve();
  var keys=Object.keys(SYNC.q);if(!keys.length)return Promise.resolve();
@@ -1932,31 +1936,42 @@ function gisLoad(cb){
  if(GIS)return;GIS=1;var s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;
  s.onload=function(){GIS=2;cb()};s.onerror=function(){GIS=0};document.head.appendChild(s)}
 /* schermate: accedi, crea account, password dimenticata */
-var ACCV={m:'in',busy:false,rec:''};
+var ACCV={m:'in',busy:false,rec:'',email:'',sent:0,info:''};
+/* secondi prima di poter chiedere un altro codice */
+function codeWait(){return Math.max(0,60-Math.floor((Date.now()-ACCV.sent)/1000))}
+setInterval(function(){var b=document.querySelector('[data-acc="resend"]');if(!b)return;var w=codeWait();b.disabled=w>0;b.textContent=w>0?'Invia di nuovo il codice ('+w+' s)':'Invia di nuovo il codice'},1000);
 function recHtml(){return ACCV.rec?'<div class="recbox"><b>Il tuo codice di recupero</b><p class="tg">Serve se dimentichi la password. Salvalo adesso (note, foto, gestore password): non verrà più mostrato.</p><code id="recC">'+esc(ACCV.rec)+'</code><div class="ptool"><button class="btns" type="button" data-acc="reccopy">Copia</button><button class="btnp" type="button" data-acc="recok">L’ho salvato, entra</button></div></div>':''}
 function locked(){return !AUTH||!!ACCV.rec}
+/* modi: in accedi · up crea account · code conferma email · rs password dimenticata (email) · rs2 codice + nuova password · rec codice di recupero */
 function formHtml(){
- var m=ACCV.m,ttl={in:'Accedi',up:'Crea account',rs:'Imposta la nuova password'}[m];
- return (m=='rs'?'<p class="gstep"><b>Password dimenticata</b><br><span class="tg">Usa il codice di recupero che hai salvato quando hai creato l’account.</span></p>'
-   :'<div class="seg"><button type="button" data-accm="in"'+(m=='in'?' class="on"':'')+'>Accedi</button><button type="button" data-accm="up"'+(m=='up'?' class="on"':'')+'>Crea account</button></div>')
+ var m=ACCV.m,ttl={in:'Accedi',up:'Crea account',code:'Conferma',rs:'Mandami il codice',rs2:'Imposta la nuova password',rec:'Imposta la nuova password'}[m],w=codeWait(),
+  head={code:'<p class="gstep"><b>Conferma la tua email</b><br><span class="tg">Ti abbiamo mandato un codice di 6 cifre a <b>'+esc(ACCV.email)+'</b>. Scade tra 15 minuti; guarda anche nella posta indesiderata.</span></p>',
+   rs:'<p class="gstep"><b>Password dimenticata</b><br><span class="tg">Scrivi l’email dell’account: ti mandiamo un codice per impostare una nuova password.</span></p>',
+   rs2:'<p class="gstep"><b>Nuova password</b><br><span class="tg">'+esc(ACCV.info||'Se l’email è registrata, riceverai un codice di 6 cifre.')+'</span></p>',
+   rec:'<p class="gstep"><b>Password dimenticata</b><br><span class="tg">Usa il codice di recupero che hai salvato quando hai creato l’account.</span></p>'}[m];
+ return (head||'<div class="seg"><button type="button" data-accm="in"'+(m=='in'?' class="on"':'')+'>Accedi</button><button type="button" data-accm="up"'+(m=='up'?' class="on"':'')+'>Crea account</button></div>')
   +'<form class="accf" id="accF" novalidate>'
   +(m=='up'?'<label class="cfl">Nome (facoltativo)<input id="aN" autocomplete="name" maxlength="80"></label>':'')
-  +'<label class="cfl">Email<input id="aE" type="email" inputmode="email" autocomplete="'+(m=='up'?'email':'username')+'" required></label>'
-  +(m=='rs'?'<label class="cfl">Codice di recupero<input id="aC" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX-XXXX-XXXX"></label>':'')
-  +'<label class="cfl">'+(m=='rs'?'Nuova password':'Password')+'<input id="aP" type="password" autocomplete="'+(m=='in'?'current-password':'new-password')+'" minlength="8" required></label>'
-  +(m!='in'?'<p class="tg">Almeno 8 caratteri.</p>':'')
+  +(m=='code'||m=='rs2'?'':'<label class="cfl">Email<input id="aE" type="email" inputmode="email" autocomplete="'+(m=='up'?'email':'username')+'" required value="'+esc(ACCV.email)+'"></label>')
+  +(m=='code'||m=='rs2'?'<label class="cfl">Codice di 6 cifre<input id="aC" class="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*" placeholder="000000"></label>':'')
+  +(m=='rec'?'<label class="cfl">Codice di recupero<input id="aC" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX-XXXX-XXXX"></label>':'')
+  +(m=='code'||m=='rs'?'':'<label class="cfl">'+(m=='rs2'||m=='rec'?'Nuova password':'Password')+'<input id="aP" type="password" autocomplete="'+(m=='in'?'current-password':'new-password')+'" minlength="8" required></label>')
+  +(m=='up'||m=='rs2'||m=='rec'?'<p class="tg">Almeno 8 caratteri.</p>':'')
   +(SYMSG?'<p class="warn" role="alert">'+esc(SYMSG)+'</p>':'')
   +(!navigator.onLine?'<p class="warn">Sei offline: per entrare la prima volta serve la connessione.</p>':'')
   +'<button class="btnp btnw" type="submit"'+(ACCV.busy?' disabled':'')+'>'+(ACCV.busy?'Attendi…':ttl)+'</button></form>'
-  +(m=='in'?'<p class="gcenter"><button class="linkb" type="button" data-accm="rs">Password dimenticata?</button></p>':m=='rs'?'<p class="gcenter"><button class="linkb" type="button" data-accm="in">Torna all’accesso</button></p>':'')
+  +(m=='code'||m=='rs2'?'<p class="gcenter"><button class="btns" type="button" data-acc="resend"'+(w>0?' disabled':'')+'>Invia di nuovo il codice'+(w>0?' ('+w+' s)':'')+'</button></p>':'')
+  +(m=='in'?'<p class="gcenter"><button class="linkb" type="button" data-accm="rs">Password dimenticata?</button></p>'
+   :m=='rs'||m=='rs2'?'<p class="gcenter"><button class="linkb" type="button" data-accm="rec">Ho il codice di recupero</button> · <button class="linkb" type="button" data-accm="in">Torna all’accesso</button></p>'
+   :m=='rec'||m=='code'?'<p class="gcenter"><button class="linkb" type="button" data-accm="in">Torna all’accesso</button></p>':'')
   +(GCID?'<div id="gBtn" class="gbtn"></div>':'')
-  +'<p class="tg gnote">Salviamo email, nome se lo scrivi e i dati che inserisci nell’app, su server Cloudflare in Europa. Puoi cancellare tutto quando vuoi da Impostazioni → Account.</p>'}
+  +'<p class="tg gnote">Salviamo la tua email cifrata, il nome se lo scrivi e i dati che inserisci nell’app, su server Cloudflare in Europa. Puoi cancellare tutto quando vuoi da Impostazioni → Account.</p>'}
 function renderAcc(){
  var lock=locked(),was=document.documentElement.classList.contains('locked');
  document.documentElement.classList.toggle('locked',lock);
  var g=$('gateBox'),host=$('accBox');
  if(g){
-  if(lock){g.innerHTML=AUTH?recHtml():formHtml();
+  if(lock){g.innerHTML=AUTH?recHtml():formHtml();var oc=$('aC');if(oc&&oc.classList.contains('otp'))setTimeout(function(){try{oc.focus()}catch(e){}},50);
    var f=$('accF');if(f)f.addEventListener('submit',function(ev){ev.preventDefault();accSubmit()});
    if(!AUTH&&GCID&&navigator.onLine)gisLoad(function(){try{google.accounts.id.initialize({client_id:GCID,callback:onGoogle,ux_mode:'popup',itp_support:true});
     var b=$('gBtn');if(b)google.accounts.id.renderButton(b,{theme:'outline',size:'large',text:'signin_with',shape:'pill',locale:'it'})}catch(e){}})}
@@ -1982,16 +1997,28 @@ function wipeLocal(msg){
 function accSubmit(){
  if(ACCV.busy)return;
  if(!navigator.onLine){SYMSG='Serve la connessione per accedere.';renderAcc();return}
- var m=ACCV.m,e=$('aE').value.trim(),p=$('aP').value,b={email:e,password:p},path={in:'/auth/login',up:'/auth/register',rs:'/auth/reset'}[m];
- if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e)){SYMSG='Scrivi un’email valida.';renderAcc();$('aE').value=e;return}
- if(m!='in'&&p.length<8){SYMSG='La password deve avere almeno 8 caratteri.';renderAcc();$('aE').value=e;return}
+ var m=ACCV.m,eI=$('aE'),pI=$('aP'),cI=$('aC'),e=eI?eI.value.trim().toLowerCase():ACCV.email,p=pI?pI.value:'',c=cI?cI.value.trim():'',b={email:e};
+ function fail(t){SYMSG=t;renderAcc();var f=$('aE');if(f)f.value=e}
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e)){fail('Scrivi un’email valida.');return}
+ if((m=='up'||m=='rs2'||m=='rec')&&p.length<8){fail('La password deve avere almeno 8 caratteri.');return}
+ if((m=='code'||m=='rs2')&&!/^\d{6}$/.test(c.replace(/\s/g,''))){fail('Il codice ha 6 cifre.');return}
+ if(m=='rec'&&!c){fail('Scrivi il codice di recupero.');return}
+ var path={in:'/auth/login',up:'/auth/register',code:'/auth/verify',rs:'/auth/forgot',rs2:'/auth/reset',rec:'/auth/reset'}[m];
+ if(m!='code'&&m!='rs')b.password=p;
  if(m=='up')b.name=$('aN').value.trim();
- if(m=='rs')b.code=$('aC').value.trim();
- ACCV.busy=true;SYMSG='';renderAcc();
- api(path,{method:'POST',body:b}).then(signedIn).catch(function(err){ACCV.busy=false;SYMSG=err.message;renderAcc();var f=$('aE');if(f)f.value=e})}
+ if(m=='code'||m=='rs2'||m=='rec')b.code=c;
+ ACCV.busy=true;ACCV.email=e;SYMSG='';renderAcc();
+ api(path,{method:'POST',body:b}).then(function(j){ACCV.busy=false;
+   if(j.pending){ACCV.m='code';ACCV.sent=Date.now();renderAcc();return}
+   if(m=='rs'){if(j.mail===false){ACCV.m='rec';SYMSG='';renderAcc();return}ACCV.m='rs2';ACCV.sent=Date.now();ACCV.info='Se l’email '+e+' è registrata, ti abbiamo mandato un codice di 6 cifre. Scade tra 15 minuti.';renderAcc();return}
+   return signedIn(j)})
+  .catch(function(err){ACCV.busy=false;
+   if(err.data&&err.data.unverified){ACCV.m='code';ACCV.sent=Date.now();SYMSG='';renderAcc();return}
+   fail(err.message)})}
 function onAcc(ev){var b;
- if(b=ev.target.closest('[data-accm]')){ACCV.m=b.getAttribute('data-accm');SYMSG='';renderAcc();return}
+ if(b=ev.target.closest('[data-accm]')){var ef=$('aE');if(ef&&ef.value.trim())ACCV.email=ef.value.trim().toLowerCase();ACCV.m=b.getAttribute('data-accm');SYMSG='';renderAcc();return}
  b=ev.target.closest('[data-acc]');if(!b)return;var a=b.getAttribute('data-acc');
+ if(a=='resend'){if(codeWait()>0)return;ACCV.sent=Date.now();renderAcc();api('/auth/resend',{method:'POST',body:{email:ACCV.email,purpose:ACCV.m=='rs2'?'reset':'verify'}}).then(function(){SYMSG='Nuovo codice inviato: usa l’ultimo che ricevi.';renderAcc()}).catch(function(e){SYMSG=e.message;renderAcc()});return}
  if(a=='reccopy'){copyText(ACCV.rec,function(ok){b.textContent=ok?'Copiato':'Copia non riuscita'});return}
  if(a=='recok'){ACCV.rec='';renderAcc();return}
  if(a=='sync'){SYMSG='';renderAcc();syAll();return}

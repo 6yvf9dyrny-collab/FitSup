@@ -9,3 +9,4 @@ research/
 .hyperresearch/
 .claude/skills/hyperresearch*/
 dist/
+.dev.vars
